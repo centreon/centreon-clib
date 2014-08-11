@@ -30,56 +30,56 @@ using namespace com::centreon::misc;
 /**
  *  Default constructor.
  */
-get_options::get_options() {
-
-}
+get_options::get_options() {}
 
 /**
- *  Default copy constructor.
+ *  Copy constructor.
  *
- *  @param[in] right  The object to copy.
+ *  @param[in] other  The object to copy.
  */
-get_options::get_options(get_options const& right) {
-  _internal_copy(right);
+get_options::get_options(get_options const& other) {
+  _internal_copy(other);
 }
 
 /**
- *  Default destructor.
+ *  Destructor.
  */
-get_options::~get_options() throw () {
-
-}
+get_options::~get_options() throw () {}
 
 /**
- *  Default copy operator.
+ *  Assignment operator.
  *
- *  @param[in] right  The object to copy.
+ *  @param[in] other  The object to copy.
+ *
+ *  @return This object.
  */
-get_options& get_options::operator=(get_options const& right) {
-  return (_internal_copy(right));
+get_options& get_options::operator=(get_options const& other) {
+  if (this != &other)
+    _internal_copy(other);
+  return (*this);
 }
 
 /**
- *  Default equal operator.
+ *  Equality operator.
  *
- *  @param[in] right  The object to compare.
+ *  @param[in] other  The object to compare.
  *
  *  @return True if equal, otherwise false.
  */
-bool get_options::operator==(get_options const& right) const throw () {
-  return (_arguments == right._arguments
-          && _parameters == right._parameters);
+bool get_options::operator==(get_options const& other) const throw () {
+  return (_arguments == other._arguments
+          && _parameters == other._parameters);
 }
 
 /**
  *  Default not equal operator.
  *
- *  @param[in] right  The object to compare.
+ *  @param[in] other  The object to compare.
  *
  *  @return True if not equal, otherwise false.
  */
-bool get_options::operator!=(get_options const& right) const throw () {
-  return (!operator==(right));
+bool get_options::operator!=(get_options const& other) const throw () {
+  return (!operator==(other));
 }
 
 /**
@@ -219,15 +219,13 @@ void get_options::print_usage() const {
 /**
  *  Internal copy.
  *
- *  @param[in] right  The object to copy.
+ *  @param[in] other  The object to copy.
  *
  *  @return This object.
  */
-get_options& get_options::_internal_copy(get_options const& right) {
-  if (this != &right) {
-    _arguments = right._arguments;
-  }
-  return (*this);
+void get_options::_internal_copy(get_options const& other) {
+  _arguments = other._arguments;
+  return ;
 }
 
 /**
@@ -301,6 +299,8 @@ void get_options::_parse_arguments(std::vector<std::string> const& args) {
       else
         arg->add_value(*it);
     }
+    else
+      arg->add_value("");
     ++it;
   }
 

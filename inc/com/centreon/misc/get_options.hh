@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Merethis
+** Copyright 2011-2014 Merethis
 **
 ** This file is part of Centreon Clib.
 **
@@ -59,7 +59,7 @@ namespace               misc {
     void                print_usage() const;
 
   protected:
-    get_options&        _internal_copy(get_options const& right);
+    void                _internal_copy(get_options const& right);
     void                _parse_arguments(int argc, char** argv);
     void                _parse_arguments(std::string const& command_line);
     virtual void        _parse_arguments(std::vector<std::string> const& args);
