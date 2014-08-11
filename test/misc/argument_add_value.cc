@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Merethis
+** Copyright 2011-2014 Merethis
 **
 ** This file is part of Centreon Clib.
 **
@@ -26,17 +26,21 @@
 using namespace com::centreon::misc;
 
 /**
- *  Check the set is set.
+ *  Check the add value.
  *
  *  @return 0 on success.
  */
 int main() {
   try {
-    bool is_set(true);
+    std::string value1("help:\n --help,  -h  this help.");
+    std::string value2("debug:\n --debug, -d  debug flag.");
     argument arg;
-    arg.set_is_set(is_set);
-    if (arg.get_is_set() != is_set)
-      throw (basic_error() << "invalid is set");
+    arg.add_value(value1);
+    arg.add_value(value2);
+    if ((arg.get_values().size() != 2)
+        || (*arg.get_values().begin() != value1)
+        || (*++arg.get_values().begin() != value2))
+      throw (basic_error() << "invalid value");
   }
   catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;

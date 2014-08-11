@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Merethis
+** Copyright 2011-2014 Merethis
 **
 ** This file is part of Centreon Clib.
 **
@@ -26,80 +26,80 @@ using namespace com::centreon::misc;
 /**
  *  Default constructor.
  *
- *  @param[in] long_name  Argument's long name.
- *  @param[in] name       Argument's name.
- *  @param[in] has_value  Argument need a value.
- *  @param[in] is_set     Argument is set by default.
- *  @param[in] value      The default value.
+ *  @param[in] long_name    Argument's long name.
+ *  @param[in] name         Argument's name.
+ *  @param[in] description  Argument's description.
+ *  @param[in] has_value    Argument need one or multiple values.
  */
 argument::argument(
             std::string const& long_name,
             char name,
             std::string const& description,
-            bool has_value,
-            bool is_set,
-            std::string const& value)
+            argument::value_number has_value)
   : _description(description),
-    _is_set(is_set),
     _has_value(has_value),
     _long_name(long_name),
-    _name(name),
-    _value(value) {
-
-}
+    _name(name) {}
 
 /**
- *  Default copy constructor.
+ *  Copy constructor.
  *
- *  @param[in] right  The object to copy.
+ *  @param[in] other  The object to copy.
  */
-argument::argument(argument const& right) {
-  _internal_copy(right);
+argument::argument(argument const& other) {
+  _internal_copy(other);
 }
 
 /**
- *  Default destructor.
+ *  Destructor.
  */
-argument::~argument() throw () {
-
-}
+argument::~argument() throw () {}
 
 /**
- *  Default copy operator.
+ *  Assignment operator.
  *
- *  @param[in] right  The object to copy.
+ *  @param[in] other  The object to copy.
  *
  *  @return This object.
  */
-argument& argument::operator=(argument const& right) {
-  return (_internal_copy(right));
+argument& argument::operator=(argument const& other) {
+  return (_internal_copy(other));
 }
 
 /**
  *  Equal operator.
  *
- *  @param[in] right The object to compare.
+ *  @param[in] other  The object to compare.
  *
  *  @return Tue if objects are equal, otherwise false.
  */
-bool argument::operator==(argument const& right) const throw () {
-  return (_name == right._name
-          && _long_name == right._long_name
-          && _value == right._value
-          && _is_set == right._is_set
-          && _has_value == right._has_value
-          && _description == right._description);
+bool argument::operator==(argument const& other) const throw () {
+  return (_name == other._name
+          && _long_name == other._long_name
+          && _values == other._values
+          && _has_value == other._has_value
+          && _description == other._description);
 }
 
 /**
  *  Not equal operator.
  *
- *  @param[in] right The object to compare.
+ *  @param[in] other  The object to compare.
  *
  *  @return True if objects are different, otherwise false.
  */
-bool argument::operator!=(argument const& right) const throw () {
-  return (!operator==(right));
+bool argument::operator!=(argument const& other) const throw () {
+  return (!operator==(other));
+}
+
+/**
+ *  Add value to argument.
+ *
+ *  @param[in] value  New value.
+ */
+void argument::add_value(std::string const& value) {
+  _values.push_back(value);
+  return ;
 }
 
 /**
@@ -112,20 +112,11 @@ std::string const& argument::get_description() const throw () {
 }
 
 /**
- *  Get if argument is set.
- *
- *  @return True if argument is set.
- */
-bool argument::get_is_set() const throw () {
-  return (_is_set);
-}
-
-/**
  *  Get if argument need to has value.
  *
- *  @return True if argument need a value, otherwise false.
+ *  @return Number of arguments allowed.
  */
-bool argument::get_has_value() const throw () {
+argument::value_number argument::get_has_value() const throw () {
   return (_has_value);
 }
 
@@ -148,12 +139,21 @@ char argument::get_name() const throw () {
 }
 
 /**
- *  Get the value.
+ *  Get the values.
  *
- *  @return The value.
+ *  @return The values.
  */
-std::string const& argument::get_value() const throw () {
-  return (_value);
+std::list<std::string> const& argument::get_values() const throw () {
+  return (_values);
+}
+
+/**
+ *  Get if argument is set.
+ *
+ *  @return True if argument is set.
+ */
+bool argument::is_set() const throw () {
+  return (!_values.empty());
 }
 
 /**
@@ -166,20 +166,11 @@ void argument::set_description(std::string const& description) {
 }
 
 /**
- *  Set is the argument is set.
- *
- *  @param[in] val  True if the argument is set.
- */
-void argument::set_is_set(bool val) throw () {
-  _is_set = val;
-}
-
-/**
  *  Set is the argument need a value.
  *
- *  @param[in] val  True if the argument need a value.
+ *  @param[in] val  Number of arguments allowed.
  */
-void argument::set_has_value(bool val) throw () {
+void argument::set_has_value(argument::value_number val) throw () {
   _has_value = val;
 }
 
@@ -202,29 +193,19 @@ void argument::set_name(char name) {
 }
 
 /**
- *  Set the value of the argument.
- *
- *  @param[in] value  The value.
- */
-void argument::set_value(std::string const& value) {
-  _value = value;
-}
-
-/**
  *  Internal copy.
  *
- *  @param[in] right  The object to copy.
+ *  @param[in] other  The object to copy.
  *
  *  @return This object.
  */
-argument& argument::_internal_copy(argument const& right) {
-  if (this != &right) {
-    _description = right._description;
-    _is_set = right._is_set;
-    _has_value = right._has_value;
-    _long_name = right._long_name;
-    _name = right._name;
-    _value = right._value;
+argument& argument::_internal_copy(argument const& other) {
+  if (this != &other) {
+    _description = other._description;
+    _has_value = other._has_value;
+    _long_name = other._long_name;
+    _name = other._name;
+    _values = other._values;
   }
   return (*this);
 }

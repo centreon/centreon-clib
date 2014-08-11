@@ -1,5 +1,5 @@
 ##
-## Copyright 2011-2013 Merethis
+## Copyright 2011-2014 Merethis
 ##
 ## This file is part of Centreon Clib.
 ##
@@ -51,12 +51,6 @@ add_executable("${TEST_NAME}" "${TEST_DIR}/${TEST_NAME}.cc")
 target_link_libraries("${TEST_NAME}" "${DEFAULT_LINK_NAME}")
 add_test("${TEST_NAME}" "${TEST_NAME}")
 
-# argument_set_is_set
-set(TEST_NAME "argument_set_is_set")
-add_executable("${TEST_NAME}" "${TEST_DIR}/${TEST_NAME}.cc")
-target_link_libraries("${TEST_NAME}" "${DEFAULT_LINK_NAME}")
-add_test("${TEST_NAME}" "${TEST_NAME}")
-
 # argument_set_has_value
 set(TEST_NAME "argument_set_has_value")
 add_executable("${TEST_NAME}" "${TEST_DIR}/${TEST_NAME}.cc")
@@ -75,8 +69,8 @@ add_executable("${TEST_NAME}" "${TEST_DIR}/${TEST_NAME}.cc")
 target_link_libraries("${TEST_NAME}" "${DEFAULT_LINK_NAME}")
 add_test("${TEST_NAME}" "${TEST_NAME}")
 
-# argument_set_value
-set(TEST_NAME "argument_set_value")
+# argument_add_value
+set(TEST_NAME "argument_add_value")
 add_executable("${TEST_NAME}" "${TEST_DIR}/${TEST_NAME}.cc")
 target_link_libraries("${TEST_NAME}" "${DEFAULT_LINK_NAME}")
 add_test("${TEST_NAME}" "${TEST_NAME}")

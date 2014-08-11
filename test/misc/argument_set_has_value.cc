@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Merethis
+** Copyright 2011-2014 Merethis
 **
 ** This file is part of Centreon Clib.
 **
@@ -32,7 +32,7 @@ using namespace com::centreon::misc;
  */
 int main() {
   try {
-    bool has_value(true);
+    argument::value_number has_value(argument::one);
     argument arg;
     arg.set_has_value(has_value);
     if (arg.get_has_value() != has_value)

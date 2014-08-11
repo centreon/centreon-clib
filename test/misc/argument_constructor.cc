@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Merethis
+** Copyright 2011-2014 Merethis
 **
 ** This file is part of Centreon Clib.
 **
@@ -35,27 +35,27 @@ int main() {
     std::string long_name("help");
     char name('h');
     std::string description("this help");
-    bool has_value(true);
-    bool is_set(true);
+    argument::value_number has_value(argument::multiple);
     std::string value("help:\n --help, -h  this help");
-    argument arg(long_name,
-                 name,
-                 description,
-                 has_value,
-                 is_set,
-                 value);
+    argument arg(
+               long_name,
+               name,
+               description,
+               has_value);
+    arg.add_value(value);
 
     if (arg.get_long_name() != long_name)
       throw (basic_error() << "invalid long name");
-    if (arg.get_name() != name)
+    else if (arg.get_name() != name)
       throw (basic_error() << "invalid name");
-    if (arg.get_description() != description)
+    else if (arg.get_description() != description)
       throw (basic_error() << "invalid description");
-    if (arg.get_has_value() != has_value)
+    else if (arg.get_has_value() != has_value)
       throw (basic_error() << "invalid has value");
-    if (arg.get_is_set() != is_set)
+    else if (!arg.is_set())
       throw (basic_error() << "invalid is set");
-    if (arg.get_value() != value)
+    else if (arg.get_values().empty()
+             || (arg.get_values().front() != value))
       throw (basic_error() << "invalid value");
   }
   catch (std::exception const& e) {

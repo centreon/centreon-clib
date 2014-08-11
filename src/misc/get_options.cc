@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Merethis
+** Copyright 2011-2014 Merethis
 **
 ** This file is part of Centreon Clib.
 **
@@ -280,22 +280,26 @@ void get_options::_parse_arguments(std::vector<std::string> const& args) {
         arg = &get_argument(key[0]);
       }
       else
-        break;
+        break ;
     }
     catch (std::exception const& e) {
       (void)e;
       throw (basic_error() << "unrecognized option '" << key << "'");
     }
 
-    arg->set_is_set(true);
-    if (arg->get_has_value()) {
-      if (has_value)
-        arg->set_value(value);
+    if ((arg->get_has_value() == argument::one)
+        || (arg->get_has_value() == argument::multiple)) {
+      if (arg->is_set()
+          && (arg->get_has_value() != argument::multiple))
+        throw (basic_error() << "option '" << key
+               << "' only accepts one argument");
+      else if (has_value)
+        arg->add_value(value);
       else if (++it == end)
         throw (basic_error() << "option '" << key
                << "' requires an argument");
       else
-        arg->set_value(*it);
+        arg->add_value(*it);
     }
     ++it;
   }
@@ -366,4 +370,3 @@ bool get_options::_split_short(
   key = key.substr(0, 1);
   return (true);
 }
-

@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Merethis
+** Copyright 2011-2014 Merethis
 **
 ** This file is part of Centreon Clib.
 **
@@ -32,18 +32,18 @@ using namespace com::centreon::misc;
 class my_options : public get_options {
 public:
       my_options(std::vector<std::string> const& args)
-        : get_options() {
-        _arguments['a'] = argument("arg", 'a', "", true);
-        _arguments['t'] = argument("test", 't', "", true);
-        _arguments['h'] = argument("help", 'h');
-        _arguments['d'] = argument("default",
-                                   'd',
-                                   "",
-                                   true,
-                                   true,
-                                   "def");
-        _parse_arguments(args);
-      }
+    : get_options() {
+    _arguments['a'] = argument("arg", 'a', "", argument::multiple);
+    _arguments['t'] = argument("test", 't', "", argument::multiple);
+    _arguments['h'] = argument("help", 'h');
+    _arguments['d'] = argument(
+                        "default",
+                        'd',
+                        "",
+                        argument::multiple);
+    _arguments['d'].add_value("def");
+    _parse_arguments(args);
+  }
       ~my_options() throw () {}
 };
 

@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Merethis
+** Copyright 2011-2014 Merethis
 **
 ** This file is part of Centreon Clib.
 **
@@ -21,6 +21,7 @@
 #ifndef CC_MISC_ARGUMENT_HH
 #  define CC_MISC_ARGUMENT_HH
 
+#  include <list>
 #  include <string>
 #  include "com/centreon/namespace.hh"
 
@@ -35,40 +36,44 @@ namespace              misc {
    */
   class                argument {
   public:
+    enum value_number {
+      none = 0,
+      one,
+      multiple
+    };
+
                        argument(
                          std::string const& long_name = "",
                          char name = '\0',
                          std::string const& description = "",
-                         bool has_value = false,
-                         bool is_set = false,
-                         std::string const& value = "");
-                       argument(argument const& right);
+                         value_number has_value = none);
+                       argument(argument const& other);
                        ~argument() throw ();
-    argument&          operator=(argument const& right);
-    bool               operator==(argument const& right) const throw ();
-    bool               operator!=(argument const& right) const throw ();
+    argument&          operator=(argument const& other);
+    bool               operator==(argument const& other) const throw ();
+    bool               operator!=(argument const& other) const throw ();
+    void               add_value(std::string const& value);
     std::string const& get_description() const throw ();
-    bool               get_is_set() const throw ();
-    bool               get_has_value() const throw ();
+    value_number       get_has_value() const throw ();
     std::string const& get_long_name() const throw ();
     char               get_name() const throw ();
-    std::string const& get_value() const throw ();
+    std::list<std::string> const&
+                       get_values() const throw ();
+    bool               is_set() const throw ();
     void               set_description(std::string const& description);
-    void               set_is_set(bool val) throw ();
-    void               set_has_value(bool val) throw ();
+    void               set_has_value(value_number val) throw ();
     void               set_long_name(std::string const& long_name);
     void               set_name(char name);
-    void               set_value(std::string const& value);
 
   private:
-    argument&          _internal_copy(argument const& right);
+    argument&          _internal_copy(argument const& other);
 
     std::string        _description;
-    bool               _is_set;
-    bool               _has_value;
+    value_number       _has_value;
     std::string        _long_name;
     char               _name;
-    std::string        _value;
+    std::list<std::string>
+                       _values;
   };
 }
 

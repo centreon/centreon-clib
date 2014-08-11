@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Merethis
+** Copyright 2011-2014 Merethis
 **
 ** This file is part of Centreon Clib.
 **
@@ -32,12 +32,12 @@ using namespace com::centreon::misc;
  */
 int main() {
   try {
-    argument ref("help",
-                 'c',
-                 "this help",
-                 true,
-                 true,
-                 "help:\n --help, -h  this help");
+    argument ref(
+               "help",
+               'c',
+               "this help",
+               argument::multiple);
+    ref.add_value("help:\n --help, -h  this help");
 
     argument arg1(ref);
     if (ref != arg1)
