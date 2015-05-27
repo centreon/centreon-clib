@@ -68,3 +68,13 @@ void json_parser::parse(std::string const& js) {
 
   _js = js;
 }
+
+/**
+ *  Create an iterator used to iterate over all the tokens of
+ *  this json document.
+ *
+ *  @return  The iterator.
+ */
+json_iterator json_parser::begin() const {
+  return (json_iterator(_js.c_str(), &_tokens[0], _tokens.size()));
+}

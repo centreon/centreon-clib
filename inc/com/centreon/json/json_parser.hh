@@ -26,6 +26,7 @@
 #  include <vector>
 #  include <string>
 #  include "com/centreon/json/jsmn.h"
+#  include "com/centreon/json/json_iterator.hh"
 #  include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -41,7 +42,7 @@ namespace json {
                            ~json_parser();
 
     void                   parse(std::string const& js);
-
+    json_iterator          begin() const;
 
   private:
     jsmn_parser            _parser;

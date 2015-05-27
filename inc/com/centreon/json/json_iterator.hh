@@ -33,13 +33,21 @@ CC_BEGIN()
 namespace json {
   /**
    *  @class json_iterator json_iterator.hh "com/centreon/json/json_iterator.hh"
-   *  @brief Iterate over a json document.
+   *  @brief Iterate over the tokens of a json document.
+   *
+   *  As an example, the document:
+   *  '{ "name" : "Jack", "age" : 27 }'
+   *
+   *  contains 5 tokens: the toplevel object, with 4 children:
+   *  "name", "Jack", "age" and 27. Pair association needs to be done
+   *  manually, but is simple: for the direct children of an object,
+   *  one token of two is a key, the other a value.
    */
   class                    json_iterator {
   public:
                            json_iterator(
                              const char* js,
-                             jsmntok_t* tokens,
+                             const jsmntok_t* tokens,
                              size_t token_number);
                            json_iterator(json_iterator const&);
     json_iterator&         operator=(json_iterator const&);
@@ -67,7 +75,7 @@ namespace json {
 
   private:
     const char*            _js;
-    jsmntok_t*             _tokens;
+    const jsmntok_t*        _tokens;
     size_t                 _token_number;
     size_t                 _index;
 

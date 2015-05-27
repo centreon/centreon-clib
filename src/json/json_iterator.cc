@@ -33,7 +33,7 @@ using namespace com::centreon::json;
  */
 json_iterator::json_iterator(
                  const char* js,
-                 jsmntok_t* tokens,
+                 const jsmntok_t* tokens,
                  size_t token_number)
   : _js(js),
     _tokens(tokens),
@@ -76,7 +76,10 @@ json_iterator::~json_iterator() {}
  *  @return  A reference to this iterator.
  */
 json_iterator& json_iterator::operator++() {
-  _index = _tokens[_index].size + 1;
+  int parent = _tokens[_index].parent;
+  for (_index = _index + 1;
+       _index < _token_number && _tokens[_index].parent != parent;
+       ++_index);
   return (*this);
 }
 
