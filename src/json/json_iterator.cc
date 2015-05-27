@@ -172,7 +172,10 @@ int json_iterator::children() const {
  */
 json_iterator json_iterator::enter_children() const {
   if (_tokens[_index].size > 0)
-    return (json_iterator(_js, _tokens + _index + 1, _tokens[_index].size));
+    return (json_iterator(
+              _js,
+              _tokens + _index + 1,
+              _token_number - _index - 1));
   else
     return (json_iterator(_js, _tokens, 0));
 }
