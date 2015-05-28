@@ -23,6 +23,7 @@
 
 #  include <string>
 #  include <vector>
+#  include "com/centreon/json/json_serializable.hh"
 #  include "com/centreon/timestamp.hh"
 #  include "com/centreon/namespace.hh"
 
@@ -34,7 +35,7 @@ namespace aws {
      *  @class spot_instance_status spot_instance_status.hh "com/centreon/aws/ec2/spot_instance_status.hh"
      *  @brief aws ec2 spot instance status wrapper.
      */
-    class                    spot_instance_status {
+    class                    spot_instance_status : public json::json_serializable {
     public:
                              spot_instance_status();
                              ~spot_instance_status();
@@ -57,6 +58,7 @@ namespace aws {
       std::string            _code;
       std::string            _message;
 
+      void                   _init_bindings();
       void                   _internal_copy(spot_instance_status const& other);
     };
   } // namespace ec2

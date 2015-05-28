@@ -25,6 +25,7 @@
 #  include <vector>
 #  include "com/centreon/timestamp.hh"
 #  include "com/centreon/namespace.hh"
+#  include "com/centreon/json/json_serializable.hh"
 
 CC_BEGIN()
 
@@ -34,7 +35,7 @@ namespace aws {
      *  @class spot_instance_fault spot_instance_fault.hh "com/centreon/aws/ec2/spot_instance_fault.hh"
      *  @brief aws ec2 spot instance fault wrapper.
      */
-    class                    spot_instance_fault {
+    class                    spot_instance_fault : public json::json_serializable {
     public:
                              spot_instance_fault();
                              ~spot_instance_fault();
@@ -54,6 +55,7 @@ namespace aws {
       std::string            _code;
       std::string            _message;
 
+      void                   _init_bindings();
       void                   _internal_copy(spot_instance_fault const& other);
     };
   } // namespace ec2

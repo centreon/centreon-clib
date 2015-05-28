@@ -28,7 +28,7 @@ using namespace com::centreon::aws::ec2;
  *  Default constructor.
  */
 spot_instance_status::spot_instance_status() {
-
+  _init_bindings();
 }
 
 /**
@@ -122,6 +122,15 @@ void spot_instance_status::set_message(std::string const& message) {
  */
 bool spot_instance_status::is_null() const {
   return (_update_time.is_null() && _code.empty() && _message.empty());
+}
+
+/**
+ *  Init serialization bindings.
+ */
+void spot_instance_status::_init_bindings() {
+  add_member("UpdateTime", _update_time);
+  add_member("Message", _message);
+  add_member("Code", _code);
 }
 
 /**

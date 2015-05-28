@@ -27,7 +27,7 @@ using namespace com::centreon::aws::ec2;
  *  Default constructor.
  */
 spot_instance_fault::spot_instance_fault() {
-
+  _init_bindings();
 }
 
 /**
@@ -102,6 +102,14 @@ void spot_instance_fault::set_message(std::string const& message) {
  */
 bool spot_instance_fault::is_null() const {
   return (_code.empty() && _message.empty());
+}
+
+/**
+ *  Init the serialization binding.
+ */
+void spot_instance_fault::_init_bindings() {
+  add_member("Code", _code);
+  add_member("Message", _message);
 }
 
 /**
