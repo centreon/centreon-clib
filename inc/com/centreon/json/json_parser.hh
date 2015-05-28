@@ -21,8 +21,6 @@
 #ifndef CC_JSON_JSON_PARSER_HH
 #  define CC_JSON_JSON_PARSER_HH
 
-#  define JSMN_PARENT_LINKS 1
-
 #  include <vector>
 #  include <string>
 #  include "com/centreon/json/jsmn.h"

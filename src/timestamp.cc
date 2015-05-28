@@ -24,6 +24,7 @@
 #  include <windows.h>
 #else
 #  include <sys/time.h>
+#  include <ctime>
 #endif // Windows or POSIX.
 #include "com/centreon/timestamp.hh"
 
@@ -363,6 +364,29 @@ time_t timestamp::to_seconds() const throw () {
  */
 long long timestamp::to_useconds() const throw () {
   return (_secs * 1000000ll + _usecs);
+}
+
+/**
+ *  Is this timestamp null (default initialized)?
+ *
+ *  @return  True if this timestamp is null.
+ */
+bool timestamp::is_null() const throw () {
+  return (_secs == 0 && _usecs == 0);
+}
+
+/**
+ *  Get a timestamp from a utc formatted string.
+ *
+ *  @param[in] utc  The utc formatted string.
+ *
+ *  @return         The timestamp, or a zero timestamp.
+ */
+timestamp timestamp::from_utc(std::string const& utc) {
+  struct tm time;
+  ::strptime(utc.c_str(), "%Y-%m-%dT%h:%M:%SZ", &time);
+  time_t ts = ::mktime(&time);
+  return (timestamp(ts));
 }
 
 /**************************************

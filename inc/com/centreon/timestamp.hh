@@ -22,6 +22,7 @@
 #  define CC_TIMESTAMP_HH
 
 #  include <ctime>
+#  include <string>
 #  include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -61,6 +62,9 @@ public:
   long long        to_mseconds() const throw ();
   time_t           to_seconds() const throw ();
   long long        to_useconds() const throw ();
+  bool             is_null() const throw ();
+
+  static timestamp from_utc(std::string const& utc);
 
 private:
   void             _internal_copy(timestamp const& right);

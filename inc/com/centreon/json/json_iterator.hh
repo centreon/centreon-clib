@@ -21,8 +21,6 @@
 #ifndef CC_JSON_JSON_ITERATOR_HH
 #  define CC_JSON_JSON_ITERATOR_HH
 
-#  define JSMN_PARENT_LINKS 1
-
 #  include <vector>
 #  include <string>
 #  include "com/centreon/json/jsmn.h"
@@ -39,7 +37,7 @@ namespace json {
    *  '{ "name" : "Jack", "age" : 27 }'
    *
    *  contains 5 tokens: the toplevel object, with 4 children:
-   *  "name", "Jack", "age" and 27. Pair association needs to be done
+   *  name, Jack, age and 27. Pair association needs to be done
    *  manually, but is simple: for the direct children of an object,
    *  one token of two is a key, the other a value.
    */

@@ -26,7 +26,13 @@ set(INC_DIR "${INC_DIR}/aws")
 set(
   SOURCES
   ${SOURCES}
+  "${SRC_DIR}/ec2/block_device_mapping.cc"
   "${SRC_DIR}/ec2/command.cc"
+  "${SRC_DIR}/ec2/launch_specification.cc"
+  "${SRC_DIR}/ec2/network_interface.cc"
+  "${SRC_DIR}/ec2/spot_instance.cc"
+  "${SRC_DIR}/ec2/spot_instance_fault.cc"
+  "${SRC_DIR}/ec2/spot_instance_status.cc"
   PARENT_SCOPE
 )
 
@@ -34,6 +40,12 @@ set(
 set(
   HEADERS
   ${HEADERS}
+  "${INC_DIR}/ec2/block_device_mapping.hh"
   "${INC_DIR}/ec2/command.hh"
+  "${INC_DIR}/ec2/network_interface.hh"
+  "${INC_DIR}/ec2/launch_specification.hh"
+  "${INC_DIR}/ec2/spot_instance.hh"
+  "${INC_DIR}/ec2/spot_instance_fault.hh"
+  "${INC_DIR}/ec2/spot_instance_status.hh"
   PARENT_SCOPE
 )
