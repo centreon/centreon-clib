@@ -28,6 +28,8 @@
 #  include "com/centreon/aws/ec2/launch_specification.hh"
 #  include "com/centreon/aws/ec2/spot_instance_fault.hh"
 #  include "com/centreon/aws/ec2/spot_instance_status.hh"
+#  include "com/centreon/json/json_iterator.hh"
+#  include "com/centreon/json/json_writer.hh"
 #  include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -44,6 +46,8 @@ namespace aws {
                              ~spot_instance();
                              spot_instance(spot_instance const& other);
       spot_instance&         operator=(spot_instance const& other);
+
+      void                   unserialize(json::json_iterator& it);
     private:
       spot_instance_fault    _fault;
       spot_instance_status   _status;

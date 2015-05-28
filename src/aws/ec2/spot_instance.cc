@@ -26,7 +26,8 @@ using namespace com::centreon::aws::ec2;
 /**
  *  Default constructor.
  */
-spot_instance::spot_instance() {
+spot_instance::spot_instance()
+  : _spot_price(0) {
 
 }
 
@@ -60,10 +61,36 @@ spot_instance& spot_instance::operator=(spot_instance const& other) {
 }
 
 /**
+ *  Unserialize the spot instance.
+ *
+ *  @param[in] it  A json iterator.
+ */
+void spot_instance::unserialize(json::json_iterator& it) {
+  for (; !it.end(); ++it) {
+    std::string key = it.get_string();
+
+  }
+}
+
+/**
  *  Copy an object.
  *
  *  @param[in] other  The object to copy.
  */
 void spot_instance::_internal_copy(spot_instance const& other) {
-
+  _fault = other._fault;
+  _status = other._status;
+  _launch_specification = other._launch_specification;
+  _valid_from = other._valid_from;
+  _valid_until = other._valid_until;
+  _launch_group = other._launch_group;
+  _availability_zone_group = other._availability_zone_group;
+  _product_description = other._product_description;
+  _instance_id = other._instance_id;
+  _spot_instance_request_id = other._spot_instance_request_id;
+  _state = other._state;
+  _launched_availability_zone = other._launched_availability_zone;
+  _type = other._type;
+  _create_time = other._create_time;
+  _spot_price = other._spot_price;
 }
