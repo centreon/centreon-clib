@@ -29,6 +29,7 @@ set(
   "${SRC_DIR}/jsmn.c"
   "${SRC_DIR}/json_iterator.cc"
   "${SRC_DIR}/json_parser.cc"
+  "${SRC_DIR}/json_writer.cc"
   PARENT_SCOPE
 )
 
@@ -39,5 +40,6 @@ set(
   "${INC_DIR}/jsmn.h"
   "${INC_DIR}/json_iterator.hh"
   "${INC_DIR}/json_parser.hh"
+  "${INC_DIR}/json_writer.hh"
   PARENT_SCOPE
 )
