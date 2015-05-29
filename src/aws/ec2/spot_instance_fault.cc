@@ -44,6 +44,7 @@ spot_instance_fault::~spot_instance_fault() {
  */
 spot_instance_fault::spot_instance_fault(spot_instance_fault const& other) {
   _internal_copy(other);
+  _init_bindings();
 }
 
 /**

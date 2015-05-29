@@ -28,7 +28,7 @@ using namespace com::centreon::aws::ec2;
  */
 spot_instance::spot_instance()
   : _spot_price(0) {
-
+  _init_bindings();
 }
 
 /**
@@ -45,6 +45,7 @@ spot_instance::~spot_instance() {
  */
 spot_instance::spot_instance(spot_instance const& other) {
   _internal_copy(other);
+  _init_bindings();
 }
 
 /**
@@ -61,15 +62,24 @@ spot_instance& spot_instance::operator=(spot_instance const& other) {
 }
 
 /**
- *  Unserialize the spot instance.
- *
- *  @param[in] it  A json iterator.
+ *  Init the bindings.
  */
-void spot_instance::unserialize(json::json_iterator& it) {
-  for (; !it.end(); ++it) {
-    std::string key = it.get_string();
-
-  }
+void spot_instance::_init_bindings() {
+  add_member("Fault", _fault);
+  add_member("Status", _status);
+  add_member("LaunchSpecification", _launch_specification);
+  add_member("ValidFrom", _valid_from);
+  add_member("ValidUntil", _valid_until);
+  add_member("LaunchGroup", _launch_group);
+  add_member("AvailabilityZoneGroup", _availability_zone_group);
+  add_member("ProductDescription", _product_description);
+  add_member("InstanceId", _instance_id);
+  add_member("SpotInstanceRequestId", _spot_instance_request_id);
+  add_member("State", _state);
+  add_member("LaunchedAvailabilityZone", _launched_availability_zone);
+  add_member("Type", _type);
+  add_member("CreateTime", _create_time);
+  add_member("SpotPrice", _spot_price);
 }
 
 /**

@@ -27,11 +27,55 @@ using namespace com::centreon::aws::ec2;
 /**
  *  Default constructor.
  */
+network_interface::private_ip_address::private_ip_address()
+  : primary(false) {
+  _init_bindings();
+}
+/**
+ *  Copy constructor.
+ *
+ *  @param[in] other  The object to copy.
+ */
+network_interface::private_ip_address::private_ip_address(
+  network_interface::private_ip_address const& other)
+  : private_ip_address_value(other.private_ip_address_value),
+    primary(other.primary) {
+  _init_bindings();
+}
+
+/**
+ *  Assignment operator.
+ *
+ *  @param[in] other  The object to copy.
+ *
+ *  @return           Reference to this object.
+ */
+network_interface::private_ip_address&
+  network_interface::private_ip_address::operator=(
+    network_interface::private_ip_address const& other) {
+  if (this != &other) {
+    private_ip_address_value = other.private_ip_address_value;
+    primary = other.primary;
+  }
+  return (*this);
+}
+
+/**
+ *  Init the bindings.
+ */
+void network_interface::private_ip_address::_init_bindings() {
+  add_member("PrivateIpAddress", private_ip_address_value);
+  add_member("Primary", primary);;
+}
+
+/**
+ *  Default constructor.
+ */
 network_interface::network_interface()
   : _device_index(0),
     _delete_on_termination(false),
     _associate_ip_address(true) {
-
+  _init_bindings();
 }
 /**
  *  Copy constructor.
@@ -41,6 +85,7 @@ network_interface::network_interface()
 network_interface::network_interface(
   network_interface const& other) {
   _internal_copy(other);
+  _init_bindings();
 }
 
 /**
@@ -62,6 +107,22 @@ network_interface& network_interface::operator=(
  */
 network_interface::~network_interface() {
 
+}
+
+/**
+ *  Init the bindings.
+ */
+void network_interface::_init_bindings() {
+  add_member("NetworkInterfaceId", _network_interface_id);
+  add_member("DeviceIndex", _device_index);
+  add_member("SubnetId", _subnet_id);
+  add_member("Description", _description);
+  add_member("PrivateIpAddress", _private_ip_address);
+  add_member("Groups", _groups);
+  add_member("DeleteOnTermination", _delete_on_termination);
+  add_member("PrivateIpAddresses", _private_ip_addresses);
+  add_member("SecondaryPrivateIpAddressCount", _secondary_private_ip_address_count);
+  add_member("AssociateIpAddress", _associate_ip_address);
 }
 
 /**

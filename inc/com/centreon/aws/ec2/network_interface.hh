@@ -23,6 +23,7 @@
 
 #  include <string>
 #  include <vector>
+#  include "com/centreon/json/json_serializable.hh"
 #  include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -33,7 +34,7 @@ namespace aws {
      *  @class network_interface network_interface.hh "com/centreon/aws/ec2/network_interface.hh"
      *  @brief aws network interface wrapper.
      */
-    class                    network_interface {
+    class                    network_interface : public json::json_serializable {
     public:
                              network_interface();
                              network_interface(
@@ -49,11 +50,23 @@ namespace aws {
       std::vector<std::string>
                              _groups;
       bool                   _delete_on_termination;
-      std::vector<std::pair<std::string, bool> >
+
+      struct                  private_ip_address : public json::json_serializable {
+                              private_ip_address();
+                              private_ip_address(private_ip_address const& other);
+        private_ip_address&   operator=(private_ip_address const& other);
+        std::string           private_ip_address_value;
+        bool                  primary;
+      private:
+        void                  _init_bindings();
+      };
+
+      std::vector<private_ip_address>
                              _private_ip_addresses;
       unsigned int           _secondary_private_ip_address_count;
       bool                   _associate_ip_address;
 
+      void                   _init_bindings();
       void                   _internal_copy(network_interface const& other);
     };
   } // namespace ec2

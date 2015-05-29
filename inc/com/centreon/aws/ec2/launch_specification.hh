@@ -26,6 +26,7 @@
 #  include <vector>
 #  include "com/centreon/aws/ec2/network_interface.hh"
 #  include "com/centreon/aws/ec2/block_device_mapping.hh"
+#  include "com/centreon/json/json_serializable.hh"
 #  include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -36,7 +37,7 @@ namespace aws {
      *  @class launch_specification launch_specification.hh "com/centreon/aws/ec2/launch_specification.hh"
      *  @brief aws ec2 launch specification structure wrapper.
      */
-    class                    launch_specification {
+    class                    launch_specification : public json::json_serializable {
     public:
                              launch_specification();
                              ~launch_specification();
@@ -47,8 +48,20 @@ namespace aws {
     private:
       std::string            _image_id;
       std::string            _key_name;
-      std::vector<std::pair<std::string, std::string> >
+
+      struct                 security_group : public json::json_serializable {
+                             security_group();
+                             security_group(security_group const& other);
+        security_group&      operator=(security_group const& other);
+                             ~security_group();
+        std::string          group_name;
+        std::string          group_id;
+      private:
+        void                 _init_bindings();
+      };
+      std::vector<security_group>
                              _security_groups;
+
       std::string            _user_data;
       std::string            _instance_type;
       std::string            _placement_availability_zone;
@@ -60,11 +73,34 @@ namespace aws {
       std::string            _subnet_id;
       std::vector<network_interface>
                              _network_interfaces;
-      std::string            _iam_instance_profile_arn;
-      std::string            _iam_instance_profile__name;
-      bool                   _ebs_optimized;
-      bool                   _monitoring_enabled;
 
+      struct                 iam : public json::json_serializable {
+                             iam();
+                             iam(iam const& other);
+        iam&                 operator=(iam const& other);
+                             ~iam();
+        std::string          instance_profile_arn;
+        std::string          instance_profile_name;
+        bool                 is_null() const;
+      private:
+        void                 _init_bindings();
+      };
+      iam                    _iam;
+
+      bool                   _ebs_optimized;
+      struct                 monitoring : public json::json_serializable {
+                             monitoring();
+                             monitoring(monitoring const& other);
+        monitoring&          operator=(monitoring const& other);
+                             ~monitoring();
+        bool                 enabled;
+        bool                 is_null() const;
+      private:
+        void                 _init_bindings();
+      };
+      monitoring             _monitoring;
+
+      void                   _init_bindings();
       void                   _internal_copy(launch_specification const& other);
     };
   } // namespace ec2

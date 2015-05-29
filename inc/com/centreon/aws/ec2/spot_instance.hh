@@ -30,6 +30,7 @@
 #  include "com/centreon/aws/ec2/spot_instance_status.hh"
 #  include "com/centreon/json/json_iterator.hh"
 #  include "com/centreon/json/json_writer.hh"
+#  include "com/centreon/json/json_serializable.hh"
 #  include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -40,14 +41,13 @@ namespace aws {
      *  @class spot_instance spot_instance.hh "com/centreon/aws/ec2/spot_instance.hh"
      *  @brief aws ec2 spot instance wrapper.
      */
-    class                    spot_instance {
+    class                    spot_instance : public json::json_serializable {
     public:
                              spot_instance();
                              ~spot_instance();
                              spot_instance(spot_instance const& other);
       spot_instance&         operator=(spot_instance const& other);
 
-      void                   unserialize(json::json_iterator& it);
     private:
       spot_instance_fault    _fault;
       spot_instance_status   _status;
@@ -65,6 +65,7 @@ namespace aws {
       timestamp              _create_time;
       double                 _spot_price;
 
+      void                   _init_bindings();
       void                   _internal_copy(spot_instance const& other);
     };
   } // namespace ec2

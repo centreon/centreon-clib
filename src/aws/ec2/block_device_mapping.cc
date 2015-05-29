@@ -27,10 +27,83 @@ using namespace com::centreon::aws::ec2;
 /**
  *  Default constructor.
  */
-block_device_mapping::block_device_mapping()
-  : _ebs_lops(0),
-    _ebs_encrypted(false) {
+block_device_mapping::ebs::ebs()
+  : lops(0),
+    encrypted(false) {
+  _init_bindings();
+}
 
+/**
+ *  Copy constructor.
+ *
+ *  @param[in] other  The object to copy.
+ */
+block_device_mapping::ebs::ebs(block_device_mapping::ebs const& other) {
+  _internal_copy(other);
+  _init_bindings();
+}
+
+/**
+ *  Assignment operator.
+ *
+ *  @param[in] other  The object to copy.
+ *
+ *  @return           Reference to this.
+ */
+block_device_mapping::ebs& block_device_mapping::ebs::operator=(
+  block_device_mapping::ebs const& other) {
+  if (this != &other)
+    _internal_copy(other);
+  return (*this);
+}
+
+/**
+ *  @brief Is this object null?
+ *
+ *  Null objects won't be serialized.
+ *
+ *  @return  True if this object is null.
+ */
+bool block_device_mapping::ebs::is_null() const {
+  return (snapshot_id.empty()
+            && volume_size.empty()
+            && delete_on_termination.empty()
+            && volume_type.empty()
+            && lops == 0
+            && encrypted == false);
+}
+
+/**
+ *  Init the bindings.
+ */
+void block_device_mapping::ebs::_init_bindings() {
+  add_member("SnapshotId", snapshot_id);
+  add_member("VolumeSize", volume_size);
+  add_member("DeleteOnTermination", delete_on_termination);
+  add_member("VolumeType", volume_type);
+  add_member("Lops", lops);
+  add_member("Encrypter", encrypted);
+}
+
+/**
+ *  Copy an object.
+ *
+ *  @param[in] other  The object to copy.
+ */
+void block_device_mapping::ebs::_internal_copy(ebs const& other) {
+  snapshot_id = other.snapshot_id;
+  volume_size = other.volume_size;
+  delete_on_termination = other.delete_on_termination;
+  volume_type = other.volume_type;
+  lops = other.lops;
+  encrypted = other.encrypted;
+}
+
+/**
+ *  Default constructor.
+ */
+block_device_mapping::block_device_mapping() {
+  _init_bindings();
 }
 /**
  *  Copy constructor.
@@ -40,6 +113,7 @@ block_device_mapping::block_device_mapping()
 block_device_mapping::block_device_mapping(
   block_device_mapping const& other) {
   _internal_copy(other);
+  _init_bindings();
 }
 
 /**
@@ -64,6 +138,16 @@ block_device_mapping::~block_device_mapping() {
 }
 
 /**
+ *  Init the bindings.
+ */
+void block_device_mapping::_init_bindings() {
+  add_member("VirtualName", _virtual_name);
+  add_member("DeviceName", _device_name);
+  add_member("Ebs", _ebs);
+  add_member("NoDevice", _no_device);
+}
+
+/**
  *  Copy an object.
  *
  *  @param other  Object to copy.
@@ -71,11 +155,6 @@ block_device_mapping::~block_device_mapping() {
 void block_device_mapping::_internal_copy(block_device_mapping const& other) {
   _virtual_name = other._virtual_name;
   _device_name = other._device_name;
-  _ebs_snapshot_id = other._ebs_snapshot_id;
-  _ebs_volume_size = other._ebs_volume_size;
-  _ebs_delete_on_termination = other._ebs_delete_on_termination;
-  _ebs_volume_type = other._ebs_volume_type;
-  _ebs_lops = other._ebs_lops;
-  _ebs_encrypted = other._ebs_encrypted;
+  _ebs = other._ebs;
   _no_device = other._no_device;
 }

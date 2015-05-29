@@ -22,6 +22,7 @@
 #  define CC_AWS_EC2_BLOCK_DEVICE_MAPPING_HH
 
 #  include <string>
+#  include "com/centreon/json/json_serializable.hh"
 #  include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -32,7 +33,7 @@ namespace aws {
      *  @class block_device_mapping block_device_mapping.hh "com/centreon/aws/ec2/block_device_mapping.hh"
      *  @brief aws block device mapping wrapper.
      */
-    class                    block_device_mapping {
+    class                    block_device_mapping : public json::json_serializable {
     public:
                              block_device_mapping();
                              block_device_mapping(
@@ -42,14 +43,27 @@ namespace aws {
     private:
       std::string            _virtual_name;
       std::string            _device_name;
-      std::string            _ebs_snapshot_id;
-      std::string            _ebs_volume_size;
-      std::string            _ebs_delete_on_termination;
-      std::string            _ebs_volume_type;
-      unsigned int           _ebs_lops;
-      bool                   _ebs_encrypted;
+
+      struct                 ebs : public json::json_serializable {
+                             ebs();
+                             ebs(ebs const& other);
+        ebs&                 operator=(ebs const& other);
+        std::string          snapshot_id;
+        std::string          volume_size;
+        std::string          delete_on_termination;
+        std::string          volume_type;
+        unsigned int         lops;
+        bool                 encrypted;
+
+        bool                 is_null() const;
+      private:
+        void                 _init_bindings();
+        void                 _internal_copy(ebs const& other);
+      };
+      ebs                    _ebs;
       std::string            _no_device;
 
+      void                   _init_bindings();
       void                   _internal_copy(block_device_mapping const& other);
     };
   } // namespace ec2

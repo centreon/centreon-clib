@@ -45,6 +45,7 @@ spot_instance_status::~spot_instance_status() {
  */
 spot_instance_status::spot_instance_status(spot_instance_status const& other) {
   _internal_copy(other);
+  _init_bindings();
 }
 
 /**
