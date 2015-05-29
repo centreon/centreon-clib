@@ -69,8 +69,10 @@ json_serializable::~json_serializable() {
 template <typename V>
 void json_serializable::add_member(
                          std::string const& serialized_name,
-                         V& member) {
-  _members[serialized_name] = new json_serializable_member_impl<V>(member);
+                         V& member,
+                         int flags) {
+  _members[serialized_name] = new json_serializable_member_impl<V>(
+                                    member, flags);
 }
 
 /**
@@ -84,8 +86,10 @@ void json_serializable::serialize(json_writer& writer) {
          end = _members.end();
        it != end;
        ++it) {
-    writer.add_key(it->first);
-    it->second->serialize(writer);
+    if (it->second->should_be_serialized()) {
+      writer.add_key(it->first);
+      it->second->serialize(writer);
+    }
   }
 }
 
@@ -103,4 +107,16 @@ void json_serializable::unserialize(json_iterator& it) {
            << it.get_string() << "' in serialization");
   ++it;
   found->second->unserialize(it);
+}
+
+/**
+ *  @brief Is this json object null?
+ *
+ *  The meaning of a null json object is object dependent.
+ *  A null json object won't be serialized by default.
+ *
+ *  @return  True if this is a null json object.
+ */
+bool json_serializable::is_null() const {
+  return (false);
 }

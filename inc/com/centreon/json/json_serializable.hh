@@ -36,6 +36,8 @@ namespace json {
   /**
    *  @class json_serializable json_serializable.hh "com/centreon/json/json_serializable.hh"
    *  @brief Inherit from this if you want to make your class serializable.
+   *
+   *  Just add your members using add_member.
    */
   class                    json_serializable {
   public:
@@ -44,13 +46,20 @@ namespace json {
     json_serializable&     operator=(json_serializable const& other);
                            ~json_serializable();
 
+    enum                   serializable_flags {
+                           none = 0,
+                           serialize_on_null = 1
+    };
+
     template <typename V>
     void                   add_member(
                              std::string const& serialized_name,
-                             V& member);
+                             V& member,
+                             int flags = 0);
 
     virtual void           serialize(json_writer& writer);
     virtual void           unserialize(json_iterator& it);
+    virtual bool           is_null() const;
 
   private:
     std::map<std::string, json_serializable_member*>

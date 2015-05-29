@@ -45,7 +45,20 @@ namespace json {
 
     virtual void           serialize(json_writer& writer) const = 0;
     virtual void           unserialize(json_iterator const& iterator) const = 0;
+    virtual bool           should_be_serialized() const  = 0;
   };
+
+  template <typename T>
+  void serialize(std::vector<T>& member, json_writer& writer) {
+    writer.open_array();
+    for (typename std::vector<T>::iterator
+           it = member.begin(),
+           end = member.end();
+         it != end;
+         ++it)
+      serialize(*it);
+    writer.close_array();
+  }
 
   template <typename T>
   void serialize(T& member, json_writer& writer) {
@@ -87,23 +100,66 @@ namespace json {
   }
 
   template <>
-  void unserialize<json::json_serializable>(json_serializable& member, json_iterator& it) {
+  void unserialize<json::json_serializable>(
+         json_serializable& member,
+         json_iterator& it) {
     json_iterator children_iterator = it.enter_children();
     member.unserialize(children_iterator);
   }
 
   template <typename T>
-  class                    json_serializable_member_impl :json_serializable_member {
+  bool should_be_serialized(std::vector<T> const& member, int _flags) {
+    return ((_flags & json_serializable::serialize_on_null)
+              || !member.empty());
+  }
+
+  template <typename T>
+  bool should_be_serialized(T const& member, int _flags) {
+    (void) member;
+    (void) _flags;
+    return (true);
+  }
+
+  template <>
+  bool should_be_serialized(json_serializable const& member, int _flags) {
+    return ((_flags & json_serializable::serialize_on_null)
+              || !member.is_null());
+  }
+
+  template <>
+  bool should_be_serialized(int const& member, int _flags) {
+    return ((_flags & json_serializable::serialize_on_null)
+              || member != 0);
+  }
+
+  template <>
+  bool should_be_serialized(unsigned int const& member, int _flags) {
+    return ((_flags & json_serializable::serialize_on_null)
+              || member != 0);
+  }
+
+  template <>
+  bool should_be_serialized(std::string const& member, int _flags) {
+    return ((_flags & json_serializable::serialize_on_null)
+              || !member.empty());
+  }
+
+  template <typename T>
+  class                    json_serializable_member_impl :
+                             public json_serializable_member {
   public:
-                           json_serializable_member_impl(T& t)
-                            : _member(&t) {}
+                           json_serializable_member_impl(T& t, int flags)
+                            : _member(&t), _flags(&flags) {}
                            json_serializable_member_impl(
                              json_serializable_member_impl const& other)
-                            : _member(other._member) {}
+                            : _member(other._member), _flags(other._flags) {}
     json_serializable_member_impl
-                           operator=(json_serializable_member_impl const& other) {
-      if (this != &other)
+                           operator=(
+                             json_serializable_member_impl const& other) {
+      if (this != &other) {
         _member = other._member;
+        _flags = other._flags;
+      }
       return (*this);
     }
 
@@ -127,8 +183,18 @@ namespace json {
       json::unserialize(*_member, iterator);
     }
 
+    /**
+     *  Should this member be serialized?
+     *
+     *  @return  True if this member should be serialized.
+     */
+    bool                   should_be_serialized() const {
+      return (json::should_be_serialized(*_member, _flags));
+    }
+
   private:
     T* _member;
+    int _flags;
   };
 } // namespace json
 
