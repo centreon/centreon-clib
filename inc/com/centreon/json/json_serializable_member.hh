@@ -44,7 +44,7 @@ namespace json {
     virtual                ~json_serializable_member();
 
     virtual void           serialize(json_writer& writer) const = 0;
-    virtual void           unserialize(json_iterator const& iterator) const = 0;
+    virtual void           unserialize(json_iterator& iterator) const = 0;
     virtual bool           should_be_serialized() const  = 0;
   };
 
@@ -149,11 +149,11 @@ namespace json {
                              public json_serializable_member {
   public:
                            json_serializable_member_impl(T& t, int flags)
-                            : _member(&t), _flags(&flags) {}
+                            : _member(&t), _flags(flags) {}
                            json_serializable_member_impl(
                              json_serializable_member_impl const& other)
                             : _member(other._member), _flags(other._flags) {}
-    json_serializable_member_impl
+    json_serializable_member_impl&
                            operator=(
                              json_serializable_member_impl const& other) {
       if (this != &other) {

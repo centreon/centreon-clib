@@ -77,122 +77,9 @@ void launch_specification::security_group::_init_bindings() {
 /**
  *  Default constructor.
  */
-launch_specification::iam::iam() {
-  _init_bindings();
-}
-
-/**
- *  Copy constructor.
- *
- *  @param[in] other  The object to copy.
- */
-launch_specification::iam::iam(launch_specification::iam const& other)
-  : instance_profile_arn(other.instance_profile_arn),
-    instance_profile_name(other.instance_profile_name) {
-  _init_bindings();
-}
-
-/**
- *  Assignment operator.
- *
- *  @param[in] other  The object to copy.
- *
- *  @return           Reference to this object.
- */
-launch_specification::iam& launch_specification::iam::operator=(
-  launch_specification::iam const& other) {
-  if (this != &other) {
-    instance_profile_arn = other.instance_profile_arn;
-    instance_profile_name = other.instance_profile_name;
-  }
-  return (*this);
-}
-
-/**
- *  Destructor.
- */
-launch_specification::iam::~iam() {
-
-}
-
-/**
- *  Is this object null?
- *
- *  @return  True if this object is null.
- */
-bool launch_specification::iam::is_null() const {
-  return (instance_profile_arn.empty() && instance_profile_name.empty());
-}
-
-/**
- *  Init the bindings.
- */
-void launch_specification::iam::_init_bindings() {
-  add_member("InstanceProfileArn", instance_profile_arn);
-  add_member("InstanceProfileName", instance_profile_name);
-}
-
-/**
- *  Default constructor.
- */
-launch_specification::monitoring::monitoring()
-  : enabled(false) {
-
-}
-
-/**
- *  Copy constructor.
- *
- *  @param[in] other  The object to copy.
- */
-launch_specification::monitoring::monitoring(
-  launch_specification::monitoring const& other)
-  : enabled(other.enabled) {
-
-}
-
-/**
- *  Assignment operator.
- *
- *  @param[in] other  The object to copy.
- *
- *  @return           Reference to this object.
- */
-launch_specification::monitoring& launch_specification::monitoring::operator=(
-  launch_specification::monitoring const& other) {
-  if (this != &other)
-    enabled = other.enabled;
-  return (*this);
-}
-
-/**
- *  Destructor.
- */
-launch_specification::monitoring::~monitoring() {
-
-}
-
-/**
- *  Is this object null?
- *
- *  @return  True if this object is null.
- */
-bool launch_specification::monitoring::is_null() const {
-  return (enabled == false);
-}
-
-/**
- *  Init the bindings.
- */
-void launch_specification::monitoring::_init_bindings() {
-  add_member("Enabled", enabled);
-}
-
-/**
- *  Default constructor.
- */
 launch_specification::launch_specification()
-  : _ebs_optimized(false) {
+  : _ebs_optimized(false),
+    _monitoring_enabled(false) {
 
 }
 
@@ -242,9 +129,12 @@ void launch_specification::_init_bindings() {
   add_member("RamdiskId", _ramdisk_id);
   add_member("SubnetId", _subnet_id);
   add_member("NetworkInterfaces", _network_interfaces);
-  add_member("Iam", _iam);
   add_member("EbsOptimized", _ebs_optimized);
-  add_member("Monitoring", _monitoring);
+  json_serializable& iam = create_and_add_generic_sub_object("Iam");
+  iam.add_member("InstanceProfileArn", _iam_instance_profile_arn);
+  iam.add_member("InstanceProfileName", _iam_instance_profile_name);
+  json_serializable& monitoring = create_and_add_generic_sub_object("Monitoring");
+  monitoring.add_member("Enabled", _monitoring_enabled);
 }
 
 /**
@@ -265,7 +155,8 @@ void launch_specification::_internal_copy(launch_specification const& other) {
   _block_device_mappings = other._block_device_mappings;
   _subnet_id = other._subnet_id;
   _network_interfaces = other._network_interfaces;
-  _iam = other._iam;
+  _iam_instance_profile_arn = other._iam_instance_profile_arn;
+  _iam_instance_profile_name = other._iam_instance_profile_name;
   _ebs_optimized = other._ebs_optimized;
-  _monitoring = other._monitoring;
+  _monitoring_enabled = other._monitoring_enabled;
 }

@@ -61,6 +61,12 @@ json_serializable::~json_serializable() {
        it != end;
        ++it)
   delete it->second;
+  for (std::vector<json_serializable*>::const_iterator
+         it = _generic_sub_objects.begin(),
+         end  = _generic_sub_objects.end();
+       it != end;
+       ++it)
+  delete *it;
 }
 
 /**
@@ -73,6 +79,19 @@ void json_serializable::add_member(
                          int flags) {
   _members[serialized_name] = new json_serializable_member_impl<V>(
                                     member, flags);
+}
+
+/**
+ *  Create a generic sub object.
+ *
+ *  @param[in] sub_object  The name of the generic sub object.
+ */
+json_serializable& json_serializable::create_and_add_generic_sub_object(
+                     std::string const& sub_object,
+                     int flags) {
+  _generic_sub_objects.push_back(new json_serializable);
+  add_member(sub_object, *_generic_sub_objects.back(), flags);
+  return (*_generic_sub_objects.back());
 }
 
 /**
@@ -118,5 +137,12 @@ void json_serializable::unserialize(json_iterator& it) {
  *  @return  True if this is a null json object.
  */
 bool json_serializable::is_null() const {
-  return (false);
+  for (std::map<std::string, json_serializable_member*>::const_iterator
+         it = _members.begin(),
+         end = _members.end();
+       it != end;
+       ++it)
+    if (it->second->should_be_serialized())
+      return (false);
+  return (true);
 }

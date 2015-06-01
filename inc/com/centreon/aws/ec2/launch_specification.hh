@@ -73,32 +73,10 @@ namespace aws {
       std::string            _subnet_id;
       std::vector<network_interface>
                              _network_interfaces;
-
-      struct                 iam : public json::json_serializable {
-                             iam();
-                             iam(iam const& other);
-        iam&                 operator=(iam const& other);
-                             ~iam();
-        std::string          instance_profile_arn;
-        std::string          instance_profile_name;
-        bool                 is_null() const;
-      private:
-        void                 _init_bindings();
-      };
-      iam                    _iam;
-
+      std::string            _iam_instance_profile_arn;
+      std::string            _iam_instance_profile_name;
       bool                   _ebs_optimized;
-      struct                 monitoring : public json::json_serializable {
-                             monitoring();
-                             monitoring(monitoring const& other);
-        monitoring&          operator=(monitoring const& other);
-                             ~monitoring();
-        bool                 enabled;
-        bool                 is_null() const;
-      private:
-        void                 _init_bindings();
-      };
-      monitoring             _monitoring;
+      bool                   _monitoring_enabled;
 
       void                   _init_bindings();
       void                   _internal_copy(launch_specification const& other);
