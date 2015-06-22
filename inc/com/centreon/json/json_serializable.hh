@@ -26,13 +26,13 @@
 #  include "com/centreon/json/jsmn.h"
 #  include "com/centreon/json/json_iterator.hh"
 #  include "com/centreon/json/json_writer.hh"
+#  include "com/centreon/json/json_serializable_member.hh"
 #  include "com/centreon/namespace.hh"
 #  include "com/centreon/exceptions/basic.hh"
 
 CC_BEGIN()
 
 namespace json {
-  class json_serializable_member;
   /**
    *  @class json_serializable json_serializable.hh "com/centreon/json/json_serializable.hh"
    *  @brief Inherit from this if you want to make your class serializable.
@@ -46,21 +46,22 @@ namespace json {
     json_serializable&     operator=(json_serializable const& other);
                            ~json_serializable();
 
-    enum                   serializable_flags {
-                           none = 0,
-                           serialize_on_null = 1
-    };
-
+    /**
+     *  Add a member that needs to be serialized.
+     */
     template <typename V>
     void                   add_member(
                              std::string const& serialized_name,
                              V& member,
-                             int flags = 0);
+                             int flags = 0) {
+      _members[serialized_name] = new json_serializable_member_impl<V>(
+                                        member, flags);
+    }
     json_serializable&     create_and_add_generic_sub_object(
                              std::string const& sub_object,
                              int flags = 0);
 
-    virtual void           serialize(json_writer& writer);
+    virtual void           serialize(json_writer& writer) const;
     virtual void           unserialize(json_iterator& it);
     virtual bool           is_null() const;
 

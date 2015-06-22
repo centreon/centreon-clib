@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2014 Merethis
+** Copyright 2011-2015 Merethis
 **
 ** This file is part of Centreon Clib.
 **
@@ -70,18 +70,6 @@ json_serializable::~json_serializable() {
 }
 
 /**
- *  Add a member that needs to be serialized.
- */
-template <typename V>
-void json_serializable::add_member(
-                         std::string const& serialized_name,
-                         V& member,
-                         int flags) {
-  _members[serialized_name] = new json_serializable_member_impl<V>(
-                                    member, flags);
-}
-
-/**
  *  Create a generic sub object.
  *
  *  @param[in] sub_object  The name of the generic sub object.
@@ -99,7 +87,7 @@ json_serializable& json_serializable::create_and_add_generic_sub_object(
  *
  *  @param[in] writer  The writer.
  */
-void json_serializable::serialize(json_writer& writer) {
+void json_serializable::serialize(json_writer& writer) const {
   for (std::map<std::string, json_serializable_member*>::const_iterator
          it = _members.begin(),
          end = _members.end();

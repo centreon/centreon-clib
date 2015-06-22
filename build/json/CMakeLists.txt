@@ -31,6 +31,7 @@ set(
   "${SRC_DIR}/json_parser.cc"
   "${SRC_DIR}/json_writer.cc"
   "${SRC_DIR}/json_serializable.cc"
+  "${SRC_DIR}/json_serializable_member.cc"
   PARENT_SCOPE
 )
 

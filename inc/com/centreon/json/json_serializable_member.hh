@@ -27,7 +27,6 @@
 #  include "com/centreon/json/jsmn.h"
 #  include "com/centreon/json/json_iterator.hh"
 #  include "com/centreon/json/json_writer.hh"
-#  include "com/centreon/json/json_serializable.hh"
 #  include "com/centreon/exceptions/basic.hh"
 #  include "com/centreon/timestamp.hh"
 #  include "com/centreon/namespace.hh"
@@ -43,106 +42,122 @@ namespace json {
   public:
     virtual                ~json_serializable_member();
 
+    enum                   serializable_flags {
+                           none = 0,
+                           serialize_on_null = 1
+    };
+
     virtual void           serialize(json_writer& writer) const = 0;
     virtual void           unserialize(json_iterator& iterator) const = 0;
     virtual bool           should_be_serialized() const  = 0;
   };
 
   template <typename T>
-  void serialize(std::vector<T>& member, json_writer& writer) {
+  void serialize(std::vector<T> const& member, json_writer& writer) {
     writer.open_array();
-    for (typename std::vector<T>::iterator
+    for (typename std::vector<T>::const_iterator
            it = member.begin(),
            end = member.end();
          it != end;
          ++it)
-      serialize(*it);
+      serialize(*it, writer);
     writer.close_array();
   }
 
   template <typename T>
-  void serialize(T& member, json_writer& writer) {
-    writer.add_null();
+  void serialize(T const& member, json_writer& writer) {
+    writer.open_object();
+    member.serialize(writer);
+    writer.close_object();
   }
 
   template <>
-  void serialize<std::string>(std::string& member, json_writer &writer) {
-    writer.add_string(member);
-  }
-
+  void serialize<std::string>(std::string const& member, json_writer &writer);
   template <>
-  void serialize<int>(int& member, json_writer &writer) {
-    writer.add_number(member);
-  }
-
+  void serialize<int>(int const& member, json_writer &writer);
   template <>
-  void serialize<unsigned int>(unsigned int& member, json_writer &writer) {
-    writer.add_number(member);
-  }
-
+  void serialize<unsigned int>(unsigned int const& member, json_writer &writer);
   template <>
-  void serialize<bool>(bool& member, json_writer &writer) {
-    writer.add_boolean(member);
-  }
-
+  void serialize<bool>(bool const& member, json_writer &writer);
   template <>
-  void serialize<timestamp>(timestamp& _member, json_writer &writer) {
-    // TODO:
-    //writer.add_string();
-  }
+  void serialize<double>(double const& member, json_writer &writer);
+  template <>
+  void serialize<timestamp>(timestamp const& _member, json_writer &writer);
 
   template <typename T>
-  void unserialize(T& member, json_iterator& it) {
+  void  stream_unserialize(T& member, json_iterator& it) {
     std::stringstream ss;
 
     ss << it.get_string();
     ss >> member;
   }
 
-  template <>
-  void unserialize<json::json_serializable>(
-         json_serializable& member,
-         json_iterator& it) {
+  template <typename T>
+  void unserialize(std::vector<T>& member, json_iterator& it) {
+    json_iterator children = it.enter_children();
+    for (; !children.is_null(); ++children) {
+      member.push_back(T());
+      unserialize(member.back(), children);
+    }
+  }
+
+  template <typename T>
+  void unserialize(T& member, json_iterator& it) {
     json_iterator children_iterator = it.enter_children();
     member.unserialize(children_iterator);
   }
 
+  template <>
+  void unserialize<int>(
+         int& member,
+        json_iterator& it);
+  template <>
+  void unserialize<unsigned int>(
+         unsigned int& member,
+        json_iterator& it);
+  template <>
+  void unserialize<bool>(
+         bool& member,
+        json_iterator& it);
+  template <>
+  void unserialize<char>(
+         char& member,
+        json_iterator& it);
+  template <>
+  void unserialize<timestamp>(
+        timestamp &member,
+        json_iterator &it);
+  template <>
+  void unserialize<std::string>(
+        std::string& member,
+        json_iterator &it);
+  template <>
+  void unserialize<double>(
+         double& member,
+         json_iterator &it);
+
   template <typename T>
   bool should_be_serialized(std::vector<T> const& member, int _flags) {
-    return ((_flags & json_serializable::serialize_on_null)
+    return ((_flags & json_serializable_member::serialize_on_null)
               || !member.empty());
   }
 
   template <typename T>
   bool should_be_serialized(T const& member, int _flags) {
-    (void) member;
-    (void) _flags;
-    return (true);
-  }
-
-  template <>
-  bool should_be_serialized(json_serializable const& member, int _flags) {
-    return ((_flags & json_serializable::serialize_on_null)
+    return ((_flags & json_serializable_member::serialize_on_null)
               || !member.is_null());
   }
 
   template <>
-  bool should_be_serialized(int const& member, int _flags) {
-    return ((_flags & json_serializable::serialize_on_null)
-              || member != 0);
-  }
-
+  bool should_be_serialized(bool const& member, int flags);
   template <>
-  bool should_be_serialized(unsigned int const& member, int _flags) {
-    return ((_flags & json_serializable::serialize_on_null)
-              || member != 0);
-  }
-
+  bool should_be_serialized(int const& member, int flags);
   template <>
-  bool should_be_serialized(std::string const& member, int _flags) {
-    return ((_flags & json_serializable::serialize_on_null)
-              || !member.empty());
-  }
+  bool should_be_serialized(unsigned int const& member, int flags);
+  template <>
+  bool should_be_serialized(std::string const& member, int flags);
+  template <>
+  bool should_be_serialized(double const& member, int flags);
 
   template <typename T>
   class                    json_serializable_member_impl :

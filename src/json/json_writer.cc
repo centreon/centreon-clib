@@ -111,6 +111,20 @@ void json_writer::add_number(long long number) {
 }
 
 /**
+ *  Add a double.
+ *
+ *  @param[in] number  The number in double precision.
+ */
+void json_writer::add_double(double number) {
+  _put_comma();
+  std::stringstream ss;
+  ss << number;
+  std::string res;
+  ss >> res;
+  _string += res;
+}
+
+/**
  *  Add a null.
  */
 void json_writer::add_null() {

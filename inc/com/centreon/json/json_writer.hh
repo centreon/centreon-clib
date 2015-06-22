@@ -45,6 +45,7 @@ namespace json {
     void                   add_key(std::string const& key);
     void                   add_string(std::string const& str);
     void                   add_number(long long number);
+    void                   add_double(double number);
     void                   add_null();
     void                   add_boolean(bool value);
 
