@@ -18,11 +18,15 @@
 ** <http://www.gnu.org/licenses/>.
 */
 
+#include <cstring>
 #include "com/centreon/aws/ec2/spot_instance.hh"
 #include "com/centreon/exceptions/basic.hh"
 
 using namespace com::centreon;
 using namespace com::centreon::aws::ec2;
+
+static const char* instance_string[] =
+  {"open", "failed", "active", "canceled", "closed", "unknown"};
 
 /**
  *  Default constructor.
@@ -102,7 +106,16 @@ std::string const& spot_instance::get_spot_instance_request_id() const throw() {
   return (_spot_instance_request_id);
 }
 
-std::string const& spot_instance::get_state() const throw() {
+spot_instance::spot_instance_state spot_instance::get_state() const throw() {
+  for (size_t i = 0;
+       i < sizeof(instance_string) / sizeof(*instance_string);
+       ++i)
+    if (_state == instance_string[i])
+      return ((spot_instance_state)(i));
+  return (unknown);
+}
+
+std::string const& spot_instance::get_state_string() const throw() {
   return (_state);
 }
 
@@ -164,6 +177,13 @@ void spot_instance::set_spot_instance_request_id(std::string const& val) {
 
 void spot_instance::set_state(std::string const& state) {
   _state = state;
+}
+
+void spot_instance::set_state(spot_instance_state const& state) {
+  if (state == unknown)
+    _state = "";
+  else
+    _state = instance_string[state];
 }
 
 void spot_instance::set_launched_availability_zone(std::string const& val) {

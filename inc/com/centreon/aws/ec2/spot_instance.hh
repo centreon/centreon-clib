@@ -48,6 +48,15 @@ namespace aws {
                              spot_instance(spot_instance const& other);
       spot_instance&         operator=(spot_instance const& other);
 
+      enum                   spot_instance_state {
+        open = 0,
+        failed,
+        active,
+        canceled,
+        closed,
+        unknown
+      };
+
       spot_instance_fault const&
                              get_fault() const throw();
       spot_instance_status const&
@@ -61,7 +70,8 @@ namespace aws {
       std::string const&     get_product_description() const throw();
       std::string const&     get_instance_id() const throw();
       std::string const&     get_spot_instance_request_id() const throw();
-      std::string const&     get_state() const throw();
+      std::string const&     get_state_string() const throw();
+      spot_instance_state    get_state() const throw();
       std::string const&     get_launched_availability_zone() const throw();
       std::string const&     get_type() const throw();
       timestamp              get_create_time() const throw();
@@ -78,6 +88,7 @@ namespace aws {
       void                   set_instance_id(std::string const& instance_id);
       void                   set_spot_instance_request_id(std::string const& val);
       void                   set_state(std::string const& state);
+      void                   set_state(spot_instance_state const& state);
       void                   set_launched_availability_zone(std::string const& val);
       void                   set_type(std::string const& type);
       void                   set_create_time(timestamp create_time);
