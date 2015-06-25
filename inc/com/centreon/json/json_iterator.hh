@@ -60,16 +60,17 @@ namespace json {
                            boolean,
                            null
     };
-    type                   get_type() const;
+    type                   get_type() const throw();
+    std::string            get_string_type() const;
     std::string            get_string() const;
     int                    get_integer() const;
     bool                   get_bool() const;
-    bool                   is_null() const;
+    bool                   is_null() const throw();
 
-    int                    children() const;
-    json_iterator          enter_children() const;
+    int                    children() const throw();
+    json_iterator          enter_children() const throw();
 
-    bool                   end() const;
+    bool                   end() const throw();
 
   private:
     const char*            _js;

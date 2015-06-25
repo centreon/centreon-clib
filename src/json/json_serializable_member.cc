@@ -72,6 +72,10 @@ template <>
 void com::centreon::json::unserialize<int>(
        int& member,
       json_iterator& it) {
+  if (it.get_type() != json_iterator::number)
+    throw (exceptions::basic()
+           << "json: cannot unserialize '" << it.get_string()
+           << "', expected a number, got " << it.get_string_type());
   stream_unserialize(member, it);
 }
 
@@ -79,6 +83,10 @@ template <>
 void com::centreon::json::unserialize<unsigned int>(
        unsigned int& member,
       json_iterator& it) {
+  if (it.get_type() != json_iterator::number)
+    throw (exceptions::basic()
+           << "json: cannot unserialize '" << it.get_string()
+           << "', expected a number, got " << it.get_string_type());
   stream_unserialize(member, it);
 }
 
@@ -86,6 +94,10 @@ template <>
 void com::centreon::json::unserialize<bool>(
        bool& member,
       json_iterator& it) {
+  if (it.get_type() != json_iterator::boolean)
+    throw (exceptions::basic()
+           << "json: cannot unserialize '" << it.get_string()
+           << "', expected a boolean, got " << it.get_string_type());
   stream_unserialize(member, it);
 }
 
@@ -93,6 +105,10 @@ template <>
 void com::centreon::json::unserialize<char>(
        char& member,
       json_iterator& it) {
+  if (it.get_type() != json_iterator::number)
+    throw (exceptions::basic()
+           << "json: cannot unserialize '" << it.get_string()
+           << "', expected a number, got " << it.get_string_type());
   stream_unserialize(member, it);
 }
 
@@ -108,6 +124,10 @@ template <>
 void com::centreon::json::unserialize<std::string>(
       std::string& member,
       json_iterator &it) {
+  if (it.get_type() != json_iterator::string)
+    throw (exceptions::basic()
+           << "json: cannot unserialize '" << it.get_string()
+           << "', expected a string, got " << it.get_string_type());
   member = it.get_string();
 }
 
@@ -115,6 +135,12 @@ template <>
 void com::centreon::json::unserialize<double>(
        double& member,
        json_iterator &it) {
+  if (it.get_type() != json_iterator::string
+      || it.get_type() != json_iterator::number)
+    throw (exceptions::basic()
+           << "json: cannot unserialize '" << it.get_string()
+           << "', expected a string or a number, got "
+           << it.get_string_type());
   stream_unserialize(member, it);
 }
 

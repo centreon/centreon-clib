@@ -21,6 +21,7 @@
 #include "com/centreon/aws/ec2/spot_instance.hh"
 #include "com/centreon/exceptions/basic.hh"
 
+using namespace com::centreon;
 using namespace com::centreon::aws::ec2;
 
 /**
@@ -60,6 +61,127 @@ spot_instance& spot_instance::operator=(spot_instance const& other) {
     _internal_copy(other);
   return (*this);
 }
+
+spot_instance_fault const& spot_instance::get_fault() const throw() {
+  return (_fault);
+}
+
+spot_instance_status const& spot_instance::get_status() const throw() {
+  return (_status);
+}
+
+launch_specification const& spot_instance::get_launch_specification() const throw() {
+  return (_launch_specification);
+}
+
+timestamp spot_instance::get_valid_from() const throw() {
+  return (_valid_from);
+}
+
+timestamp spot_instance::get_valid_until() const throw() {
+  return (_valid_until);
+}
+
+std::string const& spot_instance::get_launch_group() const throw() {
+  return (_launch_group);
+}
+
+std::string const& spot_instance::get_availability_zone_group() const throw() {
+  return (_availability_zone_group);
+}
+
+std::string const& spot_instance::get_product_description() const throw() {
+  return (_product_description);
+}
+
+std::string const& spot_instance::get_instance_id() const throw() {
+  return (_instance_id);
+}
+
+std::string const& spot_instance::get_spot_instance_request_id() const throw() {
+  return (_spot_instance_request_id);
+}
+
+std::string const& spot_instance::get_state() const throw() {
+  return (_state);
+}
+
+std::string const& spot_instance::get_launched_availability_zone() const throw() {
+  return (_launched_availability_zone);
+}
+
+std::string const& spot_instance::get_type() const throw() {
+  return (_type);
+}
+
+timestamp spot_instance::get_create_time() const throw()  {
+  return (_create_time);
+}
+
+double spot_instance::get_spot_price() const throw() {
+  return (_spot_price);
+}
+
+void spot_instance::set_fault(spot_instance_fault const& fault) {
+  _fault = fault;
+}
+
+void spot_instance::set_status(spot_instance_status const& status) {
+  _status = status;
+}
+
+void spot_instance::set_launch_specification(launch_specification const& val) {
+  _launch_specification = val;
+}
+
+void spot_instance::set_valid_from(timestamp valid_from) {
+  _valid_from = valid_from;
+}
+
+void spot_instance::set_valid_until(timestamp valid_until) {
+  _valid_until = valid_until;
+}
+
+void spot_instance::set_launch_group(std::string const& launch_group) {
+  _launch_group = launch_group;
+}
+
+void spot_instance::set_availability_zone_groupe(std::string const& val) {
+  _availability_zone_group = val;
+}
+
+void spot_instance::set_product_description(std::string const& val) {
+  _product_description = val;
+}
+
+void spot_instance::set_instance_id(std::string const& instance_id) {
+  _instance_id = instance_id;
+}
+
+void spot_instance::set_spot_instance_request_id(std::string const& val) {
+  _spot_instance_request_id = val;
+}
+
+void spot_instance::set_state(std::string const& state) {
+  _state = state;
+}
+
+void spot_instance::set_launched_availability_zone(std::string const& val) {
+  _launched_availability_zone = val;
+}
+
+void spot_instance::set_type(std::string const& type) {
+  _type = type;
+}
+
+void spot_instance::set_create_time(timestamp create_time) {
+  _create_time = create_time;
+}
+
+void spot_instance::set_spot_price(double spot_price) {
+  _spot_price = spot_price;
+}
+
 
 /**
  *  Init the bindings.

@@ -76,6 +76,8 @@ json_iterator::~json_iterator() {}
  *  @return  A reference to this iterator.
  */
 json_iterator& json_iterator::operator++() {
+  if (end())
+    return (*this);
   int parent = _tokens[_index].parent;
   for (_index = _index + 1;
        _index < _token_number && _tokens[_index].parent != parent;
@@ -88,7 +90,9 @@ json_iterator& json_iterator::operator++() {
  *
  *  @return The type of this node.
  */
-json_iterator::type json_iterator::get_type() const {
+json_iterator::type json_iterator::get_type() const throw() {
+  if (end())
+    return (null);
   switch (_tokens[_index].type) {
     case JSMN_OBJECT:
       return (object);
@@ -110,14 +114,40 @@ json_iterator::type json_iterator::get_type() const {
 }
 
 /**
+ *  Get the type of this node as a string.
+ *
+ *  @return  The type of this node as a string.
+ */
+std::string json_iterator::get_string_type() const {
+  type t = get_type();
+
+  switch (t) {
+  case object:
+    return ("object");
+  case array:
+    return ("array");
+  case string:
+    return ("string");
+  case number:
+    return ("number");
+  case boolean:
+    return ("boolean");
+  case null:
+    return ("null");
+  }
+}
+
+/**
  *  Get this node as a string.
  *
  *  @return  This node as a string.
  */
 std::string json_iterator::get_string() const {
-  return (std::string(
-            _js[_tokens[_index].start],
-             _tokens[_index].end - _tokens[_index].start));
+  return (end()
+            ? ""
+            : std::string(
+              _js[_tokens[_index].start],
+              _tokens[_index].end - _tokens[_index].start));
 }
 
 /**
@@ -152,7 +182,7 @@ bool json_iterator::get_bool() const {
  *
  *  @return  True if this node is null.
  */
-bool json_iterator::is_null() const {
+bool json_iterator::is_null() const throw() {
   return (get_type() == null);
 }
 
@@ -161,7 +191,7 @@ bool json_iterator::is_null() const {
  *
  *  @return  Number of children of this node.
  */
-int json_iterator::children() const {
+int json_iterator::children() const throw() {
   return (_tokens[_index].size);
 }
 
@@ -170,7 +200,7 @@ int json_iterator::children() const {
  *
  *  @return  A json_iterator on the first children, if any.
  */
-json_iterator json_iterator::enter_children() const {
+json_iterator json_iterator::enter_children() const throw() {
   if (_tokens[_index].size > 0)
     return (json_iterator(
               _js,
@@ -185,6 +215,6 @@ json_iterator json_iterator::enter_children() const {
  *
  *  @return  True if this iterator is at the end.
  */
-bool json_iterator::end() const {
+bool json_iterator::end() const throw() {
   return (_index >= _token_number);
 }

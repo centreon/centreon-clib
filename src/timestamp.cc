@@ -389,6 +389,34 @@ timestamp timestamp::from_utc(std::string const& utc) {
   return (timestamp(ts));
 }
 
+/**
+ *  Stream operator for timestamp.
+ *
+ *  @param[in] oss  The output stream.
+ *  @param[in] ts   The timestamp.
+ *
+ *  @return         Reference to the output stream.
+ */
+std::ostream& operator<<(std::ostream& oss, timestamp const& ts) {
+  oss << ts.to_seconds();
+  return (oss);
+}
+
+/**
+ *  Stream operator for timestamp.
+ *
+ *  @param[in] oss  The input stream.
+ *  @param[in] ts   The timestamp.
+ *
+ *  @return         Reference to the input stream.
+ */
+std::istream& operator>>(std::istream& iss, timestamp& ts) {
+  time_t tmp = 0;
+  iss >> tmp;
+  ts = timestamp(tmp);
+  return (iss);
+}
+
 /**************************************
 *                                     *
 *           Private Methods           *

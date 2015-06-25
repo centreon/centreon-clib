@@ -48,6 +48,41 @@ namespace aws {
                              spot_instance(spot_instance const& other);
       spot_instance&         operator=(spot_instance const& other);
 
+      spot_instance_fault const&
+                             get_fault() const throw();
+      spot_instance_status const&
+                             get_status() const throw();
+      launch_specification const&
+                             get_launch_specification() const throw();
+      timestamp              get_valid_from() const throw();
+      timestamp              get_valid_until() const throw();
+      std::string const&     get_launch_group() const throw();
+      std::string const&     get_availability_zone_group() const throw();
+      std::string const&     get_product_description() const throw();
+      std::string const&     get_instance_id() const throw();
+      std::string const&     get_spot_instance_request_id() const throw();
+      std::string const&     get_state() const throw();
+      std::string const&     get_launched_availability_zone() const throw();
+      std::string const&     get_type() const throw();
+      timestamp              get_create_time() const throw();
+      double                 get_spot_price() const throw();
+
+      void                   set_fault(spot_instance_fault const& fault);
+      void                   set_status(spot_instance_status const& status);
+      void                   set_launch_specification(launch_specification const& val);
+      void                   set_valid_from(timestamp valid_from);
+      void                   set_valid_until(timestamp valid_until);
+      void                   set_launch_group(std::string const& launch_group);
+      void                   set_availability_zone_groupe(std::string const& val);
+      void                   set_product_description(std::string const& val);
+      void                   set_instance_id(std::string const& instance_id);
+      void                   set_spot_instance_request_id(std::string const& val);
+      void                   set_state(std::string const& state);
+      void                   set_launched_availability_zone(std::string const& val);
+      void                   set_type(std::string const& type);
+      void                   set_create_time(timestamp create_time);
+      void                   set_spot_price(double spot_price);
+
     private:
       spot_instance_fault    _fault;
       spot_instance_status   _status;

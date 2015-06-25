@@ -23,6 +23,7 @@
 
 #  include <string>
 #  include "com/centreon/namespace.hh"
+#  include "com/centreon/aws/ec2/spot_instance.hh"
 
 CC_BEGIN()
 
@@ -35,7 +36,17 @@ namespace aws {
     class                    command {
     public:
                              command(std::string const& profile);
-                             ~command();
+                             ~command() throw();
+
+     std::vector<spot_instance>
+                             request_spot_instance(
+                               unsigned int instance_count,
+                               spot_instance const& instance);
+     std::vector<spot_instance>
+                             get_spot_instances();
+     std::string             cancel_spot_instance_request(
+                               std::string const& spot_instance_id);
+
     private:
       static const unsigned int
                              _command_timeout = 3;
@@ -43,6 +54,8 @@ namespace aws {
       std::string            _profile;
 
       void                   _sanity_checks();
+      std::string            _generate_client_token() const;
+      std::string            _execute(std::string const& cmd);
 
                              command(command const&);
       command&               operator=(command const&);

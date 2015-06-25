@@ -23,6 +23,7 @@
 
 #  include <ctime>
 #  include <string>
+#  include <iostream>
 #  include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -73,6 +74,10 @@ private:
   time_t           _secs;
   unsigned int     _usecs;
 };
+
+// Stream operators for timestamp.
+std::ostream& operator<<(std::ostream& oss, timestamp const& ts);
+std::istream& operator>>(std::istream& iss, timestamp& ts);
 
 CC_END()
 

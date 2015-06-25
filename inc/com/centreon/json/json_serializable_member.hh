@@ -94,6 +94,10 @@ namespace json {
 
   template <typename T>
   void unserialize(std::vector<T>& member, json_iterator& it) {
+    if (it.get_type() != json_iterator::array)
+      throw (exceptions::basic()
+             << "json: cannot unserialize '" << it.get_string()
+             << "', expected an array, got " << it.get_string_type());
     json_iterator children = it.enter_children();
     for (; !children.is_null(); ++children) {
       member.push_back(T());
@@ -103,6 +107,10 @@ namespace json {
 
   template <typename T>
   void unserialize(T& member, json_iterator& it) {
+    if (it.get_type() != json_iterator::object)
+      throw (exceptions::basic()
+             << "json: cannot unserialize '" << it.get_string()
+             << "', expected an object, got " << it.get_string_type());
     json_iterator children_iterator = it.enter_children();
     member.unserialize(children_iterator);
   }

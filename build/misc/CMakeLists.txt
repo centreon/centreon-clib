@@ -28,6 +28,7 @@ set(
   ${SOURCES}
   "${SRC_DIR}/argument.cc"
   "${SRC_DIR}/command_line.cc"
+  "${SRC_DIR}/command_line_writer.cc"
   "${SRC_DIR}/get_options.cc"
   "${SRC_DIR}/stringifier.cc"
   PARENT_SCOPE
@@ -39,6 +40,7 @@ set(
   ${HEADERS}
   "${INC_DIR}/argument.hh"
   "${INC_DIR}/command_line.hh"
+  "${INC_DIR}/command_line_writer.hh"
   "${INC_DIR}/get_options.hh"
   "${INC_DIR}/stringifier.hh"
   PARENT_SCOPE
