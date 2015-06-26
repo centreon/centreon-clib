@@ -107,16 +107,21 @@ std::string const& spot_instance::get_spot_instance_request_id() const throw() {
 }
 
 spot_instance::spot_instance_state spot_instance::get_state() const throw() {
-  for (size_t i = 0;
-       i < sizeof(instance_string) / sizeof(*instance_string);
-       ++i)
-    if (_state == instance_string[i])
-      return ((spot_instance_state)(i));
-  return (unknown);
+  get_state_from_string(get_state_string());
 }
 
 std::string const& spot_instance::get_state_string() const throw() {
   return (_state);
+}
+
+spot_instance::spot_instance_state
+  spot_instance::get_state_from_string(std::string const& str) throw() {
+  for (size_t i = 0;
+       i < sizeof(instance_string) / sizeof(*instance_string);
+       ++i)
+    if (str == instance_string[i])
+      return ((spot_instance_state)(i));
+  return (unknown);
 }
 
 std::string const& spot_instance::get_launched_availability_zone() const throw() {

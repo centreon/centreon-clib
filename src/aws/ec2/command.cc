@@ -147,8 +147,8 @@ std::vector<spot_instance> command::get_spot_instances() {
  *
  *  @return                      The new state of the instance id.
  */
-std::string command::cancel_spot_instance_request(
-                std::string const& spot_instance_id) {
+spot_instance::spot_instance_state command::cancel_spot_instance_request(
+                                      std::string const& spot_instance_id) {
   misc::command_line_writer writer("aws ec2 cancel-spot-instance-requests");
 
   writer.add_arg("--spot-instance-request-ids", spot_instance_id);
@@ -169,6 +169,39 @@ std::string command::cancel_spot_instance_request(
         && (++it).get_type() != json::json_iterator::string)
     throw (exceptions::basic()
            << "command: cancel_spot_instance_request: "
+              "couldn't parse json answer");
+  return (spot_instance::get_state_from_string(it.get_string()));
+}
+
+/**
+ *  Terminate the spot instance.
+ *
+ *  @param[in] spot_instance_id  The spot instance id to terminate.
+ *
+ *  @return                      The new state of the instance id.
+ */
+std::string command::terminate_spot_instance(
+                       std::string const& spot_instance_id) {
+  misc::command_line_writer writer("aws ec2 terminate-instances");
+
+  writer.add_arg("--instance-ids", spot_instance_id);
+  std::string return_string = _execute(writer.get_command());
+
+  // Parse returned json.
+  json::json_parser parser;
+  parser.parse(return_string);
+  json::json_iterator it = parser.begin().enter_children();
+  if (it.get_string() != "TerminatingInstances")
+    throw (exceptions::basic()
+           << "command: terminate_spot_instance: "
+              "couldn't parse json answer: expected "
+              "'TerminatingInstances', got '" << it.get_string() << "'");
+  ++it;
+  it = it.enter_children().find_child("CurrentState").find_child("Name");
+  if (it.get_string() != "Name"
+      && (++it).get_type() != json::json_iterator::string)
+    throw (exceptions::basic()
+           << "command: terminate_spot_instance: "
               "couldn't parse json answer");
   return (it.get_string());
 }

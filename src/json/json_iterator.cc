@@ -211,6 +211,21 @@ json_iterator json_iterator::enter_children() const throw() {
 }
 
 /**
+ *  Find a child.
+ *
+ *  @param[in] name  The name of the child.
+ *
+ *  @return          Iterator this child, if any.
+ */
+json_iterator json_iterator::find_child(std::string const& name) {
+  json_iterator ret = this->enter_children();
+  for (; !ret.end(); ++ret)
+    if (ret.get_string() == name)
+      return (ret);
+  return (ret);
+}
+
+/**
  *  Did this iterator end?
  *
  *  @return  True if this iterator is at the end.

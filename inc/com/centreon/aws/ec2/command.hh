@@ -44,7 +44,10 @@ namespace aws {
                                spot_instance const& instance);
      std::vector<spot_instance>
                              get_spot_instances();
-     std::string             cancel_spot_instance_request(
+     spot_instance::spot_instance_state
+                             cancel_spot_instance_request(
+                               std::string const& spot_instance_id);
+     std::string             terminate_spot_instance(
                                std::string const& spot_instance_id);
 
     private:

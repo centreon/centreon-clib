@@ -69,6 +69,7 @@ namespace json {
 
     int                    children() const throw();
     json_iterator          enter_children() const throw();
+    json_iterator          find_child(std::string const& name);
 
     bool                   end() const throw();
 
