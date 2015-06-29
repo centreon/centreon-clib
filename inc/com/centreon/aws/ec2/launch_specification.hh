@@ -45,10 +45,6 @@ namespace aws {
                                launch_specification const& other);
       launch_specification&  operator=(launch_specification const& other);
 
-    private:
-      std::string            _image_id;
-      std::string            _key_name;
-
       struct                 security_group : public json::json_serializable {
                              security_group();
                              security_group(security_group const& other);
@@ -59,6 +55,48 @@ namespace aws {
       private:
         void                 _init_bindings();
       };
+
+      std::string const&     get_image_id() const throw();
+      std::string const&     get_key_name() const throw();
+      std::vector<security_group> const&
+                             get_security_groups() const throw();
+      std::string const&     get_user_data() const throw();
+      std::string const&     get_instance_type() const throw();
+      std::string const&     get_placement_availability_zone() const throw();
+      std::string const&     get_placement_group_name() const throw();
+      std::string const&     get_kernel_id() const throw();
+      std::string const&     get_ramdisk_id() const throw();
+      std::vector<block_device_mapping> const&
+                             get_block_device_mappings() const throw();
+      std::string const&     get_subnet_id() const throw();
+      std::vector<network_interface> const&
+                             get_network_interfaces() const throw();
+      std::string const&     get_iam_instance_profile_arn() const throw();
+      std::string const&     get_iam_instance_profile_name() const throw();
+      bool                   get_ebs_optimized() const throw();
+      bool                   get_monitoring_enabled() const throw();
+
+      void                   set_image_id(std::string const& val);
+      void                   set_key_name(std::string const& val);
+      void                   add_security_groups(security_group const& val);
+      void                   set_user_data(std::string const& val);
+      void                   set_instance_type(std::string const& val);
+      void                   set_placement_availability_zone(std::string const& val);
+      void                   set_placement_group_name(std::string const& val);
+      void                   set_kernel_id(std::string const& val);
+      void                   set_ramdisk_id(std::string const& val);
+      void                   add_block_device_mappings(block_device_mapping const& val);
+      void                   set_subnet_id(std::string const& val);
+      void                   add_network_interfaces(network_interface const& val);
+      void                   set_iam_instance_profile_arn(std::string const& val);
+      void                   set_iam_instance_profile_name(std::string const& val);
+      void                   set_ebs_optimized(bool val);
+      void                   set_monitoring_enabled(bool val);
+
+    private:
+      std::string            _image_id;
+      std::string            _key_name;
+
       std::vector<security_group>
                              _security_groups;
 
