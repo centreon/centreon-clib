@@ -365,7 +365,9 @@ install(
   DIRECTORY "${INCLUDE_DIR}/"
   DESTINATION "${PREFIX_INC}"
   COMPONENT "development"
-  FILES_MATCHING PATTERN "*.hh"
+  FILES_MATCHING
+    PATTERN "*.hh"
+    PATTERN "*.h"
 )
 
 
