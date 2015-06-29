@@ -35,13 +35,18 @@ namespace aws {
      */
     class                    command {
     public:
-                             command(std::string const& profile);
+                             command(std::string const& profile
+                                      = std::string());
                              ~command() throw();
 
      std::vector<spot_instance>
                              request_spot_instance(
+                               double spot_price,
                                unsigned int instance_count,
-                               spot_instance const& instance);
+                               std::string const& type,
+                               timestamp valid_from,
+                               timestamp valid_until,
+                               launch_specification const& spec);
      std::vector<spot_instance>
                              get_spot_instances();
      spot_instance::spot_instance_state

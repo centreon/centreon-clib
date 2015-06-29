@@ -25,7 +25,8 @@
 #include "com/centreon/process.hh"
 #include "com/centreon/aws/ec2/command.hh"
 #include "com/centreon/misc/command_line_writer.hh"
-#include "com/centreon/exceptions/basic.hh"
+#include "com/centreon/aws/ec2/execution_exception.hh"
+#include "com/centreon/aws/ec2/parsing_exception.hh"
 
 using namespace com::centreon::aws::ec2;
 
@@ -35,7 +36,8 @@ static unsigned int seed = 0;
  *  Constructor.
  *
  *  @param[in] profile  The name of the profile that should be
- *                      used by the aws cli wrapper.
+ *                      used by the aws cli wrapper. Empty for the default
+ *                      profile.
  */
 command::command(std::string const& profile)
   : _profile(profile) {
@@ -53,48 +55,51 @@ command::~command() throw() {
  *  Check that aws cli exists.
  */
 void command::_sanity_checks() {
-  process proc;
-  proc.exec("aws help", _command_timeout);
-  proc.wait();
-  if (proc.exit_status() != process::normal || proc.exit_code() != 0) {
-    std::string err;
-    proc.read_err(err);
-    throw (exceptions::basic() << "couldn't execute aws: " << err);
-  }
+  _execute("aws help");
 }
 
 /**
- *  Request the creation of an instance.
+ *  Request the creation of instances.
  *
- *  @param[in] instance  The instance.
+ *  @param[in] spot_price      The spot price.
+ *  @param[in] instance_count  How many instances.
+ *  @param[in] type            The type of the instance.
+ *  @param[in] valid_from      The start of the validity.
+ *  @param[in] valid_until     The end of the validity.
+ *  @param[in] spec            Launch specifications.
  *
- *  @return              The instances requested.
+ *  @return                    List of spot instances requested.
  */
 std::vector<spot_instance> command::request_spot_instance(
+                                      double spot_price,
                                       unsigned int instance_count,
-                                      spot_instance const& instance) {
+                                      std::string const& type,
+                                      timestamp valid_from,
+                                      timestamp valid_until,
+                                      launch_specification const& spec) {
   if (instance_count == 0)
     return (std::vector<spot_instance>());
 
   // Get args.
-  double spot_price = instance.get_spot_price();
-  std::string client_token = _generate_client_token();
-  std::string type = instance.get_type();
-  timestamp valid_from = instance.get_valid_from();
-  timestamp valid_until = instance.get_valid_until();
-  launch_specification const& spec = instance.get_launch_specification();
   json::json_writer js_spec;
   spec.serialize(js_spec);
 
   // Create command.
   misc::command_line_writer writer("aws ec2 request-spot-instances");
 
+  writer.add_arg_condition("--profile", _profile, !_profile.empty());
   writer.add_arg("--spot-price", spot_price);
-  writer.add_arg("--client-toker", client_token);
-  writer.add_arg("--type", type);
-  writer.add_arg("--valid-from", valid_from);
-  writer.add_arg("--valid-until", valid_until);
-  writer.add_arg("--launch-specification", js_spec.get_string());
+  writer.add_arg("--client-toker", _generate_client_token());
+  writer.add_arg_condition("--type", type, !type.empty());
+  writer.add_arg_condition("--valid-from", valid_from, !valid_from.is_null());
+  writer.add_arg_condition(
+    "--valid-until",
+    valid_until,
+    !valid_until.is_null());
+  writer.add_arg_condition(
+    "--launch-specification",
+    js_spec.get_string(),
+    !spec.is_null());
 
   std::string return_string = _execute(writer.get_command());
 
@@ -105,7 +110,7 @@ std::vector<spot_instance> command::request_spot_instance(
   parser.parse(return_string);
   json::json_iterator it = parser.begin().enter_children();
   if (it.get_string() != "SpotInstanceRequests")
-    throw (exceptions::basic()
+    throw (parsing_exception()
            << "command: request_spot_instance: "
               "couldn't parse json answer: expected"
               " 'SpotInstanceRequests', got '" << it.get_string() << "'");
@@ -121,15 +126,19 @@ std::vector<spot_instance> command::request_spot_instance(
  *  @return  Vector of spot instances.
  */
 std::vector<spot_instance> command::get_spot_instances() {
-  std::string return_string = _execute(
-                                "aws ec2 describe-spot-instance-requests");
+  misc::command_line_writer writer("aws ec2 describe-spot-instance-requests");
+
+  writer.add_arg_condition("--profile", _profile, !_profile.empty());
+
+  std::string return_string = _execute(writer.get_command());
+
   // Parse returned json.
   json::json_parser parser;
   std::vector<spot_instance> ret;
   parser.parse(return_string);
   json::json_iterator it = parser.begin().enter_children();
   if (it.get_string() != "SpotInstanceRequests")
-    throw (exceptions::basic()
+    throw (parsing_exception()
            << "command: get_spot_instances:"
               " couldn't parse json answer: expected"
               " 'SpotInstanceRequests', got '" << it.get_string() << "'");
@@ -151,6 +160,7 @@ spot_instance::spot_instance_state command::cancel_spot_instance_request(
                                       std::string const& spot_instance_id) {
   misc::command_line_writer writer("aws ec2 cancel-spot-instance-requests");
 
+  writer.add_arg_condition("--profile", _profile, !_profile.empty());
   writer.add_arg("--spot-instance-request-ids", spot_instance_id);
   std::string return_string = _execute(writer.get_command());
 
@@ -159,7 +169,7 @@ spot_instance::spot_instance_state command::cancel_spot_instance_request(
   parser.parse(return_string);
   json::json_iterator it = parser.begin().enter_children();
   if (it.get_string() != "CancelledSpotInstanceRequests")
-    throw (exceptions::basic()
+    throw (parsing_exception()
            << "command: cancel_spot_instance_request: "
               "couldn't parse json answer: expected "
               "'CancelledSpotInstanceRequests', got '" << it.get_string() << "'");
@@ -167,7 +177,7 @@ spot_instance::spot_instance_state command::cancel_spot_instance_request(
   it = it.enter_children().enter_children();
   if (it.get_string() != "State"
         && (++it).get_type() != json::json_iterator::string)
-    throw (exceptions::basic()
+    throw (parsing_exception()
            << "command: cancel_spot_instance_request: "
               "couldn't parse json answer");
   return (spot_instance::get_state_from_string(it.get_string()));
@@ -184,6 +194,7 @@ std::string command::terminate_spot_instance(
                        std::string const& spot_instance_id) {
   misc::command_line_writer writer("aws ec2 terminate-instances");
 
+  writer.add_arg_condition("--profile", _profile, !_profile.empty());
   writer.add_arg("--instance-ids", spot_instance_id);
   std::string return_string = _execute(writer.get_command());
 
@@ -192,7 +203,7 @@ std::string command::terminate_spot_instance(
   parser.parse(return_string);
   json::json_iterator it = parser.begin().enter_children();
   if (it.get_string() != "TerminatingInstances")
-    throw (exceptions::basic()
+    throw (parsing_exception()
            << "command: terminate_spot_instance: "
               "couldn't parse json answer: expected "
               "'TerminatingInstances', got '" << it.get_string() << "'");
@@ -200,7 +211,7 @@ std::string command::terminate_spot_instance(
   it = it.enter_children().find_child("CurrentState").find_child("Name");
   if (it.get_string() != "Name"
       && (++it).get_type() != json::json_iterator::string)
-    throw (exceptions::basic()
+    throw (parsing_exception()
            << "command: terminate_spot_instance: "
               "couldn't parse json answer");
   return (it.get_string());
@@ -240,7 +251,7 @@ std::string command::_execute(std::string const& cmd) {
   if (proc.exit_status() != process::normal || proc.exit_code() != 0) {
     std::string err;
     proc.read_err(err);
-    throw (exceptions::basic() << "couldn't execute aws: " << err);
+    throw (execution_exception() << "error while executing aws: " << err);
   }
 
   std::string ret;

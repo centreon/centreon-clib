@@ -397,7 +397,9 @@ timestamp timestamp::from_utc(std::string const& utc) {
  *
  *  @return         Reference to the output stream.
  */
-std::ostream& operator<<(std::ostream& oss, timestamp const& ts) {
+std::ostream& com::centreon::operator<<(
+                               std::ostream& oss,
+                               timestamp const& ts) {
   oss << ts.to_seconds();
   return (oss);
 }
@@ -410,7 +412,9 @@ std::ostream& operator<<(std::ostream& oss, timestamp const& ts) {
  *
  *  @return         Reference to the input stream.
  */
-std::istream& operator>>(std::istream& iss, timestamp& ts) {
+std::istream& com::centreon::operator>>(
+                               std::istream& iss,
+                               timestamp& ts) {
   time_t tmp = 0;
   iss >> tmp;
   ts = timestamp(tmp);

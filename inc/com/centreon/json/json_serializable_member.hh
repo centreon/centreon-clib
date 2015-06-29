@@ -40,7 +40,7 @@ namespace json {
    */
   class                    json_serializable_member {
   public:
-    virtual                ~json_serializable_member();
+    virtual                ~json_serializable_member() {}
 
     enum                   serializable_flags {
                            none = 0,
