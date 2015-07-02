@@ -269,6 +269,7 @@ set(
   "${INC_DIR}/hash.hh"
   "${INC_DIR}/library.hh"
   "${INC_DIR}/namespace.hh"
+  "${INC_DIR}/process_listener.hh"
   "${INC_DIR}/process_manager.hh"
   "${INC_DIR}/process.hh"
   "${INC_DIR}/shared_ptr.hh"
