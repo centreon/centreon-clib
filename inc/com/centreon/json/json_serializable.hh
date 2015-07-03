@@ -49,17 +49,19 @@ namespace json {
     /**
      *  Add a member that needs to be serialized.
      */
-    template <typename V>
+    template <typename U>
     void                   add_member(
                              std::string const& serialized_name,
-                             V& member,
+                             U& member,
                              int flags = 0) {
-      _members[serialized_name] = new json_serializable_member_impl<V>(
+      _members[serialized_name] = new json_serializable_member_impl<U>(
                                         member, flags);
     }
     json_serializable&     create_and_add_generic_sub_object(
                              std::string const& sub_object,
                              int flags = 0);
+    void                   add_ignored_member(
+                             std::string const& serialized_name);
 
     virtual void           serialize(json_writer& writer) const;
     virtual void           unserialize(json_iterator& it);
@@ -68,8 +70,6 @@ namespace json {
   private:
     std::map<std::string, json_serializable_member*>
                             _members;
-    std::vector<json_serializable*>
-                            _generic_sub_objects;
   };
 } // namespace json
 

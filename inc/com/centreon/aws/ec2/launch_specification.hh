@@ -26,6 +26,7 @@
 #  include <vector>
 #  include "com/centreon/aws/ec2/network_interface.hh"
 #  include "com/centreon/aws/ec2/block_device_mapping.hh"
+#  include "com/centreon/aws/ec2/security_group.hh"
 #  include "com/centreon/json/json_serializable.hh"
 #  include "com/centreon/namespace.hh"
 
@@ -44,17 +45,6 @@ namespace aws {
                              launch_specification(
                                launch_specification const& other);
       launch_specification&  operator=(launch_specification const& other);
-
-      struct                 security_group : public json::json_serializable {
-                             security_group();
-                             security_group(security_group const& other);
-        security_group&      operator=(security_group const& other);
-                             ~security_group();
-        std::string          group_name;
-        std::string          group_id;
-      private:
-        void                 _init_bindings();
-      };
 
       std::string const&     get_image_id() const throw();
       std::string const&     get_key_name() const throw();

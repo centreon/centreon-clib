@@ -44,7 +44,8 @@ namespace json {
 
     enum                   serializable_flags {
                            none = 0,
-                           serialize_on_null = 1
+                           serialize_on_null = 1 << 1,
+                           own_reference = 1 << 2
     };
 
     virtual void           serialize(json_writer& writer) const = 0;
@@ -186,7 +187,10 @@ namespace json {
       return (*this);
     }
 
-                           ~json_serializable_member_impl() {}
+                           ~json_serializable_member_impl() {
+      if (_flags & own_reference)
+        delete _member;
+    }
 
     /**
      *  Serialize the member.

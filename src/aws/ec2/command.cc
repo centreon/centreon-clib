@@ -108,7 +108,7 @@ std::vector<spot_instance> command::request_spot_instance(
   std::vector<spot_instance> ret;
 
   parser.parse(return_string);
-  json::json_iterator it = parser.begin().enter_children();
+  json::json_iterator it = parser.begin();
   if (it.get_string() != "SpotInstanceRequests")
     throw (parsing_exception()
            << "command: request_spot_instance: "
@@ -136,7 +136,7 @@ std::vector<spot_instance> command::get_spot_instances() {
   json::json_parser parser;
   std::vector<spot_instance> ret;
   parser.parse(return_string);
-  json::json_iterator it = parser.begin().enter_children();
+  json::json_iterator it = parser.begin();
   if (it.get_string() != "SpotInstanceRequests")
     throw (parsing_exception()
            << "command: get_spot_instances:"
@@ -167,7 +167,7 @@ spot_instance::spot_instance_state command::cancel_spot_instance_request(
   // Parse returned json.
   json::json_parser parser;
   parser.parse(return_string);
-  json::json_iterator it = parser.begin().enter_children();
+  json::json_iterator it = parser.begin();
   if (it.get_string() != "CancelledSpotInstanceRequests")
     throw (parsing_exception()
            << "command: cancel_spot_instance_request: "
@@ -184,18 +184,49 @@ spot_instance::spot_instance_state command::cancel_spot_instance_request(
 }
 
 /**
- *  Terminate the spot instance.
+ *  Get an instance from an instance id.
  *
- *  @param[in] spot_instance_id  The spot instance id to terminate.
+ *  @param[in] instance_id  The instance id.
+ *
+ *  @return                 The instance.
+ */
+instance command::get_instance_from_id(
+                    std::string const& instance_id) {
+  misc::command_line_writer writer("aws ec2 describe-instances");
+
+  writer.add_arg_condition("--profile", _profile, !_profile.empty());
+  writer.add_arg("--instance-ids", instance_id);
+  std::string return_string = _execute(writer.get_command());
+
+  // Parse returned json.
+  json::json_parser parser;
+  parser.parse(return_string);
+  json::json_iterator it = parser.begin();
+  if (it.get_string() != "Reservations")
+    throw (parsing_exception()
+           << "command: terminate_spot_instance: "
+              "couldn't parse json answer: expected "
+              "'Reservations', got '" << it.get_string() << "'");
+  ++it;
+  it = it.enter_children().find_child("Instances").enter_children();
+  instance res;
+  json::unserialize(res, it);
+  return (res);
+}
+
+/**
+ *  Terminate an instance.
+ *
+ *  @param[in] spot_instance_id  The instance id to terminate.
  *
  *  @return                      The new state of the instance id.
  */
-std::string command::terminate_spot_instance(
-                       std::string const& spot_instance_id) {
+std::string command::terminate_instance(
+                       std::string const& instance_id) {
   misc::command_line_writer writer("aws ec2 terminate-instances");
 
   writer.add_arg_condition("--profile", _profile, !_profile.empty());
-  writer.add_arg("--instance-ids", spot_instance_id);
+  writer.add_arg("--instance-ids", instance_id);
   std::string return_string = _execute(writer.get_command());
 
   // Parse returned json.

@@ -24,6 +24,7 @@
 #  include <string>
 #  include "com/centreon/namespace.hh"
 #  include "com/centreon/aws/ec2/spot_instance.hh"
+#  include "com/centreon/aws/ec2/instance.hh"
 
 CC_BEGIN()
 
@@ -52,8 +53,10 @@ namespace aws {
      spot_instance::spot_instance_state
                              cancel_spot_instance_request(
                                std::string const& spot_instance_id);
-     std::string             terminate_spot_instance(
-                               std::string const& spot_instance_id);
+     instance                get_instance_from_id(
+                               std::string const& instance_id);
+     std::string             terminate_instance(
+                               std::string const& instance_id);
 
     private:
       static const unsigned int

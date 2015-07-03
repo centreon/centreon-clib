@@ -18,6 +18,7 @@
 ** <http://www.gnu.org/licenses/>.
 */
 
+#include <memory>
 #include <sstream>
 #include "com/centreon/json/json_serializable.hh"
 #include "com/centreon/json/json_serializable_member.hh"
@@ -33,21 +34,23 @@ json_serializable::json_serializable() {}
 /**
  *  Copy constructor.
  *
- *  @param[in] other  The object to copy.
+ *  @param[in] other  Object to copy.
  */
-json_serializable::json_serializable(json_serializable const& other)
-  : _members(other._members) {}
+json_serializable::json_serializable(json_serializable const& other) {
+  _members = other._members;
+}
 
 /**
  *  Assignment operator.
  *
- *  @param[in] other  The object to copy.
+ *  @param[in]  other  Object to copy.
  *
  *  @return  Reference to this.
  */
 json_serializable& json_serializable::operator=(json_serializable const& other) {
-  if (this != &other)
+  if (this != &other) {
     _members = other._members;
+  }
   return (*this);
 }
 
@@ -55,18 +58,12 @@ json_serializable& json_serializable::operator=(json_serializable const& other) 
  *  Destructor.
  */
 json_serializable::~json_serializable() {
-  for (std::map<std::string, json_serializable_member*>::const_iterator
+  for (std::map<std::string, json_serializable_member*>::iterator
          it = _members.begin(),
-         end  = _members.end();
+         end = _members.end();
        it != end;
        ++it)
-  delete it->second;
-  for (std::vector<json_serializable*>::const_iterator
-         it = _generic_sub_objects.begin(),
-         end  = _generic_sub_objects.end();
-       it != end;
-       ++it)
-  delete *it;
+    delete it->second;
 }
 
 /**
@@ -77,9 +74,22 @@ json_serializable::~json_serializable() {
 json_serializable& json_serializable::create_and_add_generic_sub_object(
                      std::string const& sub_object,
                      int flags) {
-  _generic_sub_objects.push_back(new json_serializable);
-  add_member(sub_object, *_generic_sub_objects.back(), flags);
-  return (*_generic_sub_objects.back());
+  std::auto_ptr<json_serializable> object(new json_serializable);
+  add_member(
+    sub_object,
+    *object.get(),
+    flags | json_serializable_member::own_reference);
+  return (*object.release());
+}
+
+/**
+ *  Add an ignored member.
+ *
+ *  @param[in] serialized_name  The name of the ignored member.
+ */
+void json_serializable::add_ignored_member(
+                          std::string const& serialized_name) {
+  create_and_add_generic_sub_object(serialized_name);
 }
 
 /**

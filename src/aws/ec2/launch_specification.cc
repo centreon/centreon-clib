@@ -26,57 +26,6 @@ using namespace com::centreon::aws::ec2;
 /**
  *  Default constructor.
  */
-launch_specification::security_group::security_group() {
-  _init_bindings();
-}
-
-/**
- *  Copy constructor.
- *
- *  @param[in] other  The object to copy.
- */
-launch_specification::security_group::security_group(
-  launch_specification::security_group const& other)
-  : group_name(other.group_name),
-    group_id(other.group_id) {
-  _init_bindings();
-}
-
-/**
- *  Assignment operator.
- *
- *  @param[in] other  The object to copy.
- *
- *  @return           Reference to this object.
- */
-launch_specification::security_group&
-  launch_specification::security_group::operator=(
-    launch_specification::security_group const& other) {
-  if (this != &other) {
-    group_name = other.group_name;
-    group_id = other.group_id;
-  }
-  return (*this);
-}
-
-/**
- *  Destructor.
- */
-launch_specification::security_group::~security_group() {
-
-}
-
-/**
- *  Init the bindings.
- */
-void launch_specification::security_group::_init_bindings() {
-  add_member("GroupName", group_name);
-  add_member("GroupId", group_id);
-}
-
-/**
- *  Default constructor.
- */
 launch_specification::launch_specification()
   : _ebs_optimized(false),
     _monitoring_enabled(false) {
@@ -137,7 +86,7 @@ std::string const& launch_specification::get_key_name() const throw() {
  *
  *  @return  The security groups.
  */
-std::vector<launch_specification::security_group> const&
+std::vector<security_group> const&
   launch_specification::get_security_groups() const throw() {
   return (_security_groups);
 }
