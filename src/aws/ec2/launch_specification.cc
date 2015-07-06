@@ -29,7 +29,7 @@ using namespace com::centreon::aws::ec2;
 launch_specification::launch_specification()
   : _ebs_optimized(false),
     _monitoring_enabled(false) {
-
+  _init_bindings();
 }
 
 /**
@@ -45,7 +45,8 @@ launch_specification::~launch_specification() {
  *  @param[in] other  The object to copy.
  */
 launch_specification::launch_specification(
-                        launch_specification const& other) {
+                        launch_specification const& other)
+  : json::json_serializable(other) {
   _internal_copy(other);
 }
 
@@ -58,8 +59,10 @@ launch_specification::launch_specification(
  */
 launch_specification& launch_specification::operator=(
                         launch_specification const& other) {
-  if (this != &other)
+  if (this != &other) {
+    json::json_serializable::operator=(other);
     _internal_copy(other);
+  }
   return (*this);
 }
 

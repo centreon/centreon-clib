@@ -27,7 +27,6 @@ using namespace com::centreon::json;
  *  Default constructor.
  */
 json_writer::json_writer() {
-
 }
 
 /**
@@ -82,8 +81,8 @@ void json_writer::close_array() {
  *  @param[in] key  The key name.
  */
 void json_writer::add_key(std::string const& key) {
-  _put_comma();
-  (_string += key) += '=';
+  add_string(key);
+  _string += ":";
 }
 
 /**
@@ -149,6 +148,9 @@ void json_writer::add_boolean(bool value) {
  *  Put a comma, if needed.
  */
 void json_writer::_put_comma() {
-  if (!_string.empty() && _string[_string.size() - 1] != '=')
+  if (!_string.empty()
+      && _string[_string.size() - 1] != ':'
+      && _string[_string.size() -1] != '{'
+      && _string[_string.size() -1] != '[')
     _string += ',';
 }

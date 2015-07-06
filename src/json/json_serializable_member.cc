@@ -62,8 +62,7 @@ template <>
 void com::centreon::json::serialize<com::centreon::timestamp>(
        timestamp const& member,
        json_writer &writer) {
-  // TODO:
-  //writer.add_string();
+  writer.add_string(member.to_utc());
 }
 
 // Deserialization specializations.
@@ -116,8 +115,7 @@ template <>
 void com::centreon::json::unserialize<com::centreon::timestamp>(
       timestamp &member,
       json_iterator &it) {
-  // TODO
-  //stream_unserialize(member, it);
+  member = timestamp::from_utc(it.get_string());
 }
 
 template <>
@@ -183,4 +181,11 @@ bool com::centreon::json::should_be_serialized(
        int flags) {
   return ((flags & json_serializable_member::serialize_on_null)
             || member != 0);
+}
+
+template <>
+bool com::centreon::json::should_be_serialized(
+       com::centreon::timestamp const& member, int flags) {
+  return ((flags & json_serializable_member::serialize_on_null)
+            || !member.is_null());
 }

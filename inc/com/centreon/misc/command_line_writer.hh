@@ -58,10 +58,10 @@ namespace         misc {
       std::ostringstream oss;
       oss << " " << arg_name << " ";
       if (quoted)
-        oss << "\"";
+        oss << "\'";
       oss << value;
       if (quoted)
-        oss << "\"";
+        oss << "\'";
       _command_line.append(oss.str());
     }
 

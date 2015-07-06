@@ -67,9 +67,7 @@ namespace json {
 
   template <typename T>
   void serialize(T const& member, json_writer& writer) {
-    writer.open_object();
     member.serialize(writer);
-    writer.close_object();
   }
 
   template <>
@@ -167,6 +165,8 @@ namespace json {
   bool should_be_serialized(std::string const& member, int flags);
   template <>
   bool should_be_serialized(double const& member, int flags);
+  template <>
+  bool should_be_serialized(timestamp const& member, int flags);
 
   template <typename T>
   class                    json_serializable_member_impl :

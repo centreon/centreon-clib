@@ -98,6 +98,7 @@ void json_serializable::add_ignored_member(
  *  @param[in] writer  The writer.
  */
 void json_serializable::serialize(json_writer& writer) const {
+  writer.open_object();
   for (std::map<std::string, json_serializable_member*>::const_iterator
          it = _members.begin(),
          end = _members.end();
@@ -108,6 +109,7 @@ void json_serializable::serialize(json_writer& writer) const {
       it->second->serialize(writer);
     }
   }
+  writer.close_object();
 }
 
 /**

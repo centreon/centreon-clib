@@ -89,7 +89,7 @@ std::vector<spot_instance> command::request_spot_instance(
 
   writer.add_arg_condition("--profile", _profile, !_profile.empty());
   writer.add_arg("--spot-price", spot_price);
-  writer.add_arg("--client-toker", _generate_client_token());
+  writer.add_arg("--client-token", _generate_client_token());
   writer.add_arg_condition("--type", type, !type.empty());
   writer.add_arg_condition("--valid-from", valid_from, !valid_from.is_null());
   writer.add_arg_condition(
@@ -100,6 +100,8 @@ std::vector<spot_instance> command::request_spot_instance(
     "--launch-specification",
     js_spec.get_string(),
     !spec.is_null());
+
+  std::cout << writer.get_command() << std::endl;
 
   std::string return_string = _execute(writer.get_command());
 

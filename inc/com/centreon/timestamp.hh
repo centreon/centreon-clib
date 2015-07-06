@@ -64,6 +64,7 @@ public:
   time_t           to_seconds() const throw ();
   long long        to_useconds() const throw ();
   bool             is_null() const throw ();
+  std::string      to_utc() const;
 
   static timestamp from_utc(std::string const& utc);
 

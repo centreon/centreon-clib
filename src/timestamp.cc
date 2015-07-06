@@ -376,6 +376,21 @@ bool timestamp::is_null() const throw () {
 }
 
 /**
+ *  Get an utc formatted string from a timestamp.
+ *
+ *  @return  The utc formatted string.
+ */
+std::string timestamp::to_utc() const {
+  struct tm time;
+  time_t t = to_seconds();
+  ::gmtime_r(&t, &time);
+  char buff[512];
+  size_t ret = ::strftime(buff, 512, "Y-%m-%dT%h:%M:%SZ", &time);
+  buff[ret] = '\0';
+  return (std::string(buff));
+}
+
+/**
  *  Get a timestamp from a utc formatted string.
  *
  *  @param[in] utc  The utc formatted string.
