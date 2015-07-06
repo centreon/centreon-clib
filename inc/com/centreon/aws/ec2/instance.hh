@@ -64,6 +64,19 @@ namespace aws {
         void                 _init_bindings();
       };
 
+      enum                    instance_status {
+                              pending = 0,
+                              running,
+                              shutting_down,
+                              terminated,
+                              stopping,
+                              stopped,
+                              rebooting,
+                              unknown
+      };
+
+      instance_status        get_instance_status() const throw();
+      std::string const&     get_public_ip_address() const throw();
 
     private:
       std::string            _instance_id;

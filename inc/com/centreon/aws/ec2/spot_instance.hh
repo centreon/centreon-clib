@@ -71,6 +71,7 @@ namespace aws {
       std::string const&     get_instance_id() const throw();
       std::string const&     get_spot_instance_request_id() const throw();
       std::string const&     get_state_string() const throw();
+      bool                   is_running() const throw();
       spot_instance_state    get_state() const throw();
       static spot_instance_state
                              get_state_from_string(std::string const& str) throw();

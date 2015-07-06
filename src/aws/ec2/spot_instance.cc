@@ -106,6 +106,16 @@ std::string const& spot_instance::get_spot_instance_request_id() const throw() {
   return (_spot_instance_request_id);
 }
 
+/**
+ *  Is this instance running?
+ *
+ *  @return  True if this instance is running.
+ */
+bool spot_instance::is_running() const throw() {
+  spot_instance::spot_instance_state state = get_state();
+  return (state == open || state == active);
+}
+
 spot_instance::spot_instance_state spot_instance::get_state() const throw() {
   get_state_from_string(get_state_string());
 }

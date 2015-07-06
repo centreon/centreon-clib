@@ -22,6 +22,15 @@
 
 using namespace com::centreon::aws::ec2;
 
+static const char* instance_status_list[] =
+  {"pending",
+   "running",
+   "shutting-down",
+   "terminated",
+   "stopping",
+   "stopped",
+   "rebooting"};
+
 instance::product_code::product_code() {
   _init_bindings();
 }
@@ -93,6 +102,29 @@ instance& instance::operator=(instance const& other) {
     _internal_copy(other);
   }
   return (*this);
+}
+
+/**
+ *  Get the instance status.
+ *
+ *  @return  The instance status.
+ */
+instance::instance_status instance::get_instance_status() const throw() {
+  for (unsigned int i = 0;
+       i < sizeof(instance_status_list) / sizeof(*instance_status_list);
+       ++i)
+  if (_state_name == instance_status_list[i])
+    return ((instance::instance_status)(i));
+  return (instance::unknown);
+}
+
+/**
+ *  Get the public ip address.
+ *
+ *  @return  The public ip address.
+ */
+std::string const& instance::get_public_ip_address() const throw() {
+  return (_public_ip_address);
 }
 
 /**
