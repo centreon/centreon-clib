@@ -48,6 +48,7 @@ launch_specification::launch_specification(
                         launch_specification const& other)
   : json::json_serializable(other) {
   _internal_copy(other);
+  _init_bindings();
 }
 
 /**
@@ -364,8 +365,9 @@ void launch_specification::_init_bindings() {
   add_member("SecurityGroups", _security_groups);
   add_member("UserData", _user_data);
   add_member("InstanceType", _instance_type);
-  add_member("PlacementAvailabilityZone", _placement_availability_zone);
-  add_member("PlacementGroupName", _placement_group_name);
+  json_serializable& placement = create_and_add_generic_sub_object("Placement");
+  placement.add_member("AvailabilityZone", _placement_availability_zone);
+  placement.add_member("GroupName", _placement_group_name);
   add_member("KernelId", _kernel_id);
   add_member("RamdiskId", _ramdisk_id);
   add_member("SubnetId", _subnet_id);

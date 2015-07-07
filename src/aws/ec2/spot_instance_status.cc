@@ -43,7 +43,8 @@ spot_instance_status::~spot_instance_status() {
  *
  *  @param[in] other  The object to copy.
  */
-spot_instance_status::spot_instance_status(spot_instance_status const& other) {
+spot_instance_status::spot_instance_status(spot_instance_status const& other)
+  : json::json_serializable(other) {
   _internal_copy(other);
   _init_bindings();
 }
@@ -57,8 +58,10 @@ spot_instance_status::spot_instance_status(spot_instance_status const& other) {
  */
 spot_instance_status& spot_instance_status::operator=(
   spot_instance_status const& other) {
-  if (this != &other)
+  if (this != &other) {
+    json::json_serializable::operator=(other);
     _internal_copy(other);
+  }
   return (*this);
 }
 

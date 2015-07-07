@@ -48,7 +48,8 @@ spot_instance::~spot_instance() {
  *
  *  @param[in] other  The object to copy.
  */
-spot_instance::spot_instance(spot_instance const& other) {
+spot_instance::spot_instance(spot_instance const& other)
+  : json::json_serializable(other) {
   _internal_copy(other);
   _init_bindings();
 }
@@ -61,8 +62,10 @@ spot_instance::spot_instance(spot_instance const& other) {
  *  @return           A reference to this object.
  */
 spot_instance& spot_instance::operator=(spot_instance const& other) {
-  if (this != &other)
+  if (this != &other) {
+    json::json_serializable::operator=(other);
     _internal_copy(other);
+  }
   return (*this);
 }
 

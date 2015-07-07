@@ -64,6 +64,7 @@ void json_parser::parse(std::string const& js) {
   _tokens.resize(ret);
 
   // Parse the tokens.
+  ::jsmn_init(&_parser);
   ::jsmn_parse(&_parser, js.c_str(), js.size(), &_tokens[0], _tokens.size());
 
   _js = js;

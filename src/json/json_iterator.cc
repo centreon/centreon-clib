@@ -146,7 +146,7 @@ std::string json_iterator::get_string() const {
   return (end()
             ? ""
             : std::string(
-              _js[_tokens[_index].start],
+              &_js[_tokens[_index].start],
               _tokens[_index].end - _tokens[_index].start));
 }
 

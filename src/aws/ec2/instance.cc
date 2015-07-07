@@ -39,6 +39,7 @@ instance::product_code::product_code(product_code const& other)
   : json_serializable(other){
   _product_code_id = other._product_code_id;
   _product_code_type = other._product_code_type;
+  _init_bindings();
 }
 
 instance::product_code&
@@ -47,6 +48,7 @@ instance::product_code&
     json_serializable::operator=(other);
     _product_code_id = other._product_code_id;
     _product_code_type = other._product_code_type;
+    _init_bindings();
   }
   return (*this);
 }
@@ -87,6 +89,7 @@ instance::~instance() {
 instance::instance(instance const& other)
   : json_serializable(other) {
   _internal_copy(other);
+  _init_bindings();
 }
 
 /**

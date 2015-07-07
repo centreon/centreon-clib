@@ -51,6 +51,9 @@ namespace json {
     virtual void           serialize(json_writer& writer) const = 0;
     virtual void           unserialize(json_iterator& iterator) const = 0;
     virtual bool           should_be_serialized() const  = 0;
+
+    virtual json_serializable_member*
+                           clone() const = 0;
   };
 
   template <typename T>
@@ -218,6 +221,20 @@ namespace json {
     bool                   should_be_serialized() const {
       return (json::should_be_serialized(*_member, _flags));
     }
+
+    /**
+     *  Clone the json serializable member.
+     *
+     *  Ideally, a new system with less unnecessary copy should be found.
+     *
+     *  @return  Clone of the json serializable member.
+     */
+    json_serializable_member* clone() const {
+        T* member = (_flags & json_serializable_member::own_reference)
+                    ? new T(*_member)
+                    : _member;
+        return (new json_serializable_member_impl<T>(*member, _flags));
+  }
 
   private:
     T* _member;

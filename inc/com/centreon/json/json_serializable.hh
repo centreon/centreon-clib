@@ -64,10 +64,13 @@ namespace json {
                              std::string const& serialized_name);
 
     virtual void           serialize(json_writer& writer) const;
-    virtual void           unserialize(json_iterator& it);
+    virtual void           unserialize(json_iterator it);
     virtual bool           is_null() const;
 
   private:
+    // This is horribly ineficient, but also the less intrusive way
+    // to create a binding. Something cleverer is clearly needed.
+    // A static type_index map would be ideal, but it's C++11 only.
     std::map<std::string, json_serializable_member*>
                             _members;
   };

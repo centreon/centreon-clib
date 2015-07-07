@@ -37,7 +37,7 @@ json_serializable::json_serializable() {}
  *  @param[in] other  Object to copy.
  */
 json_serializable::json_serializable(json_serializable const& other) {
-  _members = other._members;
+  ;
 }
 
 /**
@@ -48,9 +48,6 @@ json_serializable::json_serializable(json_serializable const& other) {
  *  @return  Reference to this.
  */
 json_serializable& json_serializable::operator=(json_serializable const& other) {
-  if (this != &other) {
-    _members = other._members;
-  }
   return (*this);
 }
 
@@ -117,15 +114,17 @@ void json_serializable::serialize(json_writer& writer) const {
  *
  *  @param[in] it  The iterator.
  */
-void json_serializable::unserialize(json_iterator& it) {
-  std::map<std::string, json_serializable_member*>::const_iterator
-    found = _members.find(it.get_string());
-  if (found == _members.end())
-    throw (exceptions::basic()
-           << "can't find the member '"
-           << it.get_string() << "' in serialization");
-  ++it;
-  found->second->unserialize(it);
+void json_serializable::unserialize(json_iterator it) {
+  for (;!it.end(); ++it) {
+    std::map<std::string, json_serializable_member*>::const_iterator
+      found = _members.find(it.get_string());
+    if (found == _members.end())
+      throw (exceptions::basic()
+             << "can't find the member '"
+             << it.get_string() << "' in serialization");
+    json_iterator children = it.enter_children();
+    found->second->unserialize(children);
+  }
 }
 
 /**

@@ -101,8 +101,6 @@ std::vector<spot_instance> command::request_spot_instance(
     js_spec.get_string(),
     !spec.is_null());
 
-  std::cout << writer.get_command() << std::endl;
-
   std::string return_string = _execute(writer.get_command());
 
   // Parse returned json.
@@ -110,7 +108,7 @@ std::vector<spot_instance> command::request_spot_instance(
   std::vector<spot_instance> ret;
 
   parser.parse(return_string);
-  json::json_iterator it = parser.begin();
+  json::json_iterator it = parser.begin().enter_children();
   if (it.get_string() != "SpotInstanceRequests")
     throw (parsing_exception()
            << "command: request_spot_instance: "
@@ -138,7 +136,7 @@ std::vector<spot_instance> command::get_spot_instances() {
   json::json_parser parser;
   std::vector<spot_instance> ret;
   parser.parse(return_string);
-  json::json_iterator it = parser.begin();
+  json::json_iterator it = parser.begin().enter_children();
   if (it.get_string() != "SpotInstanceRequests")
     throw (parsing_exception()
            << "command: get_spot_instances:"

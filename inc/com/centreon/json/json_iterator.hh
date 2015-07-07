@@ -37,9 +37,8 @@ namespace json {
    *  '{ "name" : "Jack", "age" : 27 }'
    *
    *  contains 5 tokens: the toplevel object, with 4 children:
-   *  name, Jack, age and 27. Pair association needs to be done
-   *  manually, but is simple: for the direct children of an object,
-   *  one token of two is a key, the other a value.
+   *  name, Jack, age and 27. Pair association is done through a children
+   *  association: i.e the child of a key is its direct value.
    */
   class                    json_iterator {
   public:
@@ -65,7 +64,7 @@ namespace json {
     std::string            get_string() const;
     int                    get_integer() const;
     bool                   get_bool() const;
-    bool                   is_null() const throw();
+    bool                   is_null() const throw();    
 
     int                    children() const throw();
     json_iterator          enter_children() const throw();

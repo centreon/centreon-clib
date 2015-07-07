@@ -134,7 +134,7 @@ void com::centreon::json::unserialize<double>(
        double& member,
        json_iterator &it) {
   if (it.get_type() != json_iterator::string
-      || it.get_type() != json_iterator::number)
+      && it.get_type() != json_iterator::number)
     throw (exceptions::basic()
            << "json: cannot unserialize '" << it.get_string()
            << "', expected a string or a number, got "
