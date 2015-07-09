@@ -70,7 +70,7 @@ void com::centreon::json::serialize<com::centreon::timestamp>(
 template <>
 void com::centreon::json::unserialize<int>(
        int& member,
-      json_iterator& it) {
+      json_iterator const& it) {
   if (it.get_type() != json_iterator::number)
     throw (exceptions::basic()
            << "json: cannot unserialize '" << it.get_string()
@@ -81,7 +81,7 @@ void com::centreon::json::unserialize<int>(
 template <>
 void com::centreon::json::unserialize<unsigned int>(
        unsigned int& member,
-      json_iterator& it) {
+      json_iterator const& it) {
   if (it.get_type() != json_iterator::number)
     throw (exceptions::basic()
            << "json: cannot unserialize '" << it.get_string()
@@ -92,7 +92,7 @@ void com::centreon::json::unserialize<unsigned int>(
 template <>
 void com::centreon::json::unserialize<bool>(
        bool& member,
-      json_iterator& it) {
+      json_iterator const& it) {
   if (it.get_type() != json_iterator::boolean)
     throw (exceptions::basic()
            << "json: cannot unserialize '" << it.get_string()
@@ -103,7 +103,7 @@ void com::centreon::json::unserialize<bool>(
 template <>
 void com::centreon::json::unserialize<char>(
        char& member,
-      json_iterator& it) {
+      json_iterator const& it) {
   if (it.get_type() != json_iterator::number)
     throw (exceptions::basic()
            << "json: cannot unserialize '" << it.get_string()
@@ -114,14 +114,14 @@ void com::centreon::json::unserialize<char>(
 template <>
 void com::centreon::json::unserialize<com::centreon::timestamp>(
       timestamp &member,
-      json_iterator &it) {
+      json_iterator const& it) {
   member = timestamp::from_utc(it.get_string());
 }
 
 template <>
 void com::centreon::json::unserialize<std::string>(
       std::string& member,
-      json_iterator &it) {
+      json_iterator const& it) {
   if (it.get_type() != json_iterator::string)
     throw (exceptions::basic()
            << "json: cannot unserialize '" << it.get_string()
@@ -132,7 +132,7 @@ void com::centreon::json::unserialize<std::string>(
 template <>
 void com::centreon::json::unserialize<double>(
        double& member,
-       json_iterator &it) {
+       json_iterator const& it) {
   if (it.get_type() != json_iterator::string
       && it.get_type() != json_iterator::number)
     throw (exceptions::basic()

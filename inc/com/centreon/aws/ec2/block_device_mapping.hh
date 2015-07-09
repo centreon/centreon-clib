@@ -48,10 +48,13 @@ namespace aws {
                              ebs();
                              ebs(ebs const& other);
         ebs&                 operator=(ebs const& other);
+        std::string          status;
         std::string          snapshot_id;
         std::string          volume_size;
-        std::string          delete_on_termination;
+        bool                 delete_on_termination;
         std::string          volume_type;
+        std::string          volume_id;
+        timestamp            attach_time;
         unsigned int         lops;
         bool                 encrypted;
 

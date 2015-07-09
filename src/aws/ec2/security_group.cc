@@ -66,9 +66,58 @@ security_group::~security_group() {
 }
 
 /**
+ *  Get the group name.
+ *
+ *  @return  The group name.
+ */
+std::string const& security_group::get_group_name() const throw() {
+  return (group_name);
+}
+
+/**
+ *  Get the group id.
+ *
+ *  @return  The group id.
+ */
+std::string const& security_group::get_group_id() const throw() {
+  return (group_id);
+}
+
+/**
+ *  Set the group name.
+ *
+ *  @param[in] val  The new group name.
+ */
+void security_group::set_group_name(std::string const& val) {
+  group_name = val;
+}
+
+/**
+ *  Set the group id.
+ *
+ *  @param[in] val  The new group id.
+ */
+void security_group::set_group_id(std::string const& val) {
+  group_id = val;
+}
+
+/**
+ *  Serialize the security group.
+ *
+ *  @param[in] writer  Writer.
+ */
+void security_group::serialize(json::json_writer& writer) const {
+  json::serialize(group_name, writer);
+}
+
+/**
  *  Init the bindings.
  */
 void security_group::_init_bindings() {
-  add_member("GroupName", group_name);
-  add_member("GroupId", group_id);
+  add_member(
+    "GroupName",
+    group_name);
+  add_member(
+    "GroupId",
+    group_id);
 }

@@ -108,6 +108,15 @@ instance& instance::operator=(instance const& other) {
 }
 
 /**
+ *  Get the instance id.
+ *
+ *  @return  The instance id.
+ */
+std::string const& instance::get_instance_id() const throw() {
+  return (_instance_id);
+}
+
+/**
  *  Get the instance status.
  *
  *  @return  The instance status.
@@ -143,7 +152,7 @@ void instance::_init_bindings() {
   }
   add_member("PrivateDnsName", _private_dns_name);
   add_member("PublicDnsName", _public_dns_name);
-  add_member("StateTransition", _state_transition);
+  add_member("StateTransitionReason", _state_transition_reason);
   add_member("KeyName", _key_name);
   add_member("AmiLaunchIndex", _ami_launch_index);
   add_member("ProductCodes", _product_codes);
@@ -189,6 +198,7 @@ void instance::_init_bindings() {
     s.add_member("Id", _iam_instance_profile_id);
   }
   add_member("EbsOptimized", _ebs_optimized);
+  add_member("LaunchTime", _launch_time);
   add_member("SriovNetSupport", _sriov_net_support);
 }
 
@@ -204,7 +214,7 @@ void instance::_internal_copy(instance const& other) {
   _state_name = other._state_name;
   _private_dns_name = other._private_dns_name;
   _public_dns_name = other._public_dns_name;
-  _state_transition = other._state_transition;
+  _state_transition_reason = other._state_transition_reason;
   _key_name = other._key_name;
   _ami_launch_index = other._ami_launch_index;
   _product_codes = other._product_codes;
@@ -238,4 +248,5 @@ void instance::_internal_copy(instance const& other) {
   _iam_instance_id = other._iam_instance_id;
   _ebs_optimized = other._ebs_optimized;
   _sriov_net_support = other._sriov_net_support;
+  _launch_time = other._launch_time;
 }

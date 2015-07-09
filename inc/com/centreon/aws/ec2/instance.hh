@@ -75,6 +75,7 @@ namespace aws {
                               unknown
       };
 
+      std::string const&     get_instance_id() const throw();
       instance_status        get_instance_status() const throw();
       std::string const&     get_public_ip_address() const throw();
 
@@ -85,7 +86,7 @@ namespace aws {
       std::string            _state_name;
       std::string            _private_dns_name;
       std::string            _public_dns_name;
-      std::string            _state_transition;
+      std::string            _state_transition_reason;
       std::string            _key_name;
       unsigned int           _ami_launch_index;
       std::vector<product_code>
@@ -122,6 +123,7 @@ namespace aws {
       std::string            _iam_instance_id;
       bool                   _ebs_optimized;
       std::string            _sriov_net_support;
+      timestamp              _launch_time;
 
       void                   _init_bindings();
       void                   _internal_copy(instance const& other);

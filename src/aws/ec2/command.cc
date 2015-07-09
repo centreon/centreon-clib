@@ -114,9 +114,8 @@ std::vector<spot_instance> command::request_spot_instance(
            << "command: request_spot_instance: "
               "couldn't parse json answer: expected"
               " 'SpotInstanceRequests', got '" << it.get_string() << "'");
-  ++it;
 
-  json::unserialize(ret, it);
+  json::unserialize(ret, it.enter_children());
   return (ret);
 }
 
@@ -142,8 +141,7 @@ std::vector<spot_instance> command::get_spot_instances() {
            << "command: get_spot_instances:"
               " couldn't parse json answer: expected"
               " 'SpotInstanceRequests', got '" << it.get_string() << "'");
-  ++it;
-  json::unserialize(ret, it);
+  json::unserialize(ret, it.enter_children());
   return (ret);
 }
 
@@ -167,16 +165,15 @@ spot_instance::spot_instance_state command::cancel_spot_instance_request(
   // Parse returned json.
   json::json_parser parser;
   parser.parse(return_string);
-  json::json_iterator it = parser.begin();
+  json::json_iterator it = parser.begin().enter_children();
   if (it.get_string() != "CancelledSpotInstanceRequests")
     throw (parsing_exception()
            << "command: cancel_spot_instance_request: "
               "couldn't parse json answer: expected "
               "'CancelledSpotInstanceRequests', got '" << it.get_string() << "'");
-  ++it;
   it = it.enter_children().enter_children();
   if (it.get_string() != "State"
-        && (++it).get_type() != json::json_iterator::string)
+        && (it.enter_children()).get_type() != json::json_iterator::string)
     throw (parsing_exception()
            << "command: cancel_spot_instance_request: "
               "couldn't parse json answer");
@@ -201,14 +198,14 @@ instance command::get_instance_from_id(
   // Parse returned json.
   json::json_parser parser;
   parser.parse(return_string);
-  json::json_iterator it = parser.begin();
+  json::json_iterator it = parser.begin().enter_children();
   if (it.get_string() != "Reservations")
     throw (parsing_exception()
            << "command: terminate_spot_instance: "
               "couldn't parse json answer: expected "
               "'Reservations', got '" << it.get_string() << "'");
-  ++it;
-  it = it.enter_children().find_child("Instances").enter_children();
+  it = it.enter_children().enter_children()
+         .find_child("Instances").enter_children().enter_children();
   instance res;
   json::unserialize(res, it);
   return (res);
@@ -235,11 +232,12 @@ std::string command::terminate_instance(
   json::json_iterator it = parser.begin().enter_children();
   if (it.get_string() != "TerminatingInstances")
     throw (parsing_exception()
-           << "command: terminate_spot_instance: "
+           << "command: terminate_instance: "
               "couldn't parse json answer: expected "
               "'TerminatingInstances', got '" << it.get_string() << "'");
   ++it;
-  it = it.enter_children().find_child("CurrentState").find_child("Name");
+  it = it.enter_children().enter_children()
+         .find_child("CurrentState").find_child("Name");
   if (it.get_string() != "Name"
       && (++it).get_type() != json::json_iterator::string)
     throw (parsing_exception()

@@ -86,7 +86,7 @@ json_serializable& json_serializable::create_and_add_generic_sub_object(
  */
 void json_serializable::add_ignored_member(
                           std::string const& serialized_name) {
-  create_and_add_generic_sub_object(serialized_name);
+  _members[serialized_name] = new json_null_serializable_member;
 }
 
 /**
@@ -101,8 +101,10 @@ void json_serializable::serialize(json_writer& writer) const {
          end = _members.end();
        it != end;
        ++it) {
-    if (it->second->should_be_serialized()) {
-      writer.add_key(it->first);
+    if (it->second->should_be_serialized() && it->second) {
+      if (!(it->second->get_flags()
+              & json_serializable_member::dont_serialize_key))
+        writer.add_key(it->first);
       it->second->serialize(writer);
     }
   }
@@ -123,7 +125,12 @@ void json_serializable::unserialize(json_iterator it) {
              << "can't find the member '"
              << it.get_string() << "' in serialization");
     json_iterator children = it.enter_children();
-    found->second->unserialize(children);
+    try {
+      found->second->unserialize(children);
+    } catch (std::exception const& e) {
+      throw (exceptions::basic()
+             << found->first << ":" << e.what());
+    }
   }
 }
 

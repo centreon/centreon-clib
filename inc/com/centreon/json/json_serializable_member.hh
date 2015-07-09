@@ -45,15 +45,36 @@ namespace json {
     enum                   serializable_flags {
                            none = 0,
                            serialize_on_null = 1 << 1,
-                           own_reference = 1 << 2
+                           own_reference = 1 << 2,
+                           dont_serialize = 1 << 3,
+                           dont_serialize_key = 1 << 4
     };
 
+    virtual serializable_flags
+                           get_flags() const throw() = 0;
     virtual void           serialize(json_writer& writer) const = 0;
     virtual void           unserialize(json_iterator& iterator) const = 0;
     virtual bool           should_be_serialized() const  = 0;
+  };
 
-    virtual json_serializable_member*
-                           clone() const = 0;
+  struct                   json_null_serializable_member
+                             : public json_serializable_member {
+    virtual                ~json_null_serializable_member() {}
+
+    virtual serializable_flags
+                           get_flags() const throw() {
+      return (none);
+    }
+
+    void                   serialize(json_writer& writer) const {
+      (void) writer;
+    }
+    void                   unserialize(json_iterator& iterator) const {
+      (void) iterator;
+    }
+    bool                   should_be_serialized() const {
+      return (false);
+    }
   };
 
   template <typename T>
@@ -87,7 +108,7 @@ namespace json {
   void serialize<timestamp>(timestamp const& _member, json_writer &writer);
 
   template <typename T>
-  void  stream_unserialize(T& member, json_iterator& it) {
+  void  stream_unserialize(T& member, json_iterator const& it) {
     std::stringstream ss;
 
     ss << it.get_string();
@@ -95,7 +116,7 @@ namespace json {
   }
 
   template <typename T>
-  void unserialize(std::vector<T>& member, json_iterator& it) {
+  void unserialize(std::vector<T>& member, json_iterator const& it) {
     if (it.get_type() != json_iterator::array)
       throw (exceptions::basic()
              << "json: cannot unserialize '" << it.get_string()
@@ -108,7 +129,7 @@ namespace json {
   }
 
   template <typename T>
-  void unserialize(T& member, json_iterator& it) {
+  void unserialize(T& member, json_iterator const& it) {
     if (it.get_type() != json_iterator::object)
       throw (exceptions::basic()
              << "json: cannot unserialize '" << it.get_string()
@@ -120,31 +141,31 @@ namespace json {
   template <>
   void unserialize<int>(
          int& member,
-        json_iterator& it);
+        json_iterator const& it);
   template <>
   void unserialize<unsigned int>(
          unsigned int& member,
-        json_iterator& it);
+        json_iterator const& it);
   template <>
   void unserialize<bool>(
          bool& member,
-        json_iterator& it);
+        json_iterator const& it);
   template <>
   void unserialize<char>(
          char& member,
-        json_iterator& it);
+        json_iterator const& it);
   template <>
   void unserialize<timestamp>(
         timestamp &member,
-        json_iterator &it);
+        json_iterator const& it);
   template <>
   void unserialize<std::string>(
         std::string& member,
-        json_iterator &it);
+        json_iterator const& it);
   template <>
   void unserialize<double>(
          double& member,
-         json_iterator &it);
+         json_iterator const& it);
 
   template <typename T>
   bool should_be_serialized(std::vector<T> const& member, int _flags) {
@@ -196,6 +217,15 @@ namespace json {
     }
 
     /**
+     *  Get the flags.
+     *
+     *  @return  The flags.
+     */
+    serializable_flags     get_flags() const throw() {
+      return ((serializable_flags)_flags);
+    }
+
+    /**
      *  Serialize the member.
      *
      *  @param[in] writer  The json writer.
@@ -219,22 +249,9 @@ namespace json {
      *  @return  True if this member should be serialized.
      */
     bool                   should_be_serialized() const {
-      return (json::should_be_serialized(*_member, _flags));
+      return (!(_flags & dont_serialize)
+              && json::should_be_serialized(*_member, _flags));
     }
-
-    /**
-     *  Clone the json serializable member.
-     *
-     *  Ideally, a new system with less unnecessary copy should be found.
-     *
-     *  @return  Clone of the json serializable member.
-     */
-    json_serializable_member* clone() const {
-        T* member = (_flags & json_serializable_member::own_reference)
-                    ? new T(*_member)
-                    : _member;
-        return (new json_serializable_member_impl<T>(*member, _flags));
-  }
 
   private:
     T* _member;

@@ -51,6 +51,8 @@ namespace aws {
      void                 set_group_name(std::string const& val);
      void                 set_group_id(std::string const& val);
 
+     void                 serialize(json::json_writer& writer) const;
+
      private:
        std::string        group_name;
        std::string        group_id;

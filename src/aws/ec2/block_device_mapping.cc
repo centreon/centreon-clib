@@ -67,8 +67,10 @@ block_device_mapping::ebs& block_device_mapping::ebs::operator=(
 bool block_device_mapping::ebs::is_null() const {
   return (snapshot_id.empty()
             && volume_size.empty()
-            && delete_on_termination.empty()
+            && delete_on_termination
             && volume_type.empty()
+            && volume_id.empty()
+            && attach_time.is_null()
             && lops == 0
             && encrypted == false);
 }
@@ -77,10 +79,13 @@ bool block_device_mapping::ebs::is_null() const {
  *  Init the bindings.
  */
 void block_device_mapping::ebs::_init_bindings() {
+  add_member("AttachTime", attach_time);
+  add_member("Status", status);
   add_member("SnapshotId", snapshot_id);
   add_member("VolumeSize", volume_size);
   add_member("DeleteOnTermination", delete_on_termination);
   add_member("VolumeType", volume_type);
+  add_member("VolumeId", volume_id);
   add_member("Lops", lops);
   add_member("Encrypter", encrypted);
 }
