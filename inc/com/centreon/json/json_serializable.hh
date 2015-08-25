@@ -68,9 +68,8 @@ namespace json {
     virtual bool           is_null() const;
 
   private:
-    // This is horribly ineficient, but also the less intrusive way
-    // to create a binding. Something cleverer is clearly needed.
-    // A static type_index map would be ideal, but it's C++11 only.
+    // This is horribly ineficient. Ideally, something like Boost's
+    // way of doing serialization should be implemented.
     std::map<std::string, json_serializable_member*>
                             _members;
   };

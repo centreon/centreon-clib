@@ -201,7 +201,7 @@ instance command::get_instance_from_id(
   json::json_iterator it = parser.begin().enter_children();
   if (it.get_string() != "Reservations")
     throw (parsing_exception()
-           << "command: terminate_spot_instance: "
+           << "command: get_instance_from_id: "
               "couldn't parse json answer: expected "
               "'Reservations', got '" << it.get_string() << "'");
   it = it.enter_children().enter_children()
@@ -235,11 +235,10 @@ std::string command::terminate_instance(
            << "command: terminate_instance: "
               "couldn't parse json answer: expected "
               "'TerminatingInstances', got '" << it.get_string() << "'");
-  ++it;
   it = it.enter_children().enter_children()
-         .find_child("CurrentState").find_child("Name");
+         .find_child("CurrentState").enter_children().find_child("Name");
   if (it.get_string() != "Name"
-      && (++it).get_type() != json::json_iterator::string)
+      && it.enter_children().get_type() != json::json_iterator::string)
     throw (parsing_exception()
            << "command: terminate_spot_instance: "
               "couldn't parse json answer");
