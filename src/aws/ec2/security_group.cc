@@ -38,7 +38,8 @@ security_group::security_group() {
  *  @param[in] other  The object to copy.
  */
 security_group::security_group(security_group const& other)
-  : group_name(other.group_name),
+  : json::json_serializable(other),
+    group_name(other.group_name),
     group_id(other.group_id) {
   _init_bindings();
 }

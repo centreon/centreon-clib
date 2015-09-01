@@ -38,7 +38,8 @@ network_interface::private_ip_address::private_ip_address()
  */
 network_interface::private_ip_address::private_ip_address(
   network_interface::private_ip_address const& other)
-  : private_ip_address_value(other.private_ip_address_value),
+  : json::json_serializable(other),
+    private_ip_address_value(other.private_ip_address_value),
     primary(other.primary) {
   _init_bindings();
 }
@@ -83,7 +84,8 @@ network_interface::network_interface()
  *  @param[in] other  Object to copy.
  */
 network_interface::network_interface(
-  network_interface const& other) {
+  network_interface const& other)
+  : json::json_serializable(other){
   _internal_copy(other);
   _init_bindings();
 }

@@ -37,7 +37,7 @@ json_serializable::json_serializable() {}
  *  @param[in] other  Object to copy.
  */
 json_serializable::json_serializable(json_serializable const& other) {
-  ;
+  (void)other;
 }
 
 /**
@@ -48,6 +48,7 @@ json_serializable::json_serializable(json_serializable const& other) {
  *  @return  Reference to this.
  */
 json_serializable& json_serializable::operator=(json_serializable const& other) {
+  (void)other;
   return (*this);
 }
 

@@ -38,7 +38,8 @@ block_device_mapping::ebs::ebs()
  *
  *  @param[in] other  The object to copy.
  */
-block_device_mapping::ebs::ebs(block_device_mapping::ebs const& other) {
+block_device_mapping::ebs::ebs(block_device_mapping::ebs const& other)
+  : json::json_serializable(other) {
   _internal_copy(other);
   _init_bindings();
 }
@@ -116,7 +117,8 @@ block_device_mapping::block_device_mapping() {
  *  @param[in] other  Object to copy.
  */
 block_device_mapping::block_device_mapping(
-  block_device_mapping const& other) {
+  block_device_mapping const& other)
+  : json::json_serializable(other) {
   _internal_copy(other);
   _init_bindings();
 }

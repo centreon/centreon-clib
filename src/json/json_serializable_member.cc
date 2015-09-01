@@ -148,6 +148,8 @@ template <>
 bool com::centreon::json::should_be_serialized(
        bool const& member,
        int flags) {
+  (void) member;
+  (void) flags;
   return (true);
 }
 

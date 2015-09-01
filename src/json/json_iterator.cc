@@ -110,6 +110,8 @@ json_iterator::type json_iterator::get_type() const throw() {
         default:
           return (number);
       }
+    default:
+      return (null);
   }
 }
 
@@ -133,6 +135,7 @@ std::string json_iterator::get_string_type() const {
   case boolean:
     return ("boolean");
   case null:
+  default:
     return ("null");
   }
 }

@@ -42,7 +42,8 @@ spot_instance_fault::~spot_instance_fault() {
  *
  *  @param[in] other  The object to copy.
  */
-spot_instance_fault::spot_instance_fault(spot_instance_fault const& other) {
+spot_instance_fault::spot_instance_fault(spot_instance_fault const& other)
+  : json::json_serializable(other){
   _internal_copy(other);
   _init_bindings();
 }
