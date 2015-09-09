@@ -4,7 +4,7 @@ Centreon Clib is an open-source utility library used by some Centreon
 software. It is a low-level component of the
 [Centreon software suite](https://www.centreon.com).
 
-Centreon Clib is released under the General Public License version 2
+Centreon Clib is released under the Apache Software License version 2
 and is endorsed by the [Centreon company](https://www.centreon.com).
 
 ## Documentation ##
