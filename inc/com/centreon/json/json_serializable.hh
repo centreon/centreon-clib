@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Centreon
+** Copyright 2015 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -41,8 +41,8 @@ namespace json {
   public:
                            json_serializable();
                            json_serializable(json_serializable const& other);
+    virtual                ~json_serializable();
     json_serializable&     operator=(json_serializable const& other);
-                           ~json_serializable();
 
     /**
      *  Add a member that needs to be serialized.

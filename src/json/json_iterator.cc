@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2014 Centreon
+** Copyright 2011-2015 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ json_iterator& json_iterator::operator=(json_iterator const& other) {
     _token_number = other._token_number;
     _index = other._index;
   }
+  return (*this);
 }
 
 /**

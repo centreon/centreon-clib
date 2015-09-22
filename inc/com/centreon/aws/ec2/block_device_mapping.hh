@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Centreon
+** Copyright 2015 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -36,8 +36,9 @@ namespace aws {
                              block_device_mapping();
                              block_device_mapping(
                                block_device_mapping const& other);
+    virtual                  ~block_device_mapping();
     block_device_mapping&    operator=(block_device_mapping const& other);
-                             ~block_device_mapping();
+
     private:
       std::string            _virtual_name;
       std::string            _device_name;
@@ -45,6 +46,7 @@ namespace aws {
       struct                 ebs : public json::json_serializable {
                              ebs();
                              ebs(ebs const& other);
+        virtual              ~ebs();
         ebs&                 operator=(ebs const& other);
         std::string          status;
         std::string          snapshot_id;

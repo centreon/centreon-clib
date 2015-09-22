@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2014 Centreon
+** Copyright 2015 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -41,6 +41,11 @@ block_device_mapping::ebs::ebs(block_device_mapping::ebs const& other)
   _internal_copy(other);
   _init_bindings();
 }
+
+/**
+ *  Destructor.
+ */
+block_device_mapping::ebs::~ebs() {}
 
 /**
  *  Assignment operator.

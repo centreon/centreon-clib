@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Centreon
+** Copyright 2015 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -39,9 +39,9 @@ namespace aws {
     class                    launch_specification : public json::json_serializable {
     public:
                              launch_specification();
-                             ~launch_specification();
                              launch_specification(
                                launch_specification const& other);
+      virtual                ~launch_specification();
       launch_specification&  operator=(launch_specification const& other);
 
       std::string const&     get_image_id() const throw();

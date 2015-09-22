@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Centreon
+** Copyright 2015 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ namespace aws {
     class                    spot_instance_fault : public json::json_serializable {
     public:
                              spot_instance_fault();
-                             ~spot_instance_fault();
                              spot_instance_fault(
                                spot_instance_fault const& other);
+      virtual                ~spot_instance_fault();
       spot_instance_fault&   operator=(spot_instance_fault const& other);
 
       std::string const&     get_code() const;
