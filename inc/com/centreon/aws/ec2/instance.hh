@@ -76,6 +76,7 @@ namespace aws {
       std::string const&     get_instance_id() const throw();
       instance_status        get_instance_status() const throw();
       std::string const&     get_public_ip_address() const throw();
+      std::string const&     get_private_ip_address() const throw();
 
     private:
       std::string            _instance_id;

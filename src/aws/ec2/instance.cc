@@ -138,6 +138,15 @@ std::string const& instance::get_public_ip_address() const throw() {
 }
 
 /**
+ *  Get the private ip address.
+ *
+ *  @return  The private ip address.
+ */
+std::string const& instance::get_private_ip_address() const throw() {
+  return (_private_ip_address);
+}
+
+/**
  *  Init the bindings.
  */
 void instance::_init_bindings() {
