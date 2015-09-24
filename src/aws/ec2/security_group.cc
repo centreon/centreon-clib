@@ -108,7 +108,10 @@ void security_group::set_group_id(std::string const& val) {
  *  @param[in] writer  Writer.
  */
 void security_group::serialize(json::json_writer& writer) const {
-  json::serialize(group_name, writer);
+  if (!group_name.empty())
+    json::serialize(group_name, writer);
+  else if (!group_id.empty())
+    json::serialize(group_id, writer);
 }
 
 /**

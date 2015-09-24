@@ -29,7 +29,8 @@ using namespace com::centreon::aws::ec2;
  */
 block_device_mapping::ebs::ebs()
   : lops(0),
-    encrypted(false) {
+    encrypted(false),
+    delete_on_termination(true) {
   _init_bindings();
 }
 
@@ -68,7 +69,7 @@ block_device_mapping::ebs& block_device_mapping::ebs::operator=(
 bool block_device_mapping::ebs::is_null() const {
   return (snapshot_id.empty()
             && volume_size.empty()
-            && delete_on_termination
+            && !delete_on_termination
             && volume_type.empty()
             && volume_id.empty()
             && attach_time.is_null()

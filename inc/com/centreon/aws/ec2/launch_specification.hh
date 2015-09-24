@@ -69,6 +69,7 @@ namespace aws {
       void                   set_image_id(std::string const& val);
       void                   set_key_name(std::string const& val);
       void                   add_security_groups(security_group const& val);
+      void                   add_security_group_ids(security_group const& val);
       void                   set_user_data(std::string const& val);
       void                   set_instance_type(std::string const& val);
       void                   set_placement_availability_zone(std::string const& val);
@@ -89,6 +90,8 @@ namespace aws {
 
       std::vector<security_group>
                              _security_groups;
+      std::vector<security_group>
+                             _security_group_ids;
 
       std::string            _user_data;
       std::string            _instance_type;

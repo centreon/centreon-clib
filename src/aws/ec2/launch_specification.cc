@@ -240,6 +240,15 @@ void launch_specification::add_security_groups(security_group const& val) {
 }
 
 /**
+ *  Add a security group id.
+ *
+ *  @param[in] val  The security group id to add.
+ */
+void launch_specification::add_security_group_ids(security_group const& val) {
+  _security_group_ids.push_back(val);
+}
+
+/**
  *  Set the user data.
  *
  *  @param[in] val  The new user data.
@@ -363,6 +372,7 @@ void launch_specification::_init_bindings() {
   add_member("ImageId", _image_id);
   add_member("KeyName", _key_name);
   add_member("SecurityGroups", _security_groups);
+  add_member("SecurityGroupIds", _security_group_ids);
   add_member("UserData", _user_data);
   add_member("InstanceType", _instance_type);
   json_serializable& placement = create_and_add_generic_sub_object("Placement");
@@ -389,6 +399,7 @@ void launch_specification::_internal_copy(launch_specification const& other) {
   _image_id = other._image_id;
   _key_name = other._key_name;
   _security_groups = other._security_groups;
+  _security_group_ids = other._security_group_ids;
   _user_data = other._user_data;
   _instance_type = other._instance_type;
   _placement_availability_zone = other._placement_availability_zone;
