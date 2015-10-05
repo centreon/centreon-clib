@@ -26,9 +26,9 @@ using namespace com::centreon::aws::ec2;
  *  Default constructor.
  */
 block_device_mapping::ebs::ebs()
-  : lops(0),
-    encrypted(false),
-    delete_on_termination(true) {
+  : delete_on_termination(true),
+    lops(0),
+    encrypted(false) {
   _init_bindings();
 }
 
