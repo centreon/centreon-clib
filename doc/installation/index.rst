@@ -80,10 +80,8 @@ Prerequisites
 CentOS
 ------
 
-In CentOS, you first need to manually add cmake. After that you can
-install binary packages. Either use the Package Manager or the yum
-tool to install them. You should check package versions when
-necessary.
+Either use the Package Manager or the yum tool to install them. You should check
+package versions when necessary.
 
 Required packages:
 
