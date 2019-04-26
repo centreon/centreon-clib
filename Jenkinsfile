@@ -39,32 +39,6 @@ try {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos7"
       }
-    },
-    'debian9': {
-      node {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian9"
-      }
-    },
-    'debian9-armhf': {
-      node {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian9-armhf"
-      }
-    },
-    'debian10': {
-      node {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10"
-      }
-    /*
-    },
-    'opensuse-leap': {
-      node {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh opensuse-leap"
-      }
-    */
     }
     if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
       error('Package stage failure.');
