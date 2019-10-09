@@ -22,7 +22,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/logger.hh"
 #include "com/centreon/process.hh"
@@ -54,12 +53,12 @@ void process_manager::add(process* p) {
   if (!p)
     throw basic_error() << "invalid process: null pointer";
 
-  concurrency::locker lock_process(&p->_lock_process);
+  std::lock_guard<std::mutex> lock_process(p->_lock_process);
   // Check if the process need to be manage.
   if (p->_process == static_cast<pid_t>(-1))
     throw (basic_error() << "invalid process: not running");
 
-  concurrency::locker lock(&_lock_processes);
+  std::lock_guard<std::mutex> lock(_lock_processes);
   // Add pid process to use waitpid.
   _processes_pid[p->_process] = p;
 
@@ -138,7 +137,7 @@ process_manager::process_manager()
 process_manager::~process_manager() throw () {
   // Kill all running process.
   {
-    concurrency::locker lock(&_lock_processes);
+    std::lock_guard<std::mutex> lock(_lock_processes);
     for (umap<pid_t, process*>::iterator
            it(_processes_pid.begin()), end(_processes_pid.end());
          it != end;
@@ -159,7 +158,7 @@ process_manager::~process_manager() throw () {
   wait();
 
   {
-    concurrency::locker lock(&_lock_processes);
+    std::lock_guard<std::mutex> lock(_lock_processes);
 
     // Release memory.
     delete[] _fds;
@@ -201,7 +200,7 @@ void process_manager::_close_stream(int fd) throw () {
     // Get process to link with fd and remove this
     // fd to the process manager.
     {
-      concurrency::locker lock(&_lock_processes);
+      std::lock_guard<std::mutex> lock(_lock_processes);
       _update = true;
       umap<int, process*>::iterator it(_processes_fd.find(fd));
       if (it == _processes_fd.end()) {
@@ -214,7 +213,7 @@ void process_manager::_close_stream(int fd) throw () {
     }
 
     // Update process informations.
-    concurrency::locker lock(&p->_lock_process);
+    std::lock_guard<std::mutex> lock(p->_lock_process);
     if (p->_stream[process::out] == fd)
       p->_close(p->_stream[process::out]);
     else if (p->_stream[process::err] == fd)
@@ -247,7 +246,7 @@ void process_manager::_erase_timeout(process* p) {
   // Check process viability.
   if (!p || !p->_timeout)
     return;
-  concurrency::locker lock(&_lock_processes);
+  std::lock_guard<std::mutex> lock(_lock_processes);
   std::multimap<unsigned int, process*>::iterator
     it(_processes_timeout.find(p->_timeout));
   std::multimap<unsigned int, process*>::iterator
@@ -267,7 +266,7 @@ void process_manager::_erase_timeout(process* p) {
  *  Kill process to reach the timeout.
  */
 void process_manager::_kill_processes_timeout() throw () {
-  concurrency::locker lock(&_lock_processes);
+  std::lock_guard<std::mutex> lock(_lock_processes);
   // Get the current time.
   unsigned int now(time(NULL));
   std::multimap<unsigned int, process*>::iterator
@@ -301,7 +300,7 @@ unsigned int process_manager::_read_stream(int fd) throw () {
     process* p(NULL);
     // Get process to link with fd.
     {
-      concurrency::locker lock(&_lock_processes);
+      std::lock_guard<std::mutex> lock(_lock_processes);
       umap<int, process*>::iterator it(_processes_fd.find(fd));
       if (it == _processes_fd.end()) {
         _update = true;
@@ -311,7 +310,7 @@ unsigned int process_manager::_read_stream(int fd) throw () {
       p = it->second;
     }
 
-    concurrency::locker lock(&p->_lock_process);
+    std::lock_guard<std::mutex> lock(p->_lock_process);
     // Read content of the stream and push it.
     char buffer[4096];
     if (!(size = p->_read(fd, buffer, sizeof(buffer))))
@@ -423,7 +422,7 @@ void process_manager::_update_ending_process(
     return;
 
   // Update process informations.
-  concurrency::locker lock(&p->_lock_process);
+  std::lock_guard<std::mutex> lock(p->_lock_process);
   p->_end_time = timestamp::now();
   p->_status = status;
   p->_process = static_cast<pid_t>(-1);
@@ -447,7 +446,7 @@ void process_manager::_update_ending_process(
  *  Update list of file descriptor to watch.
  */
 void process_manager::_update_list() {
-  concurrency::locker lock(&_lock_processes);
+  std::lock_guard<std::mutex> lock(_lock_processes);
   // No need update.
   if (!_update)
     return;
@@ -478,7 +477,7 @@ void process_manager::_update_list() {
  */
 void process_manager::_wait_orphans_pid() throw () {
   try {
-    concurrency::locker lock(&_lock_processes);
+    std::lock_guard<std::mutex> lock(_lock_processes);
     std::list<orphan>::iterator it(_orphans_pid.begin());
     while (it != _orphans_pid.end()) {
       process* p(NULL);
@@ -525,7 +524,7 @@ void process_manager::_wait_processes() throw () {
       // Get process to link with pid and remove this pid
       // to the process manager.
       {
-        concurrency::locker lock(&_lock_processes);
+        std::lock_guard<std::mutex> lock(_lock_processes);
         umap<pid_t, process*>::iterator it(_processes_pid.find(pid));
         if (it == _processes_pid.end()) {
           _orphans_pid.push_back(orphan(pid, status));

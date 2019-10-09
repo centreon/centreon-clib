@@ -19,7 +19,6 @@
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/file.hh"
 #include "com/centreon/misc/stringifier.hh"
@@ -82,7 +81,7 @@ file::~file() throw () {
  *  Close file.
  */
 void file::close() throw () {
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
 
   if (!_out || _out == stdout || _out == stderr)
     return;
@@ -100,7 +99,7 @@ void file::close() throw () {
  *  @return The filename string.
  */
 std::string const& file::filename() const throw () {
-  return (_path);
+  return _path;
 }
 
 /**
@@ -141,7 +140,7 @@ void file::log(
     buffer.append(msg + last, i - last) << "\n";
   }
 
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
   if (_out) {
     // Size control.
     if ((_max_size > 0) && (_size + buffer.size() > _max_size))
@@ -165,7 +164,7 @@ void file::log(
  *  Open file.
  */
 void file::open() {
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
 
   if (_out && _path.empty())
     return;
@@ -174,15 +173,13 @@ void file::open() {
     throw (basic_error() << "failed to open file '" << _path << "': "
            << strerror(errno));
   _size = ftell(_out);
-
-  return ;
 }
 
 /**
  *  Close and open file.
  */
 void file::reopen() {
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
 
   if (!_out || _out == stdout || _out == stderr)
     return;
@@ -196,8 +193,6 @@ void file::reopen() {
     throw (basic_error() << "failed to open file '" << _path << "': "
            << strerror(errno));
   _size = ftell(_out);
-
-  return ;
 }
 
 /**
@@ -207,5 +202,4 @@ void file::_max_size_reached() {
   close();
   remove(_path.c_str());
   open();
-  return ;
 }

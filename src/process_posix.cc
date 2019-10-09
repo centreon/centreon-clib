@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <mutex>
 #include <poll.h>
 #ifdef HAVE_SPAWN_H
 #  include <spawn.h>
@@ -29,7 +30,6 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/exceptions/interruption.hh"
 #include "com/centreon/misc/command_line.hh"
@@ -42,7 +42,7 @@ using namespace com::centreon;
 extern char** environ;
 
 // Global process lock.
-static concurrency::mutex gl_process_lock;
+static std::mutex gl_process_lock;
 
 /**************************************
 *                                     *
@@ -79,7 +79,7 @@ process::~process() throw () {
  *  @param[in] enable Set to true to enable stderr.
  */
 void process::enable_stream(stream s, bool enable) {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   if (_enable_stream[s] != enable) {
     // Process not running juste set variable.
     if (!_is_running())
@@ -100,7 +100,7 @@ void process::enable_stream(stream s, bool enable) {
  *  @return The ending timestamp.
  */
 timestamp const& process::end_time() const throw () {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   return _end_time;
 }
 
@@ -116,7 +116,7 @@ timestamp const& process::end_time() const throw () {
  *                     this time the process will be kill.
  */
 void process::exec(char const* cmd, char** env, unsigned int timeout) {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
 
   // Check if process already running.
   if (_is_running())
@@ -146,7 +146,7 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
   // volatile prevent compiler optimization that might clobber variable.
   volatile bool restore_std(false);
 
-  concurrency::locker gl_lock(&gl_process_lock);
+  std::lock_guard<std::mutex> gl_lock(gl_process_lock);
   try {
     // Create backup FDs.
     std[0] = _dup(STDIN_FILENO);
@@ -249,7 +249,7 @@ void process::exec(std::string const& cmd, unsigned int timeout) {
  *  @return The exit code.
  */
 int process::exit_code() const throw () {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   if (WIFEXITED(_status))
     return WEXITSTATUS(_status);
   return 0;
@@ -263,7 +263,7 @@ int process::exit_code() const throw () {
  *  @return The exit status.
  */
 process::status process::exit_status() const throw () {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   if (_is_timeout)
     return timeout;
   if (WIFEXITED(_status))
@@ -275,7 +275,7 @@ process::status process::exit_status() const throw () {
  *  Kill process.
  */
 void process::kill() {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   _kill(SIGKILL);
 }
 
@@ -285,7 +285,7 @@ void process::kill() {
  *  @param[out] data Destination buffer.
  */
 void process::read(std::string& data) {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   // If buffer is empty and stream is open, we waiting data.
   if (_buffer_out.empty() && _stream[out] != -1)
     _cv_buffer_out.wait(&_lock_process);
@@ -300,7 +300,7 @@ void process::read(std::string& data) {
  *  @param[out] data Destination buffer.
  */
 void process::read_err(std::string& data) {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   // If buffer is empty and stream is open, we waiting data.
   if (_buffer_err.empty() && _stream[err] != -1)
     _cv_buffer_err.wait(&_lock_process);
@@ -315,7 +315,7 @@ void process::read_err(std::string& data) {
  *  @param[in] enable  True to  use setpgid, otherwise false.
  */
 void process::setpgid_on_exec(bool enable) throw () {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   if (enable)
     _create_process = &_create_process_with_setpgid;
   else
@@ -328,7 +328,7 @@ void process::setpgid_on_exec(bool enable) throw () {
  *  @return True if setpgid is enable, otherwise false.
  */
 bool process::setpgid_on_exec() const throw () {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   return _create_process == &_create_process_with_setpgid;
 }
 
@@ -338,7 +338,7 @@ bool process::setpgid_on_exec() const throw () {
  *  @return The starting timestamp.
  */
 timestamp const& process::start_time() const throw () {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   return _start_time;
 }
 
@@ -346,7 +346,7 @@ timestamp const& process::start_time() const throw () {
  *  Terminate process.
  */
 void process::terminate() {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   _kill(SIGTERM);
 }
 
@@ -354,7 +354,7 @@ void process::terminate() {
  *  Wait for process termination.
  */
 void process::wait() const {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   while (_is_running())
     _cv_process.wait(&_lock_process);
 }
@@ -368,7 +368,7 @@ void process::wait() const {
  *  @return true if process exited.
  */
 bool process::wait(unsigned long timeout) const {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   if (!_is_running())
     return true;
   _cv_process.wait(&_lock_process, timeout);
@@ -395,7 +395,7 @@ unsigned int process::write(std::string const& data) {
  *  @return Number of bytes actually written.
  */
 unsigned int process::write(void const* data, unsigned int size) {
-  concurrency::locker lock(&_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
   ssize_t wb(0);
   while ((wb = ::write(_stream[in], data, size)) < 0) {
     char const* msg(strerror(errno));

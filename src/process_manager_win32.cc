@@ -19,7 +19,6 @@
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/logger.hh"
 #include "com/centreon/process.hh"
@@ -50,11 +49,11 @@ void process_manager::add(process* p) {
   if (!p)
     throw (basic_error() << "invalid process: null pointer");
 
-  concurrency::locker lock_process(&p->_lock_process);
+  std::lock_guard<std::mutex> lock_process(p->_lock_process);
   if (p->_process == static_cast<pid_t>(-1))
     throw (basic_error() << "invalid process: not running");
 
-  concurrency::locker lock(&_lock_processes);
+  std::lock_guard<std::mutex> lock(p->_lock_processes);
   _processes_pid[p->_process] = p;
   if (p->_enable_stream[process::out])
     _processes_fd[p->_stream[process::out]] = p;
@@ -128,7 +127,7 @@ void process_manager::_close_stream(HANDLE fd) throw () {
   try {
     process* p(NULL);
     {
-      concurrency::locker lock(&_lock_processes);
+      std::lock_guard<std::mutex> lock(_lock_processes);
       _update = true;
       htable<int, process*>::iterator it(_processes_fd.find(fd));
       if (it == _processes_fd.end()) {
@@ -140,7 +139,7 @@ void process_manager::_close_stream(HANDLE fd) throw () {
       _processes_fd.erase(it);
     }
 
-    concurrency::locker lock(&p->_lock_process);
+    std::lock_guard<std::mutex> lock(p->_lock_process);
     if (p->_stream[process::out] == fd)
       p->_close(p->_stream[process::out]);
     else if (p->_stream[process::err] == fd)
@@ -166,7 +165,7 @@ void process_manager::_read_stream(HANDLE fd) throw () {
   try {
     process* p(NULL);
     {
-      concurrency::locker lock(&_lock_processes);
+      std::lock_guard<std::mutex> lock(_lock_processes);
       htable<int, process*>::iterator it(_processes_fd.find(fd));
       if (it == _processes_fd.end()) {
         _update = true;
@@ -176,7 +175,7 @@ void process_manager::_read_stream(HANDLE fd) throw () {
       p = it->second;
     }
 
-    concurrency::locker lock(&p->_lock_process);
+    std::lock_guard<std::mutex> lock(p->_lock_process);
     char buffer[4096];
     unsigned int size(p->_read(fd, buffer, sizeof(buffer)));
     if (p->_stream[process::out] == fd)
@@ -215,7 +214,7 @@ void process_manager::_run() {
  *  Update list of file descriptor to watch.
  */
 void process_manager::_update_list() {
-  concurrency::locker lock(&_lock_processes);
+  std::lock_guard<std::mutex> lock(_lock_processes);
   if (!_update)
     return;
 

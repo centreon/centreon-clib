@@ -20,12 +20,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/backend.hh"
 #include "com/centreon/logging/engine.hh"
 
-using namespace com::centreon::concurrency;
 using namespace com::centreon::logging;
 
 // Class instance.

@@ -24,7 +24,6 @@
 #endif // _WIN32
 
 #include <cstring>
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/concurrency/thread.hh"
 #include "com/centreon/logging/backend.hh"
 #include "com/centreon/misc/stringifier.hh"
@@ -82,7 +81,7 @@ backend::~backend() throw () {
 backend& backend::operator=(backend const& right) {
   if (this != &right)
     _internal_copy(right);
-  return (*this);
+  return *this;
 }
 
 /**
@@ -91,8 +90,8 @@ backend& backend::operator=(backend const& right) {
  *  @return True if synchronize, otherwise false.
  */
 bool backend::enable_sync() const {
-  concurrency::locker lock(&_lock);
-  return (_is_sync);
+  std::lock_guard<std::mutex> lock(_lock);
+  return _is_sync;
 }
 
 /**
@@ -101,7 +100,7 @@ bool backend::enable_sync() const {
  *  @param[in] enable  True to synchronize backends data.
  */
 void backend::enable_sync(bool enable) {
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
   _is_sync = enable;
 }
 
@@ -130,8 +129,8 @@ void backend::log(
  *  @return True if pid is display, otherwise false.
  */
 bool backend::show_pid() const {
-  concurrency::locker lock(&_lock);
-  return (_show_pid);
+  std::lock_guard<std::mutex> lock(_lock);
+  return _show_pid;
 }
 
 /**
@@ -140,7 +139,7 @@ bool backend::show_pid() const {
  *  @param[in] enable  Enable or disable display pid.
  */
 void backend::show_pid(bool enable) {
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
   _show_pid = enable;
 }
 
@@ -150,8 +149,8 @@ void backend::show_pid(bool enable) {
  *  @return Time precision is display, otherwise none.
  */
 time_precision backend::show_timestamp() const {
-  concurrency::locker lock(&_lock);
-  return (_show_timestamp);
+  std::lock_guard<std::mutex> lock(_lock);
+  return _show_timestamp;
 }
 
 /**
@@ -160,7 +159,7 @@ time_precision backend::show_timestamp() const {
  *  @param[in] enable  Enable or disable display timestamp.
  */
 void backend::show_timestamp(time_precision val) {
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
   _show_timestamp = val;
 }
 
@@ -170,8 +169,8 @@ void backend::show_timestamp(time_precision val) {
  *  @return True if thread id is display, otherwise false.
  */
 bool backend::show_thread_id() const {
-  concurrency::locker lock(&_lock);
-  return (_show_thread_id);
+  std::lock_guard<std::mutex> lock(_lock);
+  return _show_thread_id;
 }
 
 /**
@@ -180,7 +179,7 @@ bool backend::show_thread_id() const {
  *  @param[in] enable  Enable or disable display thread id.
  */
 void backend::show_thread_id(bool enable) {
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
   _show_thread_id = enable;
 }
 
@@ -214,8 +213,8 @@ void backend::_build_header(misc::stringifier& buffer) {
  *  @param[in] right  The object to copy.
  */
 void backend::_internal_copy(backend const& right) {
-  concurrency::locker lock1(&_lock);
-  concurrency::locker lock2(&right._lock);
+  std::lock_guard<std::mutex> lock1(_lock);
+  std::lock_guard<std::mutex> lock2(right._lock);
   _is_sync = right._is_sync;
   _show_pid = right._show_pid;
   _show_timestamp = right._show_timestamp;

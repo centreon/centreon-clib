@@ -19,7 +19,7 @@
 #ifndef CC_LOGGING_BACKEND_HH
 #  define CC_LOGGING_BACKEND_HH
 
-#  include "com/centreon/concurrency/mutex.hh"
+#  include <mutex>
 #  include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -78,8 +78,7 @@ namespace                  logging {
     void                   _build_header(misc::stringifier& buffer);
 
     bool                   _is_sync;
-    mutable concurrency::mutex
-                           _lock;
+    mutable std::mutex     _lock;
     bool                   _show_pid;
     time_precision         _show_timestamp;
     bool                   _show_thread_id;

@@ -19,7 +19,7 @@
 #ifndef CC_TEST_LOGGING_BACKEND_TEST_HH
 #  define CC_TEST_LOGGING_BACKEND_TEST_HH
 
-#  include "com/centreon/concurrency/locker.hh"
+#include <mutex>
 #  include "com/centreon/logging/backend.hh"
 
 CC_BEGIN()
@@ -50,7 +50,7 @@ namespace              logging {
                          unsigned int verbose,
                          char const* msg,
                          unsigned int size) throw () {
-      concurrency::locker lock(&_lock);
+      std::lock_guard<std::mutex> lock(_lock);
 
       (void)types;
       (void)verbose;

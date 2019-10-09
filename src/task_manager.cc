@@ -17,11 +17,9 @@
 */
 
 #include <cstdlib>
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/task_manager.hh"
 
 using namespace com::centreon;
-using namespace com::centreon::concurrency;
 
 /**
  *  Constructor.

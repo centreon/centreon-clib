@@ -18,7 +18,6 @@
 
 #include <cstdlib>
 #include <syslog.h>
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/syslogger.hh"
 #include "com/centreon/misc/stringifier.hh"
@@ -59,7 +58,7 @@ syslogger::~syslogger() throw () {
  *  Close syslog.
  */
 void syslogger::close() throw () {
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
   closelog();
 }
 
@@ -84,7 +83,7 @@ void syslogger::log(
   misc::stringifier header;
   _build_header(header);
 
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
   syslog(LOG_ERR, "%s%s", header.data(), msg);
 }
 
@@ -92,7 +91,7 @@ void syslogger::log(
  *  Open syslog.
  */
 void syslogger::open() {
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
   openlog(_id.c_str(), 0, _facility);
 }
 
@@ -100,7 +99,7 @@ void syslogger::open() {
  *  Close and open syslog.
  */
 void syslogger::reopen() {
-  concurrency::locker lock(&_lock);
+  std::lock_guard<std::mutex> lock(_lock);
   closelog();
   openlog(_id.c_str(), 0, _facility);
 }
