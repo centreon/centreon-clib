@@ -32,23 +32,19 @@ using namespace com::centreon::concurrency;
 /**
  *  Default constructor.
  */
-mutex::mutex() {
-  InitializeCriticalSection(&_csection);
-}
+mutex::mutex() { InitializeCriticalSection(&_csection); }
 
 /**
  *  Destructor.
  */
-mutex::~mutex() {
-  DeleteCriticalSection(&_csection);
-}
+mutex::~mutex() { DeleteCriticalSection(&_csection); }
 
 /**
  *  Lock the mutex.
  */
 void mutex::lock() {
   EnterCriticalSection(&_csection);
-  return ;
+  return;
 }
 
 /**
@@ -56,14 +52,12 @@ void mutex::lock() {
  *
  *  @return true if the mutex was successfully acquired.
  */
-bool mutex::trylock() {
-  return (TryEnterCriticalSection(&_csection) != 0);
-}
+bool mutex::trylock() { return (TryEnterCriticalSection(&_csection) != 0); }
 
 /**
  *  Unlock the mutex.
  */
 void mutex::unlock() {
   LeaveCriticalSection(&_csection);
-  return ;
+  return;
 }

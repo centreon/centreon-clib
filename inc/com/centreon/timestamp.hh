@@ -17,11 +17,11 @@
 */
 
 #ifndef CC_TIMESTAMP_HH
-#  define CC_TIMESTAMP_HH
+#define CC_TIMESTAMP_HH
 
-#  include <cstdint>
-#  include <ctime>
-#  include "com/centreon/namespace.hh"
+#include <cstdint>
+#include <ctime>
+#include "com/centreon/namespace.hh"
 
 CC_BEGIN()
 
@@ -31,44 +31,44 @@ CC_BEGIN()
  *
  *  Allow to manage time easily.
  */
-class              timestamp {
-public:
-                   timestamp(time_t secs = 0, int usecs = 0);
-                   timestamp(timestamp const& right);
-                   ~timestamp() throw ();
-  timestamp&       operator=(timestamp const& right);
-  bool             operator==(timestamp const& right) const throw ();
-  bool             operator!=(timestamp const& right) const throw ();
-  bool             operator<(timestamp const& right) const throw ();
-  bool             operator<=(timestamp const& right) const throw ();
-  bool             operator>(timestamp const& right) const throw ();
-  bool             operator>=(timestamp const& right) const throw ();
-  timestamp        operator+(timestamp const& right) const;
-  timestamp        operator-(timestamp const& right) const;
-  timestamp&       operator+=(timestamp const& right);
-  timestamp&       operator-=(timestamp const& right);
-  void             add_mseconds(long msecs);
-  void             add_seconds(time_t secs);
-  void             add_useconds(long usecs);
-  void             clear() throw ();
-  static timestamp max_time() throw ();
-  static timestamp min_time() throw ();
-  static timestamp now() throw ();
-  void             sub_mseconds(long msecs);
-  void             sub_seconds(time_t secs);
-  void             sub_useconds(long usecs);
-  long long        to_mseconds() const throw ();
-  time_t           to_seconds() const throw ();
-  long long        to_useconds() const throw ();
+class timestamp {
+ public:
+  timestamp(time_t secs = 0, int usecs = 0);
+  timestamp(timestamp const& right);
+  ~timestamp() throw();
+  timestamp& operator=(timestamp const& right);
+  bool operator==(timestamp const& right) const throw();
+  bool operator!=(timestamp const& right) const throw();
+  bool operator<(timestamp const& right) const throw();
+  bool operator<=(timestamp const& right) const throw();
+  bool operator>(timestamp const& right) const throw();
+  bool operator>=(timestamp const& right) const throw();
+  timestamp operator+(timestamp const& right) const;
+  timestamp operator-(timestamp const& right) const;
+  timestamp& operator+=(timestamp const& right);
+  timestamp& operator-=(timestamp const& right);
+  void add_mseconds(long msecs);
+  void add_seconds(time_t secs);
+  void add_useconds(long usecs);
+  void clear() throw();
+  static timestamp max_time() throw();
+  static timestamp min_time() throw();
+  static timestamp now() throw();
+  void sub_mseconds(long msecs);
+  void sub_seconds(time_t secs);
+  void sub_useconds(long usecs);
+  long long to_mseconds() const throw();
+  time_t to_seconds() const throw();
+  long long to_useconds() const throw();
 
-private:
-  void             _internal_copy(timestamp const& right);
-  static void      _transfer(time_t* secs, uint32_t* usecs);
+ private:
+  void _internal_copy(timestamp const& right);
+  static void _transfer(time_t* secs, uint32_t* usecs);
 
-  time_t           _secs;
-  uint32_t     _usecs;
+  time_t _secs;
+  uint32_t _usecs;
 };
 
 CC_END()
 
-#endif // !CC_TIMESTAMP_HH
+#endif  // !CC_TIMESTAMP_HH

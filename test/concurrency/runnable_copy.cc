@@ -26,12 +26,10 @@ using namespace com::centreon::concurrency;
  *  @class task
  *  @brief litle implementation of runnable to test the thread pool.
  */
-class  task : public runnable {
-public:
-       task(bool auto_delete) {
-         set_auto_delete(auto_delete);
-       }
-       ~task() throw () {}
+class task : public runnable {
+ public:
+  task(bool auto_delete) { set_auto_delete(auto_delete); }
+  ~task() throw() {}
   void run() {}
 };
 
@@ -46,11 +44,11 @@ int main() {
 
     task t1(ref);
     if (ref.get_auto_delete() != t1.get_auto_delete())
-      throw (basic_error() << "invalid copy constructor");
+      throw(basic_error() << "invalid copy constructor");
 
     task t2 = ref;
     if (ref.get_auto_delete() != t2.get_auto_delete())
-      throw (basic_error() << "invalid copy operator");
+      throw(basic_error() << "invalid copy operator");
   }
   catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;

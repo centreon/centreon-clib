@@ -26,10 +26,10 @@ using namespace com::centreon;
  *  @class task_test
  *  @brief litle implementation of task to test task manager.
  */
-class  task_test : public task {
-public:
-       task_test() : task() {}
-       ~task_test() throw () {}
+class task_test : public task {
+ public:
+  task_test() : task() {}
+  ~task_test() throw() {}
   void run() {}
 };
 
@@ -45,7 +45,7 @@ int main() {
     task_test* t1(new task_test);
     tm.add(t1, timestamp::now(), 10, true, true);
     if (!tm.next_execution_time().to_useconds())
-      throw (basic_error() << "add failed");
+      throw(basic_error() << "add failed");
 
     task_test* t2(new task_test);
     tm.add(t2, timestamp::now(), 10, false, false);

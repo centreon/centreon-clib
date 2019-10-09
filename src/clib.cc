@@ -74,7 +74,7 @@ clib::clib(uint32_t flags) {
 /**
  *  Destructor.
  */
-clib::~clib() throw () {
+clib::~clib() throw() {
   process_manager::unload();
   logging::engine::unload();
 }

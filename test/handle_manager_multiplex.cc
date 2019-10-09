@@ -21,8 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 #ifndef _WIN32
-#  include <unistd.h>
-#endif // !_WIN32
+#include <unistd.h>
+#endif  // !_WIN32
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/handle_listener.hh"
 #include "com/centreon/handle_manager.hh"
@@ -36,29 +36,41 @@ using namespace com::centreon;
  *  @brief litle implementation of handle listener to test the
  *         handle manager.
  */
-class     listener : public handle_listener {
-public:
-          listener(
-            handle& ref_h,
-            bool want_read,
-            bool want_write)
-            : _is_call(false),
-              _ref_h(ref_h),
-              _want_read(want_read),
-              _want_write(want_write) {}
-          ~listener() throw () {}
-  void    error(handle& h) { if (&_ref_h == &h) _is_call = true; }
-  bool    is_call() const throw () { return (_is_call); }
-  void    read(handle& h) { if (&_ref_h == &h) _is_call = true; }
-  bool    want_read(handle& h) { (void)h; return (_want_read); }
-  bool    want_write(handle& h) { (void)h; return (_want_write); }
-  void    write(handle& h) { if (&_ref_h == &h) _is_call = true; }
+class listener : public handle_listener {
+ public:
+  listener(handle& ref_h, bool want_read, bool want_write)
+      : _is_call(false),
+        _ref_h(ref_h),
+        _want_read(want_read),
+        _want_write(want_write) {}
+  ~listener() throw() {}
+  void error(handle& h) {
+    if (&_ref_h == &h)
+      _is_call = true;
+  }
+  bool is_call() const throw() { return (_is_call); }
+  void read(handle& h) {
+    if (&_ref_h == &h)
+      _is_call = true;
+  }
+  bool want_read(handle& h) {
+    (void)h;
+    return (_want_read);
+  }
+  bool want_write(handle& h) {
+    (void)h;
+    return (_want_write);
+  }
+  void write(handle& h) {
+    if (&_ref_h == &h)
+      _is_call = true;
+  }
 
-private:
-  bool    _is_call;
+ private:
+  bool _is_call;
   handle& _ref_h;
-  bool    _want_read;
-  bool    _want_write;
+  bool _want_read;
+  bool _want_write;
 };
 
 /**
@@ -127,7 +139,7 @@ static bool basic_multiplex_close() {
   hm.multiplex();
   return (l.is_call());
 }
-#endif // !_WIN32
+#endif  // !_WIN32
 
 /**
  *  Check the handle manager multiplexing.
@@ -137,17 +149,17 @@ static bool basic_multiplex_close() {
 int main() {
   try {
     if (!null_task_manager())
-      throw (basic_error() << "handle manager failed to multiplex:" \
-             "try to multiplex null pointer");
+      throw(basic_error() << "handle manager failed to multiplex:"
+                             "try to multiplex null pointer");
     if (!empty_handle_manager())
-      throw (basic_error() << "handle manager failed to multiplex:" \
-             "try to multiplex nothing");
+      throw(basic_error() << "handle manager failed to multiplex:"
+                             "try to multiplex nothing");
     if (!basic_multiplex_write())
-      throw (basic_error() << "multiplex one handle to write failed");
+      throw(basic_error() << "multiplex one handle to write failed");
 #ifndef _WIN32
     if (!basic_multiplex_close())
-      throw (basic_error() << "multiplex one handle to close failed");
-#endif // !_WIN32
+      throw(basic_error() << "multiplex one handle to close failed");
+#endif  // !_WIN32
   }
   catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;

@@ -30,11 +30,11 @@ using namespace com::centreon;
  *  @brief litle implementation of handle listener to test the
  *         handle manager.
  */
-class     listener : public handle_listener {
-public:
-          listener() {}
-          ~listener() throw () {}
-  void    error(handle& h) { (void)h; }
+class listener : public handle_listener {
+ public:
+  listener() {}
+  ~listener() throw() {}
+  void error(handle& h) { (void)h; }
 };
 
 /**
@@ -46,16 +46,16 @@ int main() {
   try {
     handle_manager hm;
     if (hm.remove(static_cast<handle*>(NULL)))
-      throw (basic_error() << "remove null pointer");
+      throw(basic_error() << "remove null pointer");
 
     io::file_stream fs(stdin);
     if (hm.remove(&fs))
-      throw (basic_error() << "remove invalid handle");
+      throw(basic_error() << "remove invalid handle");
 
     listener l;
     hm.add(&fs, &l);
     if (!hm.remove(&fs))
-      throw (basic_error() << "remove failed");
+      throw(basic_error() << "remove failed");
   }
   catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;

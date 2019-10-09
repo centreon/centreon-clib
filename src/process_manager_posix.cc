@@ -56,7 +56,7 @@ void process_manager::add(process* p) {
   std::lock_guard<std::mutex> lock_process(p->_lock_process);
   // Check if the process need to be manage.
   if (p->_process == static_cast<pid_t>(-1))
-    throw (basic_error() << "invalid process: not running");
+    throw(basic_error() << "invalid process: not running");
 
   std::lock_guard<std::mutex> lock(_lock_processes);
   // Add pid process to use waitpid.
@@ -81,9 +81,7 @@ void process_manager::add(process* p) {
  *
  *  @return the process manager.
  */
-process_manager& process_manager::instance() {
-  return *_instance;
-}
+process_manager& process_manager::instance() { return *_instance; }
 
 /**
  *  Load the process manager.
@@ -111,11 +109,11 @@ void process_manager::unload() {
  *  Default constructor.
  */
 process_manager::process_manager()
-  : concurrency::thread(),
-    _fds(new pollfd[64]),
-    _fds_capacity(64),
-    _fds_size(0),
-    _update(true) {
+    : concurrency::thread(),
+      _fds(new pollfd[64]),
+      _fds_capacity(64),
+      _fds_size(0),
+      _update(true) {
   // Create pipe to notify ending to the process manager thread.
   if (::pipe(_fds_exit)) {
     char const* msg(strerror(errno));
@@ -134,12 +132,12 @@ process_manager::process_manager()
 /**
  *  Destructor.
  */
-process_manager::~process_manager() throw () {
+process_manager::~process_manager() throw() {
   // Kill all running process.
   {
     std::lock_guard<std::mutex> lock(_lock_processes);
-    for (umap<pid_t, process*>::iterator
-           it(_processes_pid.begin()), end(_processes_pid.end());
+    for (umap<pid_t, process*>::iterator it(_processes_pid.begin()),
+         end(_processes_pid.end());
          it != end;
          ++it) {
       try {
@@ -169,8 +167,7 @@ process_manager::~process_manager() throw () {
     // Waiting all process.
     int ret(0);
     int status(0);
-    while ((ret = ::waitpid(-1, &status, 0)) > 0
-           || (ret && errno == EINTR))
+    while ((ret = ::waitpid(-1, &status, 0)) > 0 || (ret && errno == EINTR))
       ;
   }
 }
@@ -180,7 +177,7 @@ process_manager::~process_manager() throw () {
  *
  *  @param[in, out] fd The file descriptor to close.
  */
-void process_manager::_close(int& fd) throw () {
+void process_manager::_close(int& fd) throw() {
   if (fd >= 0) {
     while (::close(fd) < 0 && errno == EINTR)
       ;
@@ -194,7 +191,7 @@ void process_manager::_close(int& fd) throw () {
  *
  *  @param[in] fd  The file descriptor to close.
  */
-void process_manager::_close_stream(int fd) throw () {
+void process_manager::_close_stream(int fd) throw() {
   try {
     process* p(NULL);
     // Get process to link with fd and remove this
@@ -206,7 +203,7 @@ void process_manager::_close_stream(int fd) throw () {
       if (it == _processes_fd.end()) {
         _update = true;
         throw basic_error() << "invalid fd: "
-               "not found into processes fd list";
+                               "not found into processes fd list";
       }
       p = it->second;
       _processes_fd.erase(it);
@@ -247,10 +244,9 @@ void process_manager::_erase_timeout(process* p) {
   if (!p || !p->_timeout)
     return;
   std::lock_guard<std::mutex> lock(_lock_processes);
-  std::multimap<uint32_t, process*>::iterator
-    it(_processes_timeout.find(p->_timeout));
-  std::multimap<uint32_t, process*>::iterator
-    end(_processes_timeout.end());
+  std::multimap<uint32_t, process*>::iterator it(
+      _processes_timeout.find(p->_timeout));
+  std::multimap<uint32_t, process*>::iterator end(_processes_timeout.end());
   // Find and erase process from timeout list.
   while (it != end && it->first == p->_timeout) {
     if (it->second == p) {
@@ -265,15 +261,13 @@ void process_manager::_erase_timeout(process* p) {
 /**
  *  Kill process to reach the timeout.
  */
-void process_manager::_kill_processes_timeout() throw () {
+void process_manager::_kill_processes_timeout() throw() {
   std::lock_guard<std::mutex> lock(_lock_processes);
   // Get the current time.
   uint32_t now(time(NULL));
-  std::multimap<uint32_t, process*>::iterator
-    it(_processes_timeout.begin());
+  std::multimap<uint32_t, process*>::iterator it(_processes_timeout.begin());
   // Kill process who timeout and remove it from timeout list.
-  while (it != _processes_timeout.end()
-         && now >= it->first) {
+  while (it != _processes_timeout.end() && now >= it->first) {
     process* p(it->second);
     try {
       p->kill();
@@ -294,7 +288,7 @@ void process_manager::_kill_processes_timeout() throw () {
  *
  *  @return Number of bytes read.
  */
-uint32_t process_manager::_read_stream(int fd) throw () {
+uint32_t process_manager::_read_stream(int fd) throw() {
   uint32_t size(0);
   try {
     process* p(NULL);
@@ -305,7 +299,7 @@ uint32_t process_manager::_read_stream(int fd) throw () {
       if (it == _processes_fd.end()) {
         _update = true;
         throw basic_error() << "invalid fd: "
-               "not found into processes fd list";
+                               "not found into processes fd list";
       }
       p = it->second;
     }
@@ -324,8 +318,7 @@ uint32_t process_manager::_read_stream(int fd) throw () {
         lock.unlock();
         (p->_listener->data_is_available)(*p);
       }
-    }
-    else if (p->_stream[process::err] == fd) {
+    } else if (p->_stream[process::err] == fd) {
       p->_buffer_err.append(buffer, size);
       p->_cv_buffer_err.notify_one();
       // Notify listener if necessary.
@@ -391,8 +384,8 @@ void process_manager::_run() {
         //  Error!
         else if (_fds[i].revents & (POLLERR | POLLNVAL)) {
           _update = true;
-          log_error(logging::high)
-            << "invalid fd " << _fds[i].fd << " from process manager";
+          log_error(logging::high) << "invalid fd " << _fds[i].fd
+                                   << " from process manager";
         }
       }
       // Release finished process.
@@ -414,9 +407,7 @@ void process_manager::_run() {
  *  @param[in] p       The process to update informations.
  *  @param[in] status  The status of the process to set.
  */
-void process_manager::_update_ending_process(
-                        process* p,
-                        int status) throw () {
+void process_manager::_update_ending_process(process* p, int status) throw() {
   // Check process viability.
   if (!p)
     return;
@@ -459,8 +450,8 @@ void process_manager::_update_list() {
   }
   // Set file descriptor to wait event.
   _fds_size = 0;
-  for (umap<int, process*>::const_iterator
-         it(_processes_fd.begin()), end(_processes_fd.end());
+  for (umap<int, process*>::const_iterator it(_processes_fd.begin()),
+       end(_processes_fd.end());
        it != end;
        ++it) {
     _fds[_fds_size].fd = it->first;
@@ -475,7 +466,7 @@ void process_manager::_update_list() {
 /**
  *  Waiting orphans pid.
  */
-void process_manager::_wait_orphans_pid() throw () {
+void process_manager::_wait_orphans_pid() throw() {
   try {
     std::unique_lock<std::mutex> lock(_lock_processes);
     std::list<orphan>::iterator it(_orphans_pid.begin());
@@ -484,8 +475,7 @@ void process_manager::_wait_orphans_pid() throw () {
       // Get process to link with pid and remove this pid
       // to the process manager.
       {
-        umap<pid_t, process*>::iterator
-          it_p(_processes_pid.find(it->pid));
+        umap<pid_t, process*>::iterator it_p(_processes_pid.find(it->pid));
         if (it_p == _processes_pid.end()) {
           ++it;
           continue;
@@ -511,7 +501,7 @@ void process_manager::_wait_orphans_pid() throw () {
 /**
  *  Waiting finished process.
  */
-void process_manager::_wait_processes() throw () {
+void process_manager::_wait_processes() throw() {
   try {
     while (true) {
       int status(0);

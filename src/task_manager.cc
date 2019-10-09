@@ -28,12 +28,12 @@ using namespace com::centreon;
  *                               pool.
  */
 task_manager::task_manager(uint32_t max_thread_count)
-  : _current_id(0), _th_pool(max_thread_count) {}
+    : _current_id(0), _th_pool(max_thread_count) {}
 
 /**
  *  Destructor.
  */
-task_manager::~task_manager() throw () {
+task_manager::~task_manager() throw() {
   // Wait the end of all running task.
   _th_pool.wait_for_done();
 
@@ -42,7 +42,8 @@ task_manager::~task_manager() throw () {
 
   // Delete all internal task.
   for (std::multimap<timestamp, internal_task*>::const_iterator
-         it(_tasks.begin()), end(_tasks.end());
+           it(_tasks.begin()),
+       end(_tasks.end());
        it != end;
        ++it)
     delete it->second;
@@ -59,21 +60,15 @@ task_manager::~task_manager() throw () {
  *
  *  @return The id of the new task in the task manager.
  */
-unsigned long task_manager::add(
-                              task* t,
-                              timestamp const& when,
-                              bool is_runnable,
-                              bool should_delete) {
+unsigned long task_manager::add(task* t,
+                                timestamp const& when,
+                                bool is_runnable,
+                                bool should_delete) {
   // Lock the task manager.
   std::lock_guard<std::mutex> lock(_mtx);
 
-  internal_task* itask(new internal_task(
-                             ++_current_id,
-                             t,
-                             when,
-                             0,
-                             is_runnable,
-                             should_delete));
+  internal_task* itask(
+      new internal_task(++_current_id, t, when, 0, is_runnable, should_delete));
   _tasks.insert(std::pair<timestamp, internal_task*>(when, itask));
   return (itask->id);
 }
@@ -90,22 +85,16 @@ unsigned long task_manager::add(
  *
  *  @return The id of the new task in the task manager.
  */
-unsigned long task_manager::add(
-                              task* t,
-                              timestamp const& when,
-                              uint32_t interval,
-                              bool is_runnable,
-                              bool should_delete) {
+unsigned long task_manager::add(task* t,
+                                timestamp const& when,
+                                uint32_t interval,
+                                bool is_runnable,
+                                bool should_delete) {
   // Lock the task manager.
   std::lock_guard<std::mutex> lock(_mtx);
 
   internal_task* itask(new internal_task(
-                             ++_current_id,
-                             t,
-                             when,
-                             interval,
-                             is_runnable,
-                             should_delete));
+      ++_current_id, t, when, interval, is_runnable, should_delete));
   _tasks.insert(std::pair<timestamp, internal_task*>(when, itask));
   return (itask->id);
 }
@@ -128,8 +117,7 @@ uint32_t task_manager::execute(timestamp const& now) {
     // Lock the task manager.
     std::unique_lock<std::mutex> lock(_mtx);
 
-    std::multimap<timestamp, internal_task*>::iterator
-      it(_tasks.begin());
+    std::multimap<timestamp, internal_task*>::iterator it(_tasks.begin());
     while (!_tasks.empty() && (it->first <= now)) {
       // Get internal task.
       internal_task* itask(it->second);
@@ -142,16 +130,13 @@ uint32_t task_manager::execute(timestamp const& now) {
         timestamp new_time(now);
         new_time.add_useconds(itask->interval);
         recurring.push_back(
-                    std::pair<timestamp, internal_task*>(
-                      new_time,
-                      itask));
+            std::pair<timestamp, internal_task*>(new_time, itask));
       }
 
       if (itask->is_runnable) {
         // This task allow to run in the thread.
         _th_pool.start(itask);
-      }
-      else {
+      } else {
         // This task need to be run in the main thread without
         // any concurrence.
         lock.unlock();
@@ -169,7 +154,8 @@ uint32_t task_manager::execute(timestamp const& now) {
 
     // Update the task table with the recurring task.
     for (std::list<std::pair<timestamp, internal_task*> >::const_iterator
-           it(recurring.begin()), end(recurring.end());
+             it(recurring.begin()),
+         end(recurring.end());
          it != end;
          ++it) {
       it->second->when = it->first;
@@ -191,11 +177,9 @@ uint32_t task_manager::execute(timestamp const& now) {
  */
 timestamp task_manager::next_execution_time() const {
   std::lock_guard<std::mutex> lock(_mtx);
-  std::multimap<timestamp, internal_task*>::const_iterator
-    lower(_tasks.begin());
-  return ((lower == _tasks.end())
-          ? timestamp::max_time()
-          : lower->first);
+  std::multimap<timestamp, internal_task*>::const_iterator lower(
+      _tasks.begin());
+  return ((lower == _tasks.end()) ? timestamp::max_time() : lower->first);
 }
 
 /**
@@ -214,8 +198,9 @@ uint32_t task_manager::remove(task* t) {
   std::lock_guard<std::mutex> lock(_mtx);
 
   uint32_t count_erase(0);
-  for (std::multimap<timestamp, internal_task*>::iterator
-         it(_tasks.begin()), next(it), end(_tasks.end());
+  for (std::multimap<timestamp, internal_task*>::iterator it(_tasks.begin()),
+       next(it),
+       end(_tasks.end());
        it != end;
        it = next)
     if (it->second->t != t)
@@ -242,8 +227,9 @@ bool task_manager::remove(unsigned long id) {
   // Lock the task manager.
   std::lock_guard<std::mutex> lock(_mtx);
 
-  for (std::multimap<timestamp, internal_task*>::iterator
-         it(_tasks.begin()), next(it), end(_tasks.end());
+  for (std::multimap<timestamp, internal_task*>::iterator it(_tasks.begin()),
+       next(it),
+       end(_tasks.end());
        it != end;
        it = next)
     if (it->second->id != id)
@@ -268,20 +254,19 @@ bool task_manager::remove(unsigned long id) {
  *  @param[in] _is_runnable    If the task should run simultaneously.
  *  @param[in] _should_delete  If the task should delete after running.
  */
-task_manager::internal_task::internal_task(
-                           unsigned long _id,
-                           task* _t,
-                           timestamp const& _when,
-                           uint32_t _interval,
-                           bool _is_runnable,
-                           bool _should_delete)
-  : runnable(),
-    id(_id),
-    interval(_interval),
-    is_runnable(_is_runnable),
-    should_delete(_should_delete),
-    t(_t),
-    when(_when) {
+task_manager::internal_task::internal_task(unsigned long _id,
+                                           task* _t,
+                                           timestamp const& _when,
+                                           uint32_t _interval,
+                                           bool _is_runnable,
+                                           bool _should_delete)
+    : runnable(),
+      id(_id),
+      interval(_interval),
+      is_runnable(_is_runnable),
+      should_delete(_should_delete),
+      t(_t),
+      when(_when) {
   // If the task is recurring we need to set auto delete at false, to
   // reuse this task.
   set_auto_delete(!interval);
@@ -293,14 +278,14 @@ task_manager::internal_task::internal_task(
  *  @param[in] right  The object to copy.
  */
 task_manager::internal_task::internal_task(internal_task const& right)
-  : runnable() {
+    : runnable() {
   _internal_copy(right);
 }
 
 /**
  *  Default destructor.
  */
-task_manager::internal_task::~internal_task() throw () {
+task_manager::internal_task::~internal_task() throw() {
   if (should_delete)
     delete t;
 }
@@ -312,16 +297,15 @@ task_manager::internal_task::~internal_task() throw () {
  *
  *  @return This object.
  */
-task_manager::internal_task& task_manager::internal_task::operator=(internal_task const& right) {
+task_manager::internal_task& task_manager::internal_task::operator=(
+    internal_task const& right) {
   return (_internal_copy(right));
 }
 
 /**
  *  Run a task.
  */
-void task_manager::internal_task::run() {
-  t->run();
-}
+void task_manager::internal_task::run() { t->run(); }
 
 /**
  *  Internal copy.
@@ -330,7 +314,8 @@ void task_manager::internal_task::run() {
  *
  *  @return This object.
  */
-task_manager::internal_task& task_manager::internal_task::_internal_copy(internal_task const& right) {
+task_manager::internal_task& task_manager::internal_task::_internal_copy(
+    internal_task const& right) {
   if (this != &right) {
     runnable::operator=(right);
     id = right.id;
@@ -341,4 +326,3 @@ task_manager::internal_task& task_manager::internal_task::_internal_copy(interna
   }
   return (*this);
 }
-

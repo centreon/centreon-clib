@@ -34,9 +34,8 @@ int main() {
     mutex mtx;
     locker lock1;
     locker lock2(&mtx);
-    if (lock2.get_mutex() != &mtx
-        || lock1.get_mutex() != NULL)
-      throw (basic_error() << "constructor failed");
+    if (lock2.get_mutex() != &mtx || lock1.get_mutex() != NULL)
+      throw(basic_error() << "constructor failed");
   }
   catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;

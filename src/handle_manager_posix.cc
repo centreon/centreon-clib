@@ -41,8 +41,7 @@ using namespace com::centreon;
 void handle_manager::multiplex() {
   // Check that task manager is present.
   if (!_task_manager)
-    throw (basic_error()
-           << "cannot multiplex handles with no task manager");
+    throw(basic_error() << "cannot multiplex handles with no task manager");
 
   // Create or update pollfd.
   _setup_array();
@@ -52,7 +51,7 @@ void handle_manager::multiplex() {
   timestamp now(timestamp::now());
   timestamp next(_task_manager->next_execution_time());
   if (!_handles.size() && next == timestamp::max_time())
-    return ;
+    return;
   if (next <= now)
     timeout = 0;
   else if (next == timestamp::max_time())
@@ -64,14 +63,12 @@ void handle_manager::multiplex() {
   int ret = _poll(_array, _handles.size(), timeout);
   if (ret == -1) {
     char const* msg(strerror(errno));
-    throw (basic_error() << "handle multiplexing failed: " << msg);
+    throw(basic_error() << "handle multiplexing failed: " << msg);
   }
 
   // Dispatch events.
   int nb_check(0);
-  for (uint32_t i(0), end(_handles.size());
-       i < end && nb_check < ret;
-       ++i) {
+  for (uint32_t i(0), end(_handles.size()); i < end && nb_check < ret; ++i) {
     if (!_array[i].revents)
       continue;
     handle_action* task(_handles[_array[i].fd]);
@@ -107,10 +104,7 @@ void handle_manager::multiplex() {
  *  @return A positive number on success, 0 if timeout, -1 on error and
  *          errno was set.
  */
-int handle_manager::_poll(
-                      pollfd *fds,
-                      nfds_t nfds,
-                      int timeout) throw () {
+int handle_manager::_poll(pollfd* fds, nfds_t nfds, int timeout) throw() {
   int ret(0);
   do {
     ret = poll(fds, nfds, timeout);
@@ -125,7 +119,7 @@ void handle_manager::_setup_array() {
   // Should we reallocate array ?
   if (_recreate_array) {
     // Remove old array.
-    delete [] _array;
+    delete[] _array;
 
     // Is there any handle ?
     if (_handles.empty())
@@ -138,8 +132,8 @@ void handle_manager::_setup_array() {
 
   // Update the pollfd.
   nfds_t nfds(0);
-  for (std::map<native_handle, handle_action*>::iterator
-         it(_handles.begin()), end(_handles.end());
+  for (std::map<native_handle, handle_action*>::iterator it(_handles.begin()),
+       end(_handles.end());
        it != end;
        ++it) {
     _array[nfds].fd = it->first;
@@ -154,5 +148,5 @@ void handle_manager::_setup_array() {
     ++nfds;
   }
 
-  return ;
+  return;
 }

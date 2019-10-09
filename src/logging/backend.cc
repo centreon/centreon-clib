@@ -17,11 +17,11 @@
 */
 
 #ifdef _WIN32
-#  include <windows.h>
+#include <windows.h>
 #else
-#  include <sys/types.h>
-#  include <unistd.h>
-#endif // _WIN32
+#include <sys/types.h>
+#include <unistd.h>
+#endif  // _WIN32
 
 #include <cstring>
 #include "com/centreon/concurrency/thread.hh"
@@ -45,31 +45,24 @@ using namespace com::centreon::logging;
  *  @param[in] show_timestamp  Enable show timestamp.
  *  @param[in] show_thread_id  Enable show thread id.
  */
-backend::backend(
-           bool is_sync,
-           bool show_pid,
-           time_precision show_timestamp,
-           bool show_thread_id)
-  : _is_sync(is_sync),
-    _show_pid(show_pid),
-    _show_timestamp(show_timestamp),
-    _show_thread_id(show_thread_id) {
-
-}
+backend::backend(bool is_sync,
+                 bool show_pid,
+                 time_precision show_timestamp,
+                 bool show_thread_id)
+    : _is_sync(is_sync),
+      _show_pid(show_pid),
+      _show_timestamp(show_timestamp),
+      _show_thread_id(show_thread_id) {}
 
 /**
  *  Copy constructor.
  */
-backend::backend(backend const& right) {
-  _internal_copy(right);
-}
+backend::backend(backend const& right) { _internal_copy(right); }
 
 /**
  *  Destructor.
  */
-backend::~backend() throw () {
-
-}
+backend::~backend() throw() {}
 
 /**
  *  Copy constructor.
@@ -111,16 +104,9 @@ void backend::enable_sync(bool enable) {
  *  @param[in] verbose  Verbosity level.
  *  @param[in] msg      The message to log.
  */
-void backend::log(
-                uint64_t types,
-                uint32_t verbose,
-                char const* msg) throw () {
-  log(
-    types,
-    verbose,
-    msg,
-    static_cast<uint32_t>(strlen(msg)));
-  return ;
+void backend::log(uint64_t types, uint32_t verbose, char const* msg) throw() {
+  log(types, verbose, msg, static_cast<uint32_t>(strlen(msg)));
+  return;
 }
 
 /**

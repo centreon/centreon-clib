@@ -36,25 +36,22 @@ using namespace com::centreon;
  *  @param[in] tm Task manager.
  */
 handle_manager::handle_manager(task_manager* tm)
-  : _array(NULL),
-    _recreate_array(false),
-    _task_manager(tm) {}
+    : _array(NULL), _recreate_array(false), _task_manager(tm) {}
 
 /**
  *  Copy constructor.
  *
  *  @param[in] hm Object to copy.
  */
-handle_manager::handle_manager(handle_manager const& hm) {
-  _internal_copy(hm);
-}
+handle_manager::handle_manager(handle_manager const& hm) { _internal_copy(hm); }
 
 /**
  *  Destructor.
  */
-handle_manager::~handle_manager() throw () {
+handle_manager::~handle_manager() throw() {
   for (std::map<native_handle, handle_action*>::const_iterator
-         it(_handles.begin()), end(_handles.end());
+           it(_handles.begin()),
+       end(_handles.end());
        it != end;
        ++it)
     try {
@@ -62,8 +59,9 @@ handle_manager::~handle_manager() throw () {
         _task_manager->remove(it->second);
       delete it->second;
     }
-    catch (...) {}
-  delete [] _array;
+  catch (...) {
+  }
+  delete[] _array;
 }
 
 /**
@@ -87,39 +85,31 @@ handle_manager& handle_manager::operator=(handle_manager const& hm) {
  *  @param[in] is_threadable True if the handle listener if allowed to
  *                           run simultaneously with other listeners.
  */
-void handle_manager::add(
-                       handle* h,
-                       handle_listener* hl,
-                       bool is_threadable) {
+void handle_manager::add(handle* h, handle_listener* hl, bool is_threadable) {
   // Check parameters.
   if (!h)
-    throw (basic_error()
-           << "attempt to add null handle in handle manager");
+    throw(basic_error() << "attempt to add null handle in handle manager");
   if (!hl)
-    throw (basic_error()
-           << "attempt to add null listener in handle manager");
+    throw(basic_error() << "attempt to add null listener in handle manager");
 
   // Check native handle.
   native_handle nh(h->get_native_handle());
   if (nh == native_handle_null)
-    throw (basic_error()
-           << "attempt to add handle with invalid native " \
-              "handle in the handle manager");
+    throw(basic_error() << "attempt to add handle with invalid native "
+                           "handle in the handle manager");
 
   // Check that handle isn't already registered.
   if (_handles.find(nh) == _handles.end()) {
-    std::unique_ptr<handle_action>
-      ha(new handle_action(h, hl, is_threadable));
+    std::unique_ptr<handle_action> ha(new handle_action(h, hl, is_threadable));
     std::pair<native_handle, handle_action*> item(nh, ha.get());
     _handles.insert(item);
     ha.release();
     _recreate_array = true;
-  }
-  else
-    throw (basic_error() << "attempt to add handle " \
-           "already monitored by handle manager");
+  } else
+    throw(basic_error() << "attempt to add handle "
+                           "already monitored by handle manager");
 
-  return ;
+  return;
 }
 
 /**
@@ -130,19 +120,20 @@ void handle_manager::add(
 void handle_manager::link(task_manager* tm) {
   // Remove old tasks.
   if (_task_manager)
-    for (std::map<native_handle, handle_action*>::iterator
-           it(_handles.begin()), end(_handles.end());
+    for (std::map<native_handle, handle_action*>::iterator it(_handles.begin()),
+         end(_handles.end());
          it != end;
          ++it)
       try {
         _task_manager->remove(it->second);
       }
-      catch (...) {}
+  catch (...) {
+  }
 
   // Set new task manager.
   _task_manager = tm;
 
-  return ;
+  return;
 }
 
 /**
@@ -158,8 +149,8 @@ bool handle_manager::remove(handle* h) {
     return (false);
 
   // Search handle by native handle.
-  std::map<native_handle, handle_action*>::iterator
-    it(_handles.find(h->get_native_handle()));
+  std::map<native_handle, handle_action*>::iterator it(
+      _handles.find(h->get_native_handle()));
   if ((it == _handles.end()) || it->second->get_handle() != h)
     return (false);
   if (_task_manager)
@@ -184,8 +175,9 @@ uint32_t handle_manager::remove(handle_listener* hl) {
 
   // Loop through map.
   uint32_t count_erase(0);
-  for (std::map<native_handle, handle_action*>::iterator
-         it(_handles.begin()), next(it), end(_handles.end());
+  for (std::map<native_handle, handle_action*>::iterator it(_handles.begin()),
+       next(it),
+       end(_handles.end());
        it != end;
        it = next) {
     ++(next = it);
@@ -213,10 +205,10 @@ uint32_t handle_manager::remove(handle_listener* hl) {
  *  @param[in] hm Object to copy.
  */
 void handle_manager::_internal_copy(handle_manager const& hm) {
-  link(hm._task_manager); // Will remove tasks only, not register.
-  delete [] _array;
+  link(hm._task_manager);  // Will remove tasks only, not register.
+  delete[] _array;
   _array = NULL;
   _recreate_array = true;
   _handles = hm._handles;
-  return ;
+  return;
 }

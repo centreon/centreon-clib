@@ -32,13 +32,13 @@ int main() {
   try {
     thread_pool pool(4);
     if (pool.get_max_thread_count() != 4)
-      throw (basic_error() << "get_max_thread_count failed");
+      throw(basic_error() << "get_max_thread_count failed");
     pool.set_max_thread_count(1);
     if (pool.get_max_thread_count() != 1)
-      throw (basic_error() << "set_max_thread_count failed");
+      throw(basic_error() << "set_max_thread_count failed");
     pool.set_max_thread_count(0);
     if (pool.get_max_thread_count() <= 0)
-      throw (basic_error() << "set_max_thread_count failed");
+      throw(basic_error() << "set_max_thread_count failed");
   }
   catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;

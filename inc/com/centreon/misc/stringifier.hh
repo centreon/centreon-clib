@@ -17,67 +17,63 @@
 */
 
 #ifndef CC_MISC_STRINGIFIER_HH
-#  define CC_MISC_STRINGIFIER_HH
+#define CC_MISC_STRINGIFIER_HH
 
-#  include <string>
-#  include "com/centreon/namespace.hh"
+#include <string>
+#include "com/centreon/namespace.hh"
 
 CC_BEGIN()
 
-namespace        misc {
-  /**
-   *  @class stringifier stringifier.hh "com/centreon/misc/stringifier.hh"
-   *  @brief Provide method to converting data to string.
-   *
-   *  Stringifier is a simple way to convert different data type to
-   *  C-String (null pointer terminate).
-   */
-  class          stringifier {
-  public:
-                 stringifier(char const* buffer = NULL) throw ();
-                 stringifier(stringifier const& right);
-    virtual      ~stringifier() throw ();
-    stringifier& operator=(stringifier const& right);
-    stringifier& operator<<(bool b) throw ();
-    stringifier& operator<<(char const* str) throw ();
-    stringifier& operator<<(char c) throw ();
-    stringifier& operator<<(double d) throw ();
-    stringifier& operator<<(int i) throw ();
-    stringifier& operator<<(long long ll) throw ();
-    stringifier& operator<<(long l) throw ();
-    stringifier& operator<<(std::string const& str) throw ();
-    stringifier& operator<<(stringifier const& str) throw ();
-    stringifier& operator<<(uint32_t u) throw ();
-    stringifier& operator<<(uint64_t ull) throw ();
-    stringifier& operator<<(void const* p) throw ();
-    stringifier& append(char const* str, uint32_t size) throw ();
-    char const*  data() const throw ();
-    int          precision() const throw ();
-    void         precision(int val) throw ();
-    void         reset() throw ();
-    uint32_t size() const throw ();
+namespace misc {
+/**
+ *  @class stringifier stringifier.hh "com/centreon/misc/stringifier.hh"
+ *  @brief Provide method to converting data to string.
+ *
+ *  Stringifier is a simple way to convert different data type to
+ *  C-String (null pointer terminate).
+ */
+class stringifier {
+ public:
+  stringifier(char const* buffer = NULL) throw();
+  stringifier(stringifier const& right);
+  virtual ~stringifier() throw();
+  stringifier& operator=(stringifier const& right);
+  stringifier& operator<<(bool b) throw();
+  stringifier& operator<<(char const* str) throw();
+  stringifier& operator<<(char c) throw();
+  stringifier& operator<<(double d) throw();
+  stringifier& operator<<(int i) throw();
+  stringifier& operator<<(long long ll) throw();
+  stringifier& operator<<(long l) throw();
+  stringifier& operator<<(std::string const& str) throw();
+  stringifier& operator<<(stringifier const& str) throw();
+  stringifier& operator<<(uint32_t u) throw();
+  stringifier& operator<<(uint64_t ull) throw();
+  stringifier& operator<<(void const* p) throw();
+  stringifier& append(char const* str, uint32_t size) throw();
+  char const* data() const throw();
+  int precision() const throw();
+  void precision(int val) throw();
+  void reset() throw();
+  uint32_t size() const throw();
 
-  private:
-    template     <typename T>
-    stringifier& _insert(char const* format, T t) throw ();
-    template     <typename T>
-    stringifier& _insert(
-                   char const* format,
-                   uint32_t limit,
-                   T t) throw ();
-    stringifier& _internal_copy(stringifier const& right);
-    bool         _realloc(uint32_t new_size) throw ();
+ private:
+  template <typename T>
+  stringifier& _insert(char const* format, T t) throw();
+  template <typename T>
+  stringifier& _insert(char const* format, uint32_t limit, T t) throw();
+  stringifier& _internal_copy(stringifier const& right);
+  bool _realloc(uint32_t new_size) throw();
 
-    char*         _buffer;
-    uint32_t  _current;
-    int           _precision;
-    uint32_t  _size;
-    static uint32_t const
-                  _static_buffer_size = 1024;
-    char          _static_buffer[_static_buffer_size];
-  };
+  char* _buffer;
+  uint32_t _current;
+  int _precision;
+  uint32_t _size;
+  static uint32_t const _static_buffer_size = 1024;
+  char _static_buffer[_static_buffer_size];
+};
 }
 
 CC_END()
 
-#endif // !CC_MISC_STRINGIFIER_HH
+#endif  // !CC_MISC_STRINGIFIER_HH

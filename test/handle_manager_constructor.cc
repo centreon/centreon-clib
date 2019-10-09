@@ -30,9 +30,7 @@ using namespace com::centreon;
  */
 int main() {
   try {
-    {
-      handle_manager hm(NULL);
-    }
+    { handle_manager hm(NULL); }
 
     {
       task_manager tm;

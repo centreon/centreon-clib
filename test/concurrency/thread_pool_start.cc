@@ -30,13 +30,13 @@ static std::map<void*, bool> res;
  *  @class task
  *  @brief litle implementation of runnable to test the thread pool.
  */
-class  task : public runnable {
-public:
-       task(bool auto_delete) {
-         set_auto_delete(auto_delete);
-         res[this] = false;
-       }
-       ~task() throw () {}
+class task : public runnable {
+ public:
+  task(bool auto_delete) {
+    set_auto_delete(auto_delete);
+    res[this] = false;
+  }
+  ~task() throw() {}
   void run() { res[this] = true; }
 };
 
@@ -65,8 +65,8 @@ static bool null_pointer() {
 int main() {
   try {
     if (!null_pointer())
-      throw (basic_error() << "try to start runnable with " \
-             "null pointer");
+      throw(basic_error() << "try to start runnable with "
+                             "null pointer");
 
     task* t1 = new task(true);
     task* t2 = new task(false);
@@ -75,7 +75,7 @@ int main() {
     pool.start(t2);
     pool.wait_for_done();
     if (!res[t1] || !res[t2])
-      throw (basic_error() << "tasks didn't run");
+      throw(basic_error() << "tasks didn't run");
     delete t2;
   }
   catch (std::exception const& e) {

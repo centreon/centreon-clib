@@ -26,10 +26,10 @@ using namespace com::centreon;
  *  @class task_test
  *  @brief litle implementation of task to test task manager.
  */
-class  task_test : public task {
-public:
-       task_test() : task() {}
-       ~task_test() throw () {}
+class task_test : public task {
+ public:
+  task_test() : task() {}
+  ~task_test() throw() {}
   void run() {}
 };
 
@@ -46,22 +46,22 @@ int main() {
     unsigned long id1(tm.add(t1, timestamp::now(), true, true));
 
     if (tm.remove(42))
-      throw (basic_error() << "try to remove invalid id");
+      throw(basic_error() << "try to remove invalid id");
 
     if (!tm.remove(id1))
-      throw (basic_error() << "remove one task failed");
+      throw(basic_error() << "remove one task failed");
 
     task_test* t2(new task_test);
     unsigned long id2(tm.add(t2, timestamp::now(), false, false));
     if (!tm.remove(id2))
-      throw (basic_error() << "remove one other task failed");
+      throw(basic_error() << "remove one other task failed");
     delete t2;
 
     if (tm.remove(42))
-      throw (basic_error() << "remove invalid id failed");
+      throw(basic_error() << "remove invalid id failed");
 
     if (tm.next_execution_time() != timestamp::max_time())
-      throw (basic_error() << "invalid next_execution_time");
+      throw(basic_error() << "invalid next_execution_time");
   }
   catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;

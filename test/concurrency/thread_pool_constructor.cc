@@ -32,11 +32,11 @@ int main() {
   try {
     thread_pool pool1;
     if (pool1.get_max_thread_count() <= 0)
-      throw (basic_error() << "constructor failed");
+      throw(basic_error() << "constructor failed");
 
     thread_pool pool2(4);
     if (pool2.get_max_thread_count() != 4)
-      throw (basic_error() << "constructor failed");
+      throw(basic_error() << "constructor failed");
   }
   catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;

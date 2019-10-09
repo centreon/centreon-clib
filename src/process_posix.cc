@@ -25,8 +25,8 @@
 #include <mutex>
 #include <poll.h>
 #ifdef HAVE_SPAWN_H
-#  include <spawn.h>
-#endif // HAVE_SPAWN_H
+#include <spawn.h>
+#endif  // HAVE_SPAWN_H
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -54,12 +54,12 @@ static std::mutex gl_process_lock;
  *  Default constructor.
  */
 process::process(process_listener* listener)
-  : _create_process(&_create_process_with_setpgid),
-    _is_timeout(false),
-    _listener(listener),
-    _process(static_cast<pid_t>(-1)),
-    _status(0),
-    _timeout(0) {
+    : _create_process(&_create_process_with_setpgid),
+      _is_timeout(false),
+      _listener(listener),
+      _process(static_cast<pid_t>(-1)),
+      _status(0),
+      _timeout(0) {
   memset(_enable_stream, 1, sizeof(_enable_stream));
   memset(_stream, -1, sizeof(_stream));
 }
@@ -67,7 +67,7 @@ process::process(process_listener* listener)
 /**
  *  Destructor.
  */
-process::~process() throw () {
+process::~process() throw() {
   kill();
   wait();
 }
@@ -89,8 +89,8 @@ void process::enable_stream(stream s, bool enable) {
       _close(_stream[s]);
     // Do not change stream status.
     else
-      throw (basic_error() << "cannot reenable \""
-             << s << "\" while process is running");
+      throw(basic_error() << "cannot reenable \"" << s
+                          << "\" while process is running");
   }
 }
 
@@ -99,7 +99,7 @@ void process::enable_stream(stream s, bool enable) {
  *
  *  @return The ending timestamp.
  */
-timestamp const& process::end_time() const throw () {
+timestamp const& process::end_time() const throw() {
   std::lock_guard<std::mutex> lock(_lock_process);
   return _end_time;
 }
@@ -120,8 +120,8 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
 
   // Check if process already running.
   if (_is_running())
-    throw (basic_error() << "process " << _process
-           << " is already started and has not been waited");
+    throw(basic_error() << "process " << _process
+                        << " is already started and has not been waited");
 
   // Reset variable.
   _buffer_err.clear();
@@ -136,12 +136,8 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     _close(_stream[i]);
 
   // Init file desciptor.
-  int std[3] = { -1, -1, -1 };
-  int pipe_stream[3][2] = {
-    { -1, -1 },
-    { -1, -1 },
-    { -1, -1 }
-  };
+  int std[3] = {-1, -1, -1};
+  int pipe_stream[3][2] = {{-1, -1}, {-1, -1}, {-1, -1}};
 
   // volatile prevent compiler optimization that might clobber variable.
   volatile bool restore_std(false);
@@ -249,7 +245,7 @@ void process::exec(std::string const& cmd, uint32_t timeout) {
  *
  *  @return The exit code.
  */
-int process::exit_code() const throw () {
+int process::exit_code() const throw() {
   std::lock_guard<std::mutex> lock(_lock_process);
   if (WIFEXITED(_status))
     return WEXITSTATUS(_status);
@@ -263,7 +259,7 @@ int process::exit_code() const throw () {
  *
  *  @return The exit status.
  */
-process::status process::exit_status() const throw () {
+process::status process::exit_status() const throw() {
   std::lock_guard<std::mutex> lock(_lock_process);
   if (_is_timeout)
     return timeout;
@@ -315,7 +311,7 @@ void process::read_err(std::string& data) {
  *
  *  @param[in] enable  True to  use setpgid, otherwise false.
  */
-void process::setpgid_on_exec(bool enable) throw () {
+void process::setpgid_on_exec(bool enable) throw() {
   std::lock_guard<std::mutex> lock(_lock_process);
   if (enable)
     _create_process = &_create_process_with_setpgid;
@@ -328,7 +324,7 @@ void process::setpgid_on_exec(bool enable) throw () {
  *
  *  @return True if setpgid is enable, otherwise false.
  */
-bool process::setpgid_on_exec() const throw () {
+bool process::setpgid_on_exec() const throw() {
   std::lock_guard<std::mutex> lock(_lock_process);
   return _create_process == &_create_process_with_setpgid;
 }
@@ -338,7 +334,7 @@ bool process::setpgid_on_exec() const throw () {
  *
  *  @return The starting timestamp.
  */
-timestamp const& process::start_time() const throw () {
+timestamp const& process::start_time() const throw() {
   std::lock_guard<std::mutex> lock(_lock_process);
   return _start_time;
 }
@@ -401,9 +397,9 @@ uint32_t process::write(void const* data, uint32_t size) {
   while ((wb = ::write(_stream[in], data, size)) < 0) {
     char const* msg(strerror(errno));
     if (errno == EINTR)
-      throw (interruption_error() << msg);
-    throw (basic_error() << "could not write on process "
-           << _process << "'s input: " << msg);
+      throw(interruption_error() << msg);
+    throw(basic_error() << "could not write on process " << _process
+                        << "'s input: " << msg);
   }
   return wb;
 }
@@ -419,7 +415,7 @@ uint32_t process::write(void const* data, uint32_t size) {
  *
  *  @param[in, out] fd The file descriptor to close.
  */
-void process::_close(int& fd) throw () {
+void process::_close(int& fd) throw() {
   if (fd >= 0) {
     while (::close(fd) < 0 && errno == EINTR)
       ;
@@ -427,42 +423,39 @@ void process::_close(int& fd) throw () {
   fd = -1;
 }
 
-pid_t process::_create_process_with_setpgid(
-        char** args,
-        char** env) {
+pid_t process::_create_process_with_setpgid(char** args, char** env) {
   pid_t pid(static_cast<pid_t>(-1));
 #ifdef HAVE_SPAWN_H
   posix_spawnattr_t attr;
   int ret = posix_spawnattr_init(&attr);
   if (ret)
-    throw (basic_error() << "cannot initialize spawn attributes: "
-           << strerror(ret));
+    throw(basic_error() << "cannot initialize spawn attributes: "
+                        << strerror(ret));
   ret = posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETPGROUP);
   if (ret) {
     posix_spawnattr_destroy(&attr);
-    throw (basic_error() << "cannot set spawn flag: "
-           << strerror(ret));
+    throw(basic_error() << "cannot set spawn flag: " << strerror(ret));
   }
   ret = posix_spawnattr_setpgroup(&attr, 0);
   if (ret) {
     posix_spawnattr_destroy(&attr);
-    throw (basic_error()
-           << "cannot set process group ID of to-be-spawned process: "
-           << strerror(ret));
+    throw(basic_error()
+          << "cannot set process group ID of to-be-spawned process: "
+          << strerror(ret));
   }
   if (posix_spawnp(&pid, args[0], NULL, &attr, args, env)) {
     char const* msg(strerror(errno));
     posix_spawnattr_destroy(&attr);
-    throw (basic_error() << "could not create process '"
-           << args[0] << "': " << msg);
+    throw(basic_error() << "could not create process '" << args[0]
+                        << "': " << msg);
   }
   posix_spawnattr_destroy(&attr);
 #else
   pid = fork();
   if (pid == static_cast<pid_t>(-1)) {
     char const* msg(strerror(errno));
-    throw (basic_error() << "could not create process '"
-           << args[0] << "': " << msg);
+    throw(basic_error() << "could not create process '" << args[0]
+                        << "': " << msg);
   }
 
   // Child execution.
@@ -473,26 +466,24 @@ pid_t process::_create_process_with_setpgid(
     ::execve(args[0], args, env);
     ::_exit(EXIT_FAILURE);
   }
-#endif // HAVE_SPAWN_H
+#endif  // HAVE_SPAWN_H
   return pid;
 }
 
-pid_t process::_create_process_without_setpgid(
-        char** args,
-        char** env) {
+pid_t process::_create_process_without_setpgid(char** args, char** env) {
   pid_t pid(static_cast<pid_t>(-1));
 #ifdef HAVE_SPAWN_H
   if (posix_spawnp(&pid, args[0], NULL, NULL, args, env)) {
     char const* msg(strerror(errno));
-    throw (basic_error() << "could not create process '"
-           << args[0] << "': " << msg);
+    throw(basic_error() << "could not create process '" << args[0]
+                        << "': " << msg);
   }
 #else
   pid = vfork();
   if (pid == static_cast<pid_t>(-1)) {
     char const* msg(strerror(errno));
-    throw (basic_error() << "could not create process '"
-           << args[0] << "': " << msg);
+    throw(basic_error() << "could not create process '" << args[0]
+                        << "': " << msg);
   }
 
   // Child execution.
@@ -500,7 +491,7 @@ pid_t process::_create_process_without_setpgid(
     ::execve(args[0], args, env);
     ::_exit(EXIT_FAILURE);
   }
-#endif // HAVE_SPAWN_H
+#endif  // HAVE_SPAWN_H
   return pid;
 }
 
@@ -514,7 +505,7 @@ void process::_dev_null(int fd, int flags) {
   int newfd(::open("/dev/null", flags));
   if (newfd < 0) {
     char const* msg(strerror(errno));
-    throw (basic_error() << "could not open /dev/null: " << msg);
+    throw(basic_error() << "could not open /dev/null: " << msg);
   }
   try {
     _dup2(newfd, fd);
@@ -539,7 +530,7 @@ int process::_dup(int oldfd) {
     if (errno == EINTR)
       continue;
     char const* msg(strerror(errno));
-    throw (basic_error() << "could not duplicate FD: " << msg);
+    throw(basic_error() << "could not duplicate FD: " << msg);
   }
   return newfd;
 }
@@ -556,7 +547,7 @@ void process::_dup2(int oldfd, int newfd) {
     if (errno == EINTR)
       continue;
     char const* msg(strerror(errno));
-    throw (basic_error() << "could not duplicate FD: " << msg);
+    throw(basic_error() << "could not duplicate FD: " << msg);
   }
 }
 
@@ -565,11 +556,9 @@ void process::_dup2(int oldfd, int newfd) {
  *
  *  @return True is process run, otherwise false.
  */
-bool process::_is_running() const throw () {
-  return (_process != static_cast<pid_t>(-1)
-          || _stream[in] != -1
-          || _stream[out] != -1
-          || _stream[err] != -1);
+bool process::_is_running() const throw() {
+  return (_process != static_cast<pid_t>(-1) || _stream[in] != -1 ||
+          _stream[out] != -1 || _stream[err] != -1);
 }
 
 /**
@@ -581,8 +570,8 @@ void process::_kill(int sig) {
   if (_process && _process != static_cast<pid_t>(-1)) {
     if (::kill(_process, sig) != 0) {
       char const* msg(strerror(errno));
-      throw (basic_error() << "could not terminate process "
-             << _process << ": " << msg);
+      throw(basic_error() << "could not terminate process " << _process << ": "
+                          << msg);
     }
   }
 }
@@ -595,7 +584,7 @@ void process::_kill(int sig) {
 void process::_pipe(int fds[2]) {
   if (pipe(fds) != 0) {
     char const* msg(strerror(errno));
-    throw (basic_error() << "pipe creation failed: " << msg);
+    throw(basic_error() << "pipe creation failed: " << msg);
   }
 }
 
@@ -613,9 +602,9 @@ uint32_t process::_read(int fd, void* data, uint32_t size) {
   while ((rb = ::read(fd, data, size)) < 0) {
     char const* msg(strerror(errno));
     if (errno == EINTR)
-      throw (interruption_error() << msg);
-    throw (basic_error() << "could not read from process "
-           << _process << ": " << msg);
+      throw(interruption_error() << msg);
+    throw(basic_error() << "could not read from process " << _process << ": "
+                        << msg);
   }
   return rb;
 }
@@ -631,15 +620,13 @@ void process::_set_cloexec(int fd) {
     if (errno == EINTR)
       continue;
     char const* msg(strerror(errno));
-    throw (basic_error() << "Could not get file descriptor flags: "
-           << msg);
+    throw(basic_error() << "Could not get file descriptor flags: " << msg);
   }
   int ret(0);
   while ((ret = fcntl(fd, F_SETFD, flags | FD_CLOEXEC)) < 0) {
     if (errno == EINTR)
       continue;
     char const* msg(strerror(errno));
-    throw (basic_error() << "Could not set close-on-exec flag: "
-           << msg);
+    throw(basic_error() << "Could not set close-on-exec flag: " << msg);
   }
 }

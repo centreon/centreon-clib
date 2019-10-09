@@ -38,16 +38,13 @@ engine* engine::_instance = NULL;
  *
  *  @return The id of backend into the logging engine.
  */
-unsigned long engine::add(
-                        backend* obj,
-                        uint64_t types,
-                        uint32_t verbose) {
+unsigned long engine::add(backend* obj, uint64_t types, uint32_t verbose) {
   if (!obj)
-    throw (basic_error() << "add backend on the logging engine "
-           "failed: bad argument (null pointer)");
+    throw(basic_error() << "add backend on the logging engine "
+                           "failed: bad argument (null pointer)");
   if (verbose >= sizeof(uint32_t) * CHAR_BIT)
-    throw (basic_error() << "add backend on the logging engine "
-           "failed: invalid verbose");
+    throw(basic_error() << "add backend on the logging engine "
+                           "failed: invalid verbose");
 
   std::unique_ptr<backend_info> info(new backend_info);
   info->obj = obj;
@@ -81,18 +78,17 @@ void engine::load() {
  *  @param[in] msg      The string to log.
  *  @param[in] size     The string size to log.
  */
-void engine::log(
-               uint64_t types,
-               uint32_t verbose,
-               char const* msg,
-               uint32_t size) {
+void engine::log(uint64_t types,
+                 uint32_t verbose,
+                 char const* msg,
+                 uint32_t size) {
   if (!msg)
     return;
 
   // Lock engine.
   std::lock_guard<std::mutex> lock(_mtx);
-  for (std::vector<backend_info*>::const_iterator
-         it(_backends.begin()), end(_backends.end());
+  for (std::vector<backend_info*>::const_iterator it(_backends.begin()),
+       end(_backends.end());
        it != end;
        ++it)
     if (((*it)->types & types) && (*it)->verbose >= verbose)
@@ -109,8 +105,8 @@ void engine::log(
 bool engine::remove(unsigned long id) {
   // Lock engine.
   std::lock_guard<std::mutex> lock(_mtx);
-  for (std::vector<backend_info*>::iterator
-         it(_backends.begin()), end(_backends.end());
+  for (std::vector<backend_info*>::iterator it(_backends.begin()),
+       end(_backends.end());
        it != end;
        ++it)
     if ((*it)->id == id) {
@@ -131,8 +127,8 @@ bool engine::remove(unsigned long id) {
  */
 uint32_t engine::remove(backend* obj) {
   if (!obj)
-    throw (basic_error() << "remove backend on the logging engine "
-           "failed:bad argument (null pointer)");
+    throw(basic_error() << "remove backend on the logging engine "
+                           "failed:bad argument (null pointer)");
 
   // Lock engine.
   std::lock_guard<std::mutex> lock(_mtx);
@@ -157,8 +153,8 @@ uint32_t engine::remove(backend* obj) {
  */
 void engine::reopen() {
   std::lock_guard<std::mutex> lock(_mtx);
-  for (std::vector<backend_info*>::const_iterator
-         it(_backends.begin()), end(_backends.end());
+  for (std::vector<backend_info*>::const_iterator it(_backends.begin()),
+       end(_backends.end());
        it != end;
        ++it)
     (*it)->obj->reopen();
@@ -176,17 +172,14 @@ void engine::unload() {
 /**
  *  Default constructor.
  */
-engine::engine()
-  : _id(0) {
-  memset(_list_types, 0, sizeof(_list_types));
-}
+engine::engine() : _id(0) { memset(_list_types, 0, sizeof(_list_types)); }
 
 /**
  *  Destructor.
  */
-engine::~engine() throw () {
-  for (std::vector<backend_info*>::const_iterator
-         it(_backends.begin()), end(_backends.end());
+engine::~engine() throw() {
+  for (std::vector<backend_info*>::const_iterator it(_backends.begin()),
+       end(_backends.end());
        it != end;
        ++it)
     delete *it;
@@ -197,8 +190,8 @@ engine::~engine() throw () {
  */
 void engine::_rebuild_types() {
   memset(_list_types, 0, sizeof(_list_types));
-  for (std::vector<backend_info*>::const_iterator
-         it(_backends.begin()), end(_backends.end());
+  for (std::vector<backend_info*>::const_iterator it(_backends.begin()),
+       end(_backends.end());
        it != end;
        ++it) {
     for (uint32_t i(0); i <= (*it)->verbose; ++i)

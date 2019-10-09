@@ -33,13 +33,13 @@ using namespace com::centreon::logging;
  *  @class writter
  *  @brief little implementation of thread to test logging engine.
  */
-class                writter : public thread {
-public:
-                     writter(uint32_t nb_write)
-                       : _nb_write(nb_write) {}
-                     ~writter() throw () {}
-private:
-  void               _run() {
+class writter : public thread {
+ public:
+  writter(uint32_t nb_write) : _nb_write(nb_write) {}
+  ~writter() throw() {}
+
+ private:
+  void _run() {
     engine& e(engine::instance());
     for (uint32_t i(0); i < _nb_write; ++i) {
       std::ostringstream oss;
@@ -47,7 +47,7 @@ private:
       e.log(1, 0, oss.str().c_str(), oss.str().size());
     }
   }
-  uint32_t       _nb_write;
+  uint32_t _nb_write;
 };
 
 /**
@@ -80,9 +80,9 @@ int main() {
     for (uint32_t i(0); i < nb_writter; ++i) {
       for (uint32_t j(0); j < nb_writter; ++j) {
         std::ostringstream oss;
-        oss <<&threads[i] << ":" << j << "\n";
+        oss << &threads[i] << ":" << j << "\n";
         if (!obj->data().find(oss.str()))
-          throw (basic_error() << "pattern not found");
+          throw(basic_error() << "pattern not found");
       }
       delete threads[i];
     }

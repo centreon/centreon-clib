@@ -35,15 +35,16 @@ using namespace com::centreon::logging;
  *  @param[in] show_thread_id  Enable show thread id.
  *  @param[in] max_size        Maximum file size.
  */
-file::file(
-        FILE* file,
-        bool is_sync,
-        bool show_pid,
-        time_precision show_timestamp,
-        bool show_thread_id,
-        long long max_size)
-  : backend(is_sync, show_pid, show_timestamp, show_thread_id),
-    _max_size(max_size), _out(file), _size(0) {}
+file::file(FILE* file,
+           bool is_sync,
+           bool show_pid,
+           time_precision show_timestamp,
+           bool show_thread_id,
+           long long max_size)
+    : backend(is_sync, show_pid, show_timestamp, show_thread_id),
+      _max_size(max_size),
+      _out(file),
+      _size(0) {}
 
 /**
  *  Constructor with file path name.
@@ -55,32 +56,29 @@ file::file(
  *  @param[in] show_thread_id  Enable show thread id.
  *  @param[in] max_size        Maximum file size.
  */
-file::file(
-        std::string const& path,
-        bool is_sync,
-        bool show_pid,
-        time_precision show_timestamp,
-        bool show_thread_id,
-        long long max_size)
-  : backend(is_sync, show_pid, show_timestamp, show_thread_id),
-    _max_size(max_size),
-    _path(path),
-    _out(NULL),
-    _size(0) {
+file::file(std::string const& path,
+           bool is_sync,
+           bool show_pid,
+           time_precision show_timestamp,
+           bool show_thread_id,
+           long long max_size)
+    : backend(is_sync, show_pid, show_timestamp, show_thread_id),
+      _max_size(max_size),
+      _path(path),
+      _out(NULL),
+      _size(0) {
   open();
 }
 
 /**
  *  Default destructor.
  */
-file::~file() throw () {
-  close();
-}
+file::~file() throw() { close(); }
 
 /**
  *  Close file.
  */
-void file::close() throw () {
+void file::close() throw() {
   std::lock_guard<std::mutex> lock(_lock);
 
   if (!_out || _out == stdout || _out == stderr)
@@ -98,9 +96,7 @@ void file::close() throw () {
  *
  *  @return The filename string.
  */
-std::string const& file::filename() const throw () {
-  return _path;
-}
+std::string const& file::filename() const throw() { return _path; }
 
 /**
  *  Write message into the file.
@@ -111,11 +107,10 @@ std::string const& file::filename() const throw () {
  *  @param[in] msg      The message to write.
  *  @param[in] size     The message's size.
  */
-void file::log(
-             uint64_t types,
-             uint32_t verbose,
-             char const* msg,
-             uint32_t size) throw () {
+void file::log(uint64_t types,
+               uint32_t verbose,
+               char const* msg,
+               uint32_t size) throw() {
   (void)types;
   (void)verbose;
   (void)size;
@@ -170,8 +165,8 @@ void file::open() {
     return;
 
   if (!(_out = fopen(_path.c_str(), "a")))
-    throw (basic_error() << "failed to open file '" << _path << "': "
-           << strerror(errno));
+    throw(basic_error() << "failed to open file '" << _path
+                        << "': " << strerror(errno));
   _size = ftell(_out);
 }
 
@@ -190,8 +185,8 @@ void file::reopen() {
   } while (ret == -1 && errno == EINTR);
 
   if (!(_out = fopen(_path.c_str(), "a")))
-    throw (basic_error() << "failed to open file '" << _path << "': "
-           << strerror(errno));
+    throw(basic_error() << "failed to open file '" << _path
+                        << "': " << strerror(errno));
   _size = ftell(_out);
 }
 

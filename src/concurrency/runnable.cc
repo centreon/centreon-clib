@@ -23,26 +23,19 @@ using namespace com::centreon::concurrency;
 /**
  *  Default constructor.
  */
-runnable::runnable()
-  : _auto_delete(false) {
-
-}
+runnable::runnable() : _auto_delete(false) {}
 
 /**
  *  Default copy constructor.
  *
  *  @param[in] right The Object to copy.
  */
-runnable::runnable(runnable const& right) {
-  _internal_copy(right);
-}
+runnable::runnable(runnable const& right) { _internal_copy(right); }
 
 /**
  *  Default destructor.
  */
-runnable::~runnable() throw () {
-
-}
+runnable::~runnable() throw() {}
 
 /**
  *  Default copy operator.
@@ -61,16 +54,14 @@ runnable& runnable::operator=(runnable const& right) {
  *  @return True if this runnable need to be delete,
  *  otherwise false.
  */
-bool runnable::get_auto_delete() const throw () {
-  return (_auto_delete);
-}
+bool runnable::get_auto_delete() const throw() { return (_auto_delete); }
 
 /**
  *  Set the auto delete value
  *
  *  @param[in] auto_delete  Set if this runnable need to be delete.
  */
-void runnable::set_auto_delete(bool auto_delete) throw () {
+void runnable::set_auto_delete(bool auto_delete) throw() {
   _auto_delete = auto_delete;
 }
 

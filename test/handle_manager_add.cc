@@ -30,11 +30,11 @@ using namespace com::centreon;
  *  @brief litle implementation of handle listener to test the
  *         handle manager.
  */
-class     listener : public handle_listener {
-public:
-          listener() {}
-          ~listener() throw () {}
-  void    error(handle& h) { (void)h; }
+class listener : public handle_listener {
+ public:
+  listener() {}
+  ~listener() throw() {}
+  void error(handle& h) { (void)h; }
 };
 
 /**
@@ -91,7 +91,6 @@ static bool basic_add() {
     return (false);
   }
   return (true);
-
 }
 
 /**
@@ -128,13 +127,13 @@ static bool double_add() {
 int main() {
   try {
     if (!null_handle())
-      throw (basic_error() << "invalid handler is set");
+      throw(basic_error() << "invalid handler is set");
     if (!null_listener())
-      throw (basic_error() << "invalid listener is set");
+      throw(basic_error() << "invalid listener is set");
     if (!basic_add())
-      throw (basic_error() << "add failed");
+      throw(basic_error() << "add failed");
     if (!double_add())
-      throw (basic_error() << "double add failed");
+      throw(basic_error() << "double add failed");
   }
   catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;

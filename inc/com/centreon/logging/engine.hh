@@ -57,9 +57,7 @@ class engine {
   void _rebuild_types();
 
  public:
-  unsigned long add(backend* obj,
-                    uint64_t types,
-                    uint32_t verbose);
+  unsigned long add(backend* obj, uint64_t types, uint32_t verbose);
   /**
    *  Get the logger engine singleton.
    *
@@ -82,10 +80,7 @@ class engine {
     return (_list_types[verbose] & types);
   }
   static void load();
-  void log(uint64_t types,
-           uint32_t verbose,
-           char const* msg,
-           uint32_t size);
+  void log(uint64_t types, uint32_t verbose, char const* msg, uint32_t size);
   bool remove(unsigned long id);
   uint32_t remove(backend* obj);
   void reopen();

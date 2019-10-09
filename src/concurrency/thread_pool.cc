@@ -18,19 +18,19 @@
 
 #include <cstdlib>
 #if defined(_WIN32)
-#  include <windows.h> // for GetSystemInfo
+#include <windows.h>  // for GetSystemInfo
 #elif defined(__FreeBSD__)
-#  include <sys/types.h>
-#  include <sys/sysctl.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 #elif defined(__NetBSD__)
-#  include <sys/sysctl.h>
+#include <sys/sysctl.h>
 #elif defined(__OpenBSD__)
-#  include <sys/param.h>
-#  include <sys/sysctl.h>
-#endif // OS flavor.
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#endif  // OS flavor.
 #ifndef _WIN32
-#  include <unistd.h>
-#endif // POSIX.
+#include <unistd.h>
+#endif  // POSIX.
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/concurrency/thread_pool.hh"
 
@@ -43,12 +43,12 @@ using namespace com::centreon::concurrency;
  *                               pool.
  */
 thread_pool::thread_pool(uint32_t max_thread_count)
-  : _current_task_running(0),
-    _max_thread_count(0),
+    : _current_task_running(0),
+      _max_thread_count(0),
 #ifndef _WIN32
-    _pid(getpid()),
-#endif // !Windows
-    _quit(false) {
+      _pid(getpid()),
+#endif  // !Windows
+      _quit(false) {
   set_max_thread_count(max_thread_count);
 }
 
@@ -58,21 +58,21 @@ thread_pool::thread_pool(uint32_t max_thread_count)
 thread_pool::~thread_pool() noexcept {
 #ifndef _WIN32
   if (getpid() == _pid) {
-#endif // !Windows
+#endif  // !Windows
     {
       std::lock_guard<std::mutex> lock(_mtx_thread);
       _quit = true;
       _cnd_thread.notify_all();
     }
     std::lock_guard<std::mutex> lock(_mtx_pool);
-    for (std::list<internal_thread*>::const_iterator
-           it(_pool.begin()), end(_pool.end());
+    for (std::list<internal_thread*>::const_iterator it(_pool.begin()),
+         end(_pool.end());
          it != end;
          ++it)
       delete *it;
 #ifndef _WIN32
   }
-#endif // !Windows
+#endif  // !Windows
 }
 
 /**
@@ -86,7 +86,6 @@ uint32_t thread_pool::get_current_task_running() const noexcept {
   std::lock_guard<std::mutex> lock(_mtx_thread);
   return _current_task_running;
 }
-
 
 /**
  *  Get the number of threads into the thread pool.
@@ -131,20 +130,18 @@ void thread_pool::set_max_thread_count(uint32_t max) {
       max = 1;
 #else
     max = 1;
-#endif // UNIX flavor.
+#endif  // UNIX flavor.
   }
 
   if (_max_thread_count < max)
-    for (uint32_t i(0), nb_thread(max - _max_thread_count);
-         i < nb_thread;
+    for (uint32_t i(0), nb_thread(max - _max_thread_count); i < nb_thread;
          ++i) {
       internal_thread* th(new internal_thread(this));
       _pool.push_back(th);
       th->exec();
     }
   else if (_max_thread_count > max) {
-    for (uint32_t i(0), nb_thread(_max_thread_count - max);
-         i < nb_thread;
+    for (uint32_t i(0), nb_thread(_max_thread_count - max); i < nb_thread;
          ++i) {
       internal_thread* th(_pool.front());
       _pool.pop_front();
@@ -163,8 +160,8 @@ void thread_pool::set_max_thread_count(uint32_t max) {
  */
 void thread_pool::start(runnable* r) {
   if (!r)
-    throw basic_error() << "impossible to start a new runnable:" \
-           "invalid argument (null pointer)";
+    throw basic_error() << "impossible to start a new runnable:"
+                           "invalid argument (null pointer)";
 
   // Lock the thread.
   std::lock_guard<std::mutex> lock(_mtx_thread);
@@ -190,18 +187,12 @@ void thread_pool::wait_for_done() {
  *                      thread.
  */
 thread_pool::internal_thread::internal_thread(thread_pool* th_pool)
-  : thread(),
-    _quit(false),
-    _th_pool(th_pool) {
-
-}
+    : thread(), _quit(false), _th_pool(th_pool) {}
 
 /**
  *  Default destructor.
  */
-thread_pool::internal_thread::~internal_thread() noexcept {
-  wait();
-}
+thread_pool::internal_thread::~internal_thread() noexcept { wait(); }
 
 /**
  *  Ask the thread to quit.
