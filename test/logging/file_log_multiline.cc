@@ -46,7 +46,7 @@ static bool check_log_message(
  *  @return 0 on success.
  */
 int main() {
-  static unsigned int const nb_line(1024);
+  static uint32_t const nb_line(1024);
   int retval;
 
   try {
@@ -54,7 +54,7 @@ int main() {
 
     std::ostringstream tmp;
     std::ostringstream tmpref;
-    for (unsigned int i(0); i < nb_line; ++i) {
+    for (uint32_t i(0); i < nb_line; ++i) {
       tmp << i << "\n";
       tmpref << "[" << concurrency::thread::get_current_id()
              << "] " << i << "\n";

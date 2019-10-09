@@ -57,14 +57,14 @@ namespace                  logging {
     virtual bool           enable_sync() const ;
     virtual void           enable_sync(bool enable);
     virtual void           log(
-                             unsigned long long types,
-                             unsigned int verbose,
+                             uint64_t types,
+                             uint32_t verbose,
                              char const* msg) throw ();
     virtual void           log(
-                             unsigned long long types,
-                             unsigned int verbose,
+                             uint64_t types,
+                             uint32_t verbose,
                              char const* msg,
-                             unsigned int size) throw () = 0;
+                             uint32_t size) throw () = 0;
     virtual void           open() = 0;
     virtual void           reopen() = 0;
     virtual bool           show_pid() const;

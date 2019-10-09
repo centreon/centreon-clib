@@ -28,12 +28,12 @@ using namespace com::centreon::misc;
  *  @return 0 on success.
  */
 int main() {
-  static unsigned int const nb_msg(1024);
-  static unsigned int const size_msg(512);
+  static uint32_t const nb_msg(1024);
+  static uint32_t const size_msg(512);
 
   stringifier buffer;
   std::string msg(size_msg, '*');
-  for (unsigned int i(0); i < nb_msg; ++i)
+  for (uint32_t i(0); i < nb_msg; ++i)
     buffer << msg.c_str();
 
   std::string ref(nb_msg * size_msg, '*');

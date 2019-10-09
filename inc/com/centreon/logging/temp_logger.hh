@@ -42,8 +42,8 @@ namespace                     logging {
   class                       temp_logger {
   public:
                               temp_logger(
-                                unsigned long long types,
-                                unsigned int verbose) throw ();
+                                uint64_t types,
+                                uint32_t verbose) throw ();
                               temp_logger(temp_logger const& right);
     virtual                   ~temp_logger() throw ();
     temp_logger&              operator=(temp_logger const& right);
@@ -59,8 +59,8 @@ namespace                     logging {
 
     misc::stringifier         _buffer;
     engine&                   _engine;
-    unsigned long long        _type;
-    unsigned int              _verbose;
+    uint64_t        _type;
+    uint32_t              _verbose;
   };
 }
 

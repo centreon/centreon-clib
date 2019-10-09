@@ -17,15 +17,15 @@
 */
 
 #ifndef CC_TASK_MANAGER_HH
-#  define CC_TASK_MANAGER_HH
+#define CC_TASK_MANAGER_HH
 
-#  include <ctime>
-#  include <map>
-#  include "com/centreon/namespace.hh"
-#  include "com/centreon/task.hh"
-#  include "com/centreon/timestamp.hh"
-#  include "com/centreon/concurrency/mutex.hh"
-#  include "com/centreon/concurrency/thread_pool.hh"
+#include <ctime>
+#include <map>
+#include <mutex>
+#include "com/centreon/namespace.hh"
+#include "com/centreon/task.hh"
+#include "com/centreon/timestamp.hh"
+#include "com/centreon/concurrency/thread_pool.hh"
 
 CC_BEGIN()
 
@@ -36,63 +36,56 @@ CC_BEGIN()
  *  Allow to manage task, run tasks on time and run them if possible
  *  in multiple threads.
  */
-class              task_manager {
-public:
-                   task_manager(unsigned int max_thread_count = 0);
-  virtual          ~task_manager() throw ();
-  unsigned long    add(
-                     task* t,
-                     timestamp const& when,
-                     bool is_runnable = false,
-                     bool should_delete = false);
-  unsigned long    add(
-                     task* t,
-                     timestamp const& when,
-                     unsigned int interval,
-                     bool is_runnable = false,
-                     bool should_delete = false);
-  unsigned int     execute(timestamp const& now = timestamp::now());
-  timestamp        next_execution_time() const;
-  unsigned int     remove(task* t);
-  bool             remove(unsigned long id);
-
-private:
-  struct           internal_task : public concurrency::runnable {
-                   internal_task(
-                     unsigned long id = 0,
-                     task* t = NULL,
-                     timestamp const& when = 0,
-                     unsigned int interval = 0,
-                     bool is_runnable = false,
-                     bool should_delete = false);
-                   internal_task(internal_task const& right);
-                   ~internal_task() throw ();
+class task_manager {
+  struct internal_task : public concurrency::runnable {
+    internal_task(unsigned long id = 0,
+                  task* t = NULL,
+                  timestamp const& when = 0,
+                  uint32_t interval = 0,
+                  bool is_runnable = false,
+                  bool should_delete = false);
+    internal_task(internal_task const& right);
+    ~internal_task() throw();
     internal_task& operator=(internal_task const& right);
-    void           run();
+    void run();
 
-    unsigned long  id;
-    unsigned int   interval;
-    bool           is_runnable;
-    bool           should_delete;
-    task*          t;
-    timestamp      when;
+    unsigned long id;
+    uint32_t interval;
+    bool is_runnable;
+    bool should_delete;
+    task* t;
+    timestamp when;
 
-  private:
+   private:
     internal_task& _internal_copy(internal_task const& right);
   };
 
-                   task_manager(task_manager const& right);
-  task_manager&    operator=(task_manager const& right);
+  unsigned long _current_id;
+  mutable std::mutex _mtx;
+  std::multimap<timestamp, internal_task*> _tasks;
+  concurrency::thread_pool _th_pool;
 
-  unsigned long    _current_id;
-  mutable concurrency::mutex
-                   _mtx;
-  std::multimap<timestamp, internal_task*>
-                   _tasks;
-  concurrency::thread_pool
-                   _th_pool;
+  task_manager(task_manager const& right);
+  task_manager& operator=(task_manager const& right);
+
+ public:
+  task_manager(uint32_t max_thread_count = 0);
+  virtual ~task_manager() throw();
+  unsigned long add(task* t,
+                    timestamp const& when,
+                    bool is_runnable = false,
+                    bool should_delete = false);
+  unsigned long add(task* t,
+                    timestamp const& when,
+                    uint32_t interval,
+                    bool is_runnable = false,
+                    bool should_delete = false);
+  uint32_t execute(timestamp const& now = timestamp::now());
+  timestamp next_execution_time() const;
+  uint32_t remove(task* t);
+  bool remove(unsigned long id);
 };
 
 CC_END()
 
-#endif // !CC_TASK_MANAGER_HH
+#endif  // !CC_TASK_MANAGER_HH

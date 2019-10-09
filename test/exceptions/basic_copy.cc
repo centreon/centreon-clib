@@ -29,7 +29,7 @@ using namespace com::centreon::exceptions;
  */
 int main() {
   static char const message[] = "Centreon Clib";
-  const unsigned int line = __LINE__;
+  const uint32_t line = __LINE__;
 
   basic ex(__FILE__, FUNCTION, line);
   ex << message;

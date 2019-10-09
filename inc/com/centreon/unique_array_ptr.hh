@@ -90,7 +90,7 @@ class        unique_array_ptr {
    *
    *  @return Element at position idx.
    */
-  T&         operator[](unsigned int idx) {
+  T&         operator[](uint32_t idx) {
     return (_ptr[idx]);
   }
 

@@ -240,7 +240,7 @@ void file_entry::refresh() {
  *
  *  @return The file size.
  */
-unsigned long long file_entry::size() const throw () {
+uint64_t file_entry::size() const throw () {
   return (_sbuf.st_size);
 }
 

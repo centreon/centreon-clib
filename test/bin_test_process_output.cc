@@ -35,7 +35,7 @@
  *  @return True if data is find into env, otherwise false.
  */
 static bool find(char const* data, char** env) {
-  for (unsigned int i(0); env[i]; ++i)
+  for (uint32_t i(0); env[i]; ++i)
     if (!strcmp(data, env[i]))
       return (true);
   return (false);
@@ -50,7 +50,7 @@ static bool find(char const* data, char** env) {
  *  @return EXIT_SUCCESS on success, otherwise EXIT_FAILURE.
  */
 static int check_env(char** ref, char** env) {
-  for (unsigned int i(0); ref[i]; ++i)
+  for (uint32_t i(0); ref[i]; ++i)
     if (!find(ref[i], env))
       return (EXIT_FAILURE);
   return (EXIT_SUCCESS);

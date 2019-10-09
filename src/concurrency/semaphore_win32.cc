@@ -35,7 +35,7 @@ using namespace com::centreon::concurrency;
  *
  *  @param[in] n Specified the initial value for the semaphore.
  */
-semaphore::semaphore(unsigned int n) {
+semaphore::semaphore(uint32_t n) {
   _sem = CreateSemaphore(NULL, n, LONG_MAX, NULL);
   if (!_sem) {
     int errcode(GetLastError());

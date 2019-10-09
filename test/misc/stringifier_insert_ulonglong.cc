@@ -24,14 +24,14 @@
 using namespace com::centreon::misc;
 
 /**
- *  Check the stringifier insert unsigned long long.
+ *  Check the stringifier insert uint64_t.
  *
  *  @return 0 on success.
  */
 int main() {
   stringifier buffer;
-  buffer << static_cast<unsigned long long>(0);
-  buffer << static_cast<unsigned long long>(ULLONG_MAX);
+  buffer << static_cast<uint64_t>(0);
+  buffer << static_cast<uint64_t>(ULLONG_MAX);
 
   std::ostringstream oss;
   oss << 0 << ULLONG_MAX;

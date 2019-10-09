@@ -22,7 +22,7 @@
 #include "com/centreon/io/file_entry.hh"
 #include "com/centreon/io/file_stream.hh"
 
-unsigned int const DATA_SIZE = 42;
+uint32_t const DATA_SIZE = 42;
 
 using namespace com::centreon;
 

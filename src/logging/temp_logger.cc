@@ -27,8 +27,8 @@ using namespace com::centreon::logging;
  *  @param[in] verbose  Verbosity level.
  */
 temp_logger::temp_logger(
-               unsigned long long type,
-               unsigned int verbose) throw ()
+               uint64_t type,
+               uint32_t verbose) throw ()
   : _engine(engine::instance()),
     _type(type),
     _verbose(verbose) {

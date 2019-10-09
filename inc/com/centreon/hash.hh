@@ -112,12 +112,12 @@ inline std::size_t hash<unsigned char>(unsigned char val) {
 }
 
 template<>
-inline std::size_t hash<unsigned int>(unsigned int val) {
+inline std::size_t hash<uint32_t>(uint32_t val) {
   return (static_cast<std::size_t>(val));
 }
 
 template<>
-inline std::size_t hash<unsigned long long>(unsigned long long val) {
+inline std::size_t hash<uint64_t>(uint64_t val) {
   return (static_cast<std::size_t>(val));
 }
 

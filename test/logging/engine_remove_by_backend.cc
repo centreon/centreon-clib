@@ -60,8 +60,8 @@ int main() {
     if (e.remove(obj.get()) != 1)
       throw (basic_error() << "remove one backend failed");
 
-    static unsigned int const nb_backend(1000);
-    for (unsigned int i(1); i < nb_backend; ++i)
+    static uint32_t const nb_backend(1000);
+    for (uint32_t i(1); i < nb_backend; ++i)
       e.add(obj.get(), i, 0);
 
     if (e.remove(obj.get()) != nb_backend - 1)

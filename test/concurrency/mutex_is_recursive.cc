@@ -33,11 +33,11 @@ int main() {
   concurrency::mutex mtx;
 
   // Recursively lock mutex.
-  for (unsigned int i(0); i < RECURSIVE_LEVEL; ++i)
+  for (uint32_t i(0); i < RECURSIVE_LEVEL; ++i)
     mtx.lock();
 
   // Recursively unlock mutex.
-  for (unsigned int i(0); i < RECURSIVE_LEVEL; ++i)
+  for (uint32_t i(0); i < RECURSIVE_LEVEL; ++i)
     mtx.unlock();
 
   return (EXIT_SUCCESS);

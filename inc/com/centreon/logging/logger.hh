@@ -42,7 +42,7 @@ namespace logging {
 CC_END()
 
 #  define log_info(verbose) \
-  for (unsigned int __com_centreon_logging_define_ui(0); \
+  for (uint32_t __com_centreon_logging_define_ui(0); \
        !__com_centreon_logging_define_ui \
        && com::centreon::logging::engine::instance().is_log( \
                com::centreon::logging::type_info, \
@@ -54,7 +54,7 @@ CC_END()
         << "[info] "
 
 #  define log_debug(verbose) \
-  for (unsigned int __com_centreon_logging_define_ui(0); \
+  for (uint32_t __com_centreon_logging_define_ui(0); \
        !__com_centreon_logging_define_ui \
        && com::centreon::logging::engine::instance().is_log(   \
                com::centreon::logging::type_debug, \
@@ -66,7 +66,7 @@ CC_END()
       << "[debug] "
 
 #  define log_error(verbose) \
-  for (unsigned int __com_centreon_logging_define_ui(0); \
+  for (uint32_t __com_centreon_logging_define_ui(0); \
        !__com_centreon_logging_define_ui \
        && com::centreon::logging::engine::instance().is_log( \
                com::centreon::logging::type_error, \

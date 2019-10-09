@@ -112,10 +112,10 @@ std::string const& file::filename() const throw () {
  *  @param[in] size     The message's size.
  */
 void file::log(
-             unsigned long long types,
-             unsigned int verbose,
+             uint64_t types,
+             uint32_t verbose,
              char const* msg,
-             unsigned int size) throw () {
+             uint32_t size) throw () {
   (void)types;
   (void)verbose;
   (void)size;
@@ -125,8 +125,8 @@ void file::log(
 
   // Split msg by line.
   misc::stringifier buffer;
-  unsigned int i(0);
-  unsigned int last(0);
+  uint32_t i(0);
+  uint32_t last(0);
   while (msg[i]) {
     if (msg[i] == '\n') {
       buffer << header;

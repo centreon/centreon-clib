@@ -24,14 +24,14 @@
 using namespace com::centreon::exceptions;
 
 /**
- *  Check the basic insert unsigned int.
+ *  Check the basic insert uint32_t.
  *
  *  @return 0 on success.
  */
 int main() {
   basic ex;
-  ex << static_cast<unsigned int>(0);
-  ex << static_cast<unsigned int>(UINT_MAX);
+  ex << static_cast<uint32_t>(0);
+  ex << static_cast<uint32_t>(UINT_MAX);
 
   std::ostringstream oss;
   oss << 0 << UINT_MAX;

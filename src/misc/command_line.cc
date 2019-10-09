@@ -42,7 +42,7 @@ command_line::command_line()
  *  @param[in] size     The command line size, if size equal 0 parse
  *                      calculate the command line size.
  */
-command_line::command_line(char const* cmdline, unsigned int size)
+command_line::command_line(char const* cmdline, uint32_t size)
   : _argc(0), _argv(NULL), _size(0) {
   parse(cmdline, size);
 }
@@ -135,7 +135,7 @@ char** command_line::get_argv() const throw () {
  *  @param[in] size     The command line size, if size equal 0 parse
  *                      calculate the command line size.
  */
-void command_line::parse(char const* cmdline, unsigned int size) {
+void command_line::parse(char const* cmdline, uint32_t size) {
   // Cleanup.
   _release();
 
@@ -154,7 +154,7 @@ void command_line::parse(char const* cmdline, unsigned int size) {
   bool escap(false);
   char sep(0);
   char last(0);
-  for (unsigned int i(0); i < size; ++i) {
+  for (uint32_t i(0); i < size; ++i) {
     // Current processed char.
     char c(cmdline[i]);
 
@@ -270,7 +270,7 @@ void command_line::_internal_copy(command_line const& right) {
       _argv[0] = new char[_size];
       _argv[_argc] = NULL;
       memcpy(_argv[0], right._argv[0], _size);
-      unsigned int pos(0);
+      uint32_t pos(0);
       for (int i(0); i < _argc; ++i) {
         _argv[i] = _argv[0] + pos;
         while (_argv[0][pos++]);

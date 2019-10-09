@@ -35,9 +35,9 @@ using namespace com::centreon::logging;
 static bool check_time(std::string const& data, char const* msg) {
   if (data[0] != '[' || data.size() < 4)
     return (false);
-  unsigned int time_size(
-    static_cast<unsigned int>(data.size() - strlen(msg) - 1 - 3));
-  for (unsigned int i(1); i < time_size; ++i)
+  uint32_t time_size(
+    static_cast<uint32_t>(data.size() - strlen(msg) - 1 - 3));
+  for (uint32_t i(1); i < time_size; ++i)
     if (!isdigit(data[i]))
       return (false);
   if (data.compare(3 + time_size, strlen(msg), msg))

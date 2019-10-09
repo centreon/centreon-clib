@@ -16,6 +16,7 @@
 ** For more information : contact@centreon.com
 */
 
+#include <cstdint>
 #include "com/centreon/clib/version.hh"
 
 using namespace com::centreon::clib;
@@ -25,7 +26,7 @@ using namespace com::centreon::clib;
  *
  *  @return Centreon Clib version major.
  */
-unsigned int version::get_major() throw () {
+uint32_t version::get_major() throw () {
   return (major);
 }
 
@@ -34,7 +35,7 @@ unsigned int version::get_major() throw () {
  *
  *  @return Centreon Clib version minor.
  */
-unsigned int version::get_minor() throw () {
+uint32_t version::get_minor() throw () {
   return (minor);
 }
 
@@ -43,7 +44,7 @@ unsigned int version::get_minor() throw () {
  *
  *  @return Centreon Clib version patch.
  */
-unsigned int version::get_patch() throw () {
+uint32_t version::get_patch() throw () {
   return (patch);
 }
 

@@ -93,7 +93,7 @@ timestamp const& process::end_time() const throw () {
  *  @param[in] timeout Maximum time in seconde to execute process. After
  *                     this time the process will be kill.
  */
-void process::exec(char const* cmd, char** env, unsigned int timeout) {
+void process::exec(char const* cmd, char** env, uint32_t timeout) {
   concurrency::locker lock(&_lock_process);
 
   // Check viability.
@@ -142,7 +142,7 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
     // Execute process.
     _process = new PROCESS_INFORMATION;
     memset(_process, 0, sizeof(*_process));
-    unsigned int size(strlen(cmd) + 1);
+    uint32_t size(strlen(cmd) + 1);
     unique_array_ptr<char> cmd_str(new char[size]);
     memcpy(cmd_str.get(), cmd, size);
     if (CreateProcess(
@@ -163,7 +163,7 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
 
     _start_time = timestamp::now();
 
-    for (unsigned int i(0); i < 3; ++i)
+    for (uint32_t i(0); i < 3; ++i)
       _close(child_stream[i]);
 
     process_manager::instance().add(this);
@@ -171,7 +171,7 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
   catch (...) {
     delete _process;
     _process = NULL;
-    for (unsigned int i(0); i < 3; ++i) {
+    for (uint32_t i(0); i < 3; ++i) {
       _close(child_stream[i]);
       _close(_stream[i]);
     }
@@ -187,7 +187,7 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
  *  @param[in] timeout Maximum time in seconde to execute process. After
  *                     this time the process will be kill.
  */
-void process::exec(std::string const& cmd, unsigned int timeout) {
+void process::exec(std::string const& cmd, uint32_t timeout) {
   exec(cmd.c_str(), NULL, timeout);
   return;
 }
@@ -312,7 +312,7 @@ bool process::wait(unsigned long timeout) {
  *
  *  @return Number of bytes actually written.
  */
-unsigned int process::write(std::string const& data) {
+uint32_t process::write(std::string const& data) {
   return (write(data.c_str(), data.size()));
 }
 
@@ -324,7 +324,7 @@ unsigned int process::write(std::string const& data) {
  *
  *  @retun Number of bytes actually written.
  */
-unsigned int process::write(void const* data, unsigned int size) {
+uint32_t process::write(void const* data, uint32_t size) {
   concurrency::locker lock(&_lock_process);
   // Check viability.
   if (!_process)
@@ -401,7 +401,7 @@ void process::_pipe(HANDLE* rh, HANDLE* wh) {
  *
  *  @return Number of bytes actually read.
  */
-unsigned int process::_read(HANDLE h, void* data, unsigned int size) {
+uint32_t process::_read(HANDLE h, void* data, uint32_t size) {
   if (!h)
     throw (basic_error() << "attempt to read from NULL handle");
   DWORD rb;

@@ -115,8 +115,8 @@ timestamp const& process::end_time() const throw () {
  *  @param[in] timeout Maximum time in seconde to execute process. After
  *                     this time the process will be kill.
  */
-void process::exec(char const* cmd, char** env, unsigned int timeout) {
-  std::lock_guard<std::mutex> lock(_lock_process);
+void process::exec(char const* cmd, char** env, uint32_t timeout) {
+  std::unique_lock<std::mutex> lock(_lock_process);
 
   // Check if process already running.
   if (_is_running())
@@ -132,7 +132,7 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
   _status = 0;
 
   // Close the last file descriptor;
-  for (unsigned int i(0); i < 3; ++i)
+  for (uint32_t i(0); i < 3; ++i)
     _close(_stream[i]);
 
   // Init file desciptor.
@@ -154,7 +154,7 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
     std[2] = _dup(STDERR_FILENO);
 
     // Backup FDs do not need to be inherited.
-    for (unsigned int i(0); i < 3; ++i)
+    for (uint32_t i(0); i < 3; ++i)
       _set_cloexec(std[i]);
 
     restore_std = true;
@@ -204,13 +204,14 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
     _dup2(std[0], STDIN_FILENO);
     _dup2(std[1], STDOUT_FILENO);
     _dup2(std[2], STDERR_FILENO);
-    for (unsigned int i(0); i < 3; ++i) {
+    for (uint32_t i(0); i < 3; ++i) {
       _close(std[i]);
       _close(pipe_stream[i][i == in ? 0 : 1]);
       _stream[i] = pipe_stream[i][i == in ? 1 : 0];
     }
 
     // Add process to the process manager.
+    lock.unlock();
     process_manager::instance().add(this);
   }
   catch (...) {
@@ -222,10 +223,10 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
     }
 
     // Close all file descriptor.
-    for (unsigned int i(0); i < 3; ++i) {
+    for (uint32_t i(0); i < 3; ++i) {
       _close(std[i]);
       _close(_stream[i]);
-      for (unsigned int j(0); j < 2; ++j)
+      for (uint32_t j(0); j < 2; ++j)
         _close(pipe_stream[i][j]);
     }
     throw;
@@ -239,7 +240,7 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
  *  @param[in] timeout Maximum time in seconde to execute process. After
  *                     this time the process will be kill.
  */
-void process::exec(std::string const& cmd, unsigned int timeout) {
+void process::exec(std::string const& cmd, uint32_t timeout) {
   exec(cmd.c_str(), NULL, timeout);
 }
 
@@ -285,10 +286,10 @@ void process::kill() {
  *  @param[out] data Destination buffer.
  */
 void process::read(std::string& data) {
-  std::lock_guard<std::mutex> lock(_lock_process);
-  // If buffer is empty and stream is open, we waiting data.
+  std::unique_lock<std::mutex> lock(_lock_process);
+  // If buffer is empty and stream is open, we wait for data.
   if (_buffer_out.empty() && _stream[out] != -1)
-    _cv_buffer_out.wait(&_lock_process);
+    _cv_buffer_out.wait(lock);
   // Switch content.
   data.clear();
   data.swap(_buffer_out);
@@ -300,10 +301,10 @@ void process::read(std::string& data) {
  *  @param[out] data Destination buffer.
  */
 void process::read_err(std::string& data) {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_lock_process);
   // If buffer is empty and stream is open, we waiting data.
   if (_buffer_err.empty() && _stream[err] != -1)
-    _cv_buffer_err.wait(&_lock_process);
+    _cv_buffer_err.wait(lock);
   // Switch content.
   data.clear();
   data.swap(_buffer_err);
@@ -354,9 +355,9 @@ void process::terminate() {
  *  Wait for process termination.
  */
 void process::wait() const {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_lock_process);
   while (_is_running())
-    _cv_process.wait(&_lock_process);
+    _cv_process.wait(lock);
 }
 
 /**
@@ -368,10 +369,10 @@ void process::wait() const {
  *  @return true if process exited.
  */
 bool process::wait(unsigned long timeout) const {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_lock_process);
   if (!_is_running())
     return true;
-  _cv_process.wait(&_lock_process, timeout);
+  _cv_process.wait_for(lock, std::chrono::milliseconds(timeout));
   return !_is_running();
 }
 
@@ -382,7 +383,7 @@ bool process::wait(unsigned long timeout) const {
  *
  *  @return Number of bytes actually written.
  */
-unsigned int process::write(std::string const& data) {
+uint32_t process::write(std::string const& data) {
   return write(data.c_str(), data.size());
 }
 
@@ -394,7 +395,7 @@ unsigned int process::write(std::string const& data) {
  *
  *  @return Number of bytes actually written.
  */
-unsigned int process::write(void const* data, unsigned int size) {
+uint32_t process::write(void const* data, uint32_t size) {
   std::lock_guard<std::mutex> lock(_lock_process);
   ssize_t wb(0);
   while ((wb = ::write(_stream[in], data, size)) < 0) {
@@ -607,7 +608,7 @@ void process::_pipe(int fds[2]) {
  *
  *  @return Number of bytes actually read.
  */
-unsigned int process::_read(int fd, void* data, unsigned int size) {
+uint32_t process::_read(int fd, void* data, uint32_t size) {
   ssize_t rb(0);
   while ((rb = ::read(fd, data, size)) < 0) {
     char const* msg(strerror(errno));

@@ -17,9 +17,10 @@
 */
 
 #ifndef CC_CLIB_HH
-#  define CC_CLIB_HH
+#define CC_CLIB_HH
 
-#  include "com/centreon/namespace.hh"
+#include <cstdint>
+#include "com/centreon/namespace.hh"
 
 CC_BEGIN()
 
@@ -29,24 +30,22 @@ CC_BEGIN()
  *
  *  Initialize all clib manager and make base configuration.
  */
-class         clib {
-public:
-  enum        load_flags {
+class clib {
+  clib(uint32_t flags);
+  clib(clib const& right);
+  ~clib() throw();
+  clib& operator=(clib const& right);
+
+ public:
+  enum load_flags {
     with_logging_engine = 1 << 0,
     with_process_manager = 1 << 1
   };
 
-  static void load(unsigned int flags = with_logging_engine
-                                        | with_process_manager);
+  static void load(uint32_t flags = with_logging_engine | with_process_manager);
   static void unload();
-
-private:
-              clib(unsigned int flags);
-              clib(clib const& right);
-              ~clib() throw ();
-  clib&       operator=(clib const& right);
 };
 
 CC_END()
 
-#endif // !CC_CLIB_HH
+#endif  // !CC_CLIB_HH

@@ -51,10 +51,10 @@ namespace              logging {
     void               close() throw ();
     std::string const& filename() const throw ();
     void               log(
-                         unsigned long long types,
-                         unsigned int verbose,
+                         uint64_t types,
+                         uint32_t verbose,
                          char const* msg,
-                         unsigned int size) throw ();
+                         uint32_t size) throw ();
     void               open();
     void               reopen();
 

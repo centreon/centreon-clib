@@ -46,10 +46,10 @@ namespace              logging {
     void               close() throw () {}
     std::string const& data() const throw () { return (_buffer); }
     void               log(
-                         unsigned long long types,
-                         unsigned int verbose,
+                         uint64_t types,
+                         uint32_t verbose,
                          char const* msg,
-                         unsigned int size) throw () {
+                         uint32_t size) throw () {
       std::lock_guard<std::mutex> lock(_lock);
 
       (void)types;
@@ -61,7 +61,7 @@ namespace              logging {
       _buffer.append(msg, size);
       ++_nb_call;
     }
-    unsigned int       get_nb_call() const throw () {
+    uint32_t       get_nb_call() const throw () {
       return (_nb_call);
     }
     void               open() {}
@@ -70,7 +70,7 @@ namespace              logging {
 
   private:
     std::string        _buffer;
-    unsigned int       _nb_call;
+    uint32_t       _nb_call;
   };
 }
 

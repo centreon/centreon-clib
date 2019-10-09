@@ -27,7 +27,7 @@ using namespace com::centreon;
  *  @param[in] max_thread_count  The number of threads into the thread
  *                               pool.
  */
-task_manager::task_manager(unsigned int max_thread_count)
+task_manager::task_manager(uint32_t max_thread_count)
   : _current_id(0), _th_pool(max_thread_count) {}
 
 /**
@@ -38,7 +38,7 @@ task_manager::~task_manager() throw () {
   _th_pool.wait_for_done();
 
   // Lock the task manager.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
 
   // Delete all internal task.
   for (std::multimap<timestamp, internal_task*>::const_iterator
@@ -65,7 +65,7 @@ unsigned long task_manager::add(
                               bool is_runnable,
                               bool should_delete) {
   // Lock the task manager.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
 
   internal_task* itask(new internal_task(
                              ++_current_id,
@@ -93,11 +93,11 @@ unsigned long task_manager::add(
 unsigned long task_manager::add(
                               task* t,
                               timestamp const& when,
-                              unsigned int interval,
+                              uint32_t interval,
                               bool is_runnable,
                               bool should_delete) {
   // Lock the task manager.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
 
   internal_task* itask(new internal_task(
                              ++_current_id,
@@ -118,15 +118,15 @@ unsigned long task_manager::add(
  *
  *  @return The number of task to be execute.
  */
-unsigned int task_manager::execute(timestamp const& now) {
+uint32_t task_manager::execute(timestamp const& now) {
   // Stock the new recurring task into this list for inject all
   // task at the end of the execution.
   std::list<std::pair<timestamp, internal_task*> > recurring;
 
-  unsigned int count_execute(0);
+  uint32_t count_execute(0);
   {
     // Lock the task manager.
-    locker lock(&_mtx);
+    std::unique_lock<std::mutex> lock(_mtx);
 
     std::multimap<timestamp, internal_task*>::iterator
       it(_tasks.begin());
@@ -157,7 +157,7 @@ unsigned int task_manager::execute(timestamp const& now) {
         lock.unlock();
         _th_pool.wait_for_done();
         itask->t->run();
-        lock.relock();
+        lock.lock();
         if (itask->get_auto_delete())
           delete itask;
       }
@@ -190,7 +190,7 @@ unsigned int task_manager::execute(timestamp const& now) {
  *          task need to be run.
  */
 timestamp task_manager::next_execution_time() const {
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   std::multimap<timestamp, internal_task*>::const_iterator
     lower(_tasks.begin());
   return ((lower == _tasks.end())
@@ -206,14 +206,14 @@ timestamp task_manager::next_execution_time() const {
  *
  *  @return The number of remove task.
  */
-unsigned int task_manager::remove(task* t) {
+uint32_t task_manager::remove(task* t) {
   if (!t)
     return (0);
 
   // Lock the task manager.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
 
-  unsigned int count_erase(0);
+  uint32_t count_erase(0);
   for (std::multimap<timestamp, internal_task*>::iterator
          it(_tasks.begin()), next(it), end(_tasks.end());
        it != end;
@@ -240,7 +240,7 @@ unsigned int task_manager::remove(task* t) {
  */
 bool task_manager::remove(unsigned long id) {
   // Lock the task manager.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
 
   for (std::multimap<timestamp, internal_task*>::iterator
          it(_tasks.begin()), next(it), end(_tasks.end());
@@ -272,7 +272,7 @@ task_manager::internal_task::internal_task(
                            unsigned long _id,
                            task* _t,
                            timestamp const& _when,
-                           unsigned int _interval,
+                           uint32_t _interval,
                            bool _is_runnable,
                            bool _should_delete)
   : runnable(),

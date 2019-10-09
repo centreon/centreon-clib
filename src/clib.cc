@@ -37,7 +37,7 @@ static clib* _instance = NULL;
  *
  *  @param[in] flags Specify which elements should be loaded.
  */
-void clib::load(unsigned int flags) {
+void clib::load(uint32_t flags) {
   delete _instance;
   _instance = NULL;
   _instance = new clib(flags);
@@ -64,7 +64,7 @@ void clib::unload() {
  *
  *  @param[in] flags Specify which elements to load.
  */
-clib::clib(unsigned int flags) {
+clib::clib(uint32_t flags) {
   if (flags & with_logging_engine)
     logging::engine::load();
   if (flags & with_process_manager)

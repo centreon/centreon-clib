@@ -36,19 +36,19 @@ int main() {
     engine& e(engine::instance());
     std::unique_ptr<backend_test> obj(new backend_test);
 
-    unsigned int limits(sizeof(unsigned int) * CHAR_BIT);
-    for (unsigned int i(0); i < 3; ++i) {
-      for (unsigned int j(0); j < limits; ++j) {
+    uint32_t limits(sizeof(uint32_t) * CHAR_BIT);
+    for (uint32_t i(0); i < 3; ++i) {
+      for (uint32_t j(0); j < limits; ++j) {
         unsigned long id(e.add(
                              obj.get(),
                              1 << j,
                              i));
-        for (unsigned int k(0); k < limits; ++k) {
+        for (uint32_t k(0); k < limits; ++k) {
           if (e.is_log(1 << k, i) != (k == j))
             throw (basic_error() << "is log failed with types("
                    << j << ") verbose(" << i << ")");
 
-          for (unsigned int k(0); k < 3; ++k) {
+          for (uint32_t k(0); k < 3; ++k) {
             if (e.is_log(1 << j, k) != (i >= k))
               throw (basic_error() << "is log failed with types("
                      << j << ") verbose(" << i << ")");

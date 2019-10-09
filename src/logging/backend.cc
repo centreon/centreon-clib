@@ -112,14 +112,14 @@ void backend::enable_sync(bool enable) {
  *  @param[in] msg      The message to log.
  */
 void backend::log(
-                unsigned long long types,
-                unsigned int verbose,
+                uint64_t types,
+                uint32_t verbose,
                 char const* msg) throw () {
   log(
     types,
     verbose,
     msg,
-    static_cast<unsigned int>(strlen(msg)));
+    static_cast<uint32_t>(strlen(msg)));
   return ;
 }
 

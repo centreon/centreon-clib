@@ -177,7 +177,7 @@ void process_manager::_read_stream(HANDLE fd) throw () {
 
     std::lock_guard<std::mutex> lock(p->_lock_process);
     char buffer[4096];
-    unsigned int size(p->_read(fd, buffer, sizeof(buffer)));
+    uint32_t size(p->_read(fd, buffer, sizeof(buffer)));
     if (p->_stream[process::out] == fd)
       p->_buffer_out.append(buffer, size);
     else if (p->_stream[process::err] == fd)

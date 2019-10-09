@@ -177,13 +177,13 @@ bool handle_manager::remove(handle* h) {
  *
  *  @return The number of items removed.
  */
-unsigned int handle_manager::remove(handle_listener* hl) {
+uint32_t handle_manager::remove(handle_listener* hl) {
   // Beware null pointer.
   if (!hl)
     return (0);
 
   // Loop through map.
-  unsigned int count_erase(0);
+  uint32_t count_erase(0);
   for (std::map<native_handle, handle_action*>::iterator
          it(_handles.begin()), next(it), end(_handles.end());
        it != end;

@@ -35,19 +35,19 @@ using namespace com::centreon::logging;
  */
 class                writter : public thread {
 public:
-                     writter(unsigned int nb_write)
+                     writter(uint32_t nb_write)
                        : _nb_write(nb_write) {}
                      ~writter() throw () {}
 private:
   void               _run() {
     engine& e(engine::instance());
-    for (unsigned int i(0); i < _nb_write; ++i) {
+    for (uint32_t i(0); i < _nb_write; ++i) {
       std::ostringstream oss;
       oss << this << ":" << i;
       e.log(1, 0, oss.str().c_str(), oss.str().size());
     }
   }
-  unsigned int       _nb_write;
+  uint32_t       _nb_write;
 };
 
 /**
@@ -56,8 +56,8 @@ private:
  *  @return 0 on success.
  */
 int main() {
-  static unsigned int const nb_writter(10);
-  static unsigned int const nb_write(10);
+  static uint32_t const nb_writter(10);
+  static uint32_t const nb_write(10);
   int retval;
 
   engine::load();
@@ -68,17 +68,17 @@ int main() {
     e.add(obj.get(), 1, 0);
 
     std::vector<thread*> threads;
-    for (unsigned int i(0); i < nb_writter; ++i)
+    for (uint32_t i(0); i < nb_writter; ++i)
       threads.push_back(new writter(nb_write));
 
-    for (unsigned int i(0); i < nb_writter; ++i)
+    for (uint32_t i(0); i < nb_writter; ++i)
       threads[i]->exec();
 
-    for (unsigned int i(0); i < nb_writter; ++i)
+    for (uint32_t i(0); i < nb_writter; ++i)
       threads[i]->wait();
 
-    for (unsigned int i(0); i < nb_writter; ++i) {
-      for (unsigned int j(0); j < nb_writter; ++j) {
+    for (uint32_t i(0); i < nb_writter; ++i) {
+      for (uint32_t j(0); j < nb_writter; ++j) {
         std::ostringstream oss;
         oss <<&threads[i] << ":" << j << "\n";
         if (!obj->data().find(oss.str()))

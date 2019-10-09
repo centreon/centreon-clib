@@ -39,14 +39,14 @@ int main() {
 
     e.log(1, 0, NULL, 0);
 
-    unsigned int limits(sizeof(unsigned int) * CHAR_BIT);
+    uint32_t limits(sizeof(uint32_t) * CHAR_BIT);
 
-    for (unsigned int i(0); i < 3; ++i) {
-      for (unsigned int j(0); j < limits; ++j) {
+    for (uint32_t i(0); i < 3; ++i) {
+      for (uint32_t j(0); j < limits; ++j) {
         unsigned long id(e.add(obj.get(),
                                1 << j,
                                i));
-        for (unsigned int k(0); k < limits; ++k)
+        for (uint32_t k(0); k < limits; ++k)
           e.log(1 << k, i, "", 0);
         if (!e.remove(id))
           throw (basic_error() << "remove id failed");

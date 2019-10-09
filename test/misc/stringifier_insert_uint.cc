@@ -24,14 +24,14 @@
 using namespace com::centreon::misc;
 
 /**
- *  Check the stringifier insert unsigned int.
+ *  Check the stringifier insert uint32_t.
  *
  *  @return 0 on success.
  */
 int main() {
   stringifier buffer;
-  buffer << static_cast<unsigned int>(0);
-  buffer << static_cast<unsigned int>(UINT_MAX);
+  buffer << static_cast<uint32_t>(0);
+  buffer << static_cast<uint32_t>(UINT_MAX);
 
   std::ostringstream oss;
   oss << 0 << UINT_MAX;

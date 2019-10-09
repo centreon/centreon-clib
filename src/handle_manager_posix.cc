@@ -69,7 +69,7 @@ void handle_manager::multiplex() {
 
   // Dispatch events.
   int nb_check(0);
-  for (unsigned int i(0), end(_handles.size());
+  for (uint32_t i(0), end(_handles.size());
        i < end && nb_check < ret;
        ++i) {
     if (!_array[i].revents)

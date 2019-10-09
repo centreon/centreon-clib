@@ -32,7 +32,6 @@
 #  include <unistd.h>
 #endif // POSIX.
 #include "com/centreon/exceptions/basic.hh"
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/concurrency/thread_pool.hh"
 
 using namespace com::centreon::concurrency;
@@ -43,7 +42,7 @@ using namespace com::centreon::concurrency;
  *  @param[in] max_thread_count  The number of threads into the thread
  *                               pool.
  */
-thread_pool::thread_pool(unsigned int max_thread_count)
+thread_pool::thread_pool(uint32_t max_thread_count)
   : _current_task_running(0),
     _max_thread_count(0),
 #ifndef _WIN32
@@ -56,16 +55,16 @@ thread_pool::thread_pool(unsigned int max_thread_count)
 /**
  *  Default destructor.
  */
-thread_pool::~thread_pool() throw () {
+thread_pool::~thread_pool() noexcept {
 #ifndef _WIN32
   if (getpid() == _pid) {
 #endif // !Windows
     {
-      locker lock(&_mtx_thread);
+      std::lock_guard<std::mutex> lock(_mtx_thread);
       _quit = true;
-      _cnd_thread.wake_all();
+      _cnd_thread.notify_all();
     }
-    locker lock(&_mtx_pool);
+    std::lock_guard<std::mutex> lock(_mtx_pool);
     for (std::list<internal_thread*>::const_iterator
            it(_pool.begin()), end(_pool.end());
          it != end;
@@ -82,10 +81,10 @@ thread_pool::~thread_pool() throw () {
  *
  *  @return The number of current task running.
  */
-unsigned int thread_pool::get_current_task_running() const throw () {
+uint32_t thread_pool::get_current_task_running() const noexcept {
   // Lock the thread.
-  locker lock(&_mtx_thread);
-  return (_current_task_running);
+  std::lock_guard<std::mutex> lock(_mtx_thread);
+  return _current_task_running;
 }
 
 
@@ -95,10 +94,10 @@ unsigned int thread_pool::get_current_task_running() const throw () {
  *
  *  @return The max thread count.
  */
-unsigned int thread_pool::get_max_thread_count() const throw () {
+uint32_t thread_pool::get_max_thread_count() const noexcept {
   // Lock the thread pool.
-  locker lock(&_mtx_pool);
-  return (_max_thread_count);
+  std::lock_guard<std::mutex> lock(_mtx_pool);
+  return _max_thread_count;
 }
 
 /**
@@ -107,9 +106,9 @@ unsigned int thread_pool::get_max_thread_count() const throw () {
  *
  *  @param[in] max  The max thread count.
  */
-void thread_pool::set_max_thread_count(unsigned int max) {
+void thread_pool::set_max_thread_count(uint32_t max) {
   // Lock the thread pool.
-  locker lock(&_mtx_pool);
+  std::lock_guard<std::mutex> lock(_mtx_pool);
 
   // Find ideal thread count.
   if (!max) {
@@ -136,7 +135,7 @@ void thread_pool::set_max_thread_count(unsigned int max) {
   }
 
   if (_max_thread_count < max)
-    for (unsigned int i(0), nb_thread(max - _max_thread_count);
+    for (uint32_t i(0), nb_thread(max - _max_thread_count);
          i < nb_thread;
          ++i) {
       internal_thread* th(new internal_thread(this));
@@ -144,7 +143,7 @@ void thread_pool::set_max_thread_count(unsigned int max) {
       th->exec();
     }
   else if (_max_thread_count > max) {
-    for (unsigned int i(0), nb_thread(_max_thread_count - max);
+    for (uint32_t i(0), nb_thread(_max_thread_count - max);
          i < nb_thread;
          ++i) {
       internal_thread* th(_pool.front());
@@ -164,13 +163,13 @@ void thread_pool::set_max_thread_count(unsigned int max) {
  */
 void thread_pool::start(runnable* r) {
   if (!r)
-    throw (basic_error() << "impossible to start a new runnable:" \
-           "invalid argument (null pointer)");
+    throw basic_error() << "impossible to start a new runnable:" \
+           "invalid argument (null pointer)";
 
   // Lock the thread.
-  locker lock(&_mtx_thread);
+  std::lock_guard<std::mutex> lock(_mtx_thread);
   _tasks.push_back(r);
-  _cnd_thread.wake_one();
+  _cnd_thread.notify_one();
 }
 
 /**
@@ -179,9 +178,9 @@ void thread_pool::start(runnable* r) {
  */
 void thread_pool::wait_for_done() {
   // Lock the thread.
-  locker lock(&_mtx_thread);
+  std::unique_lock<std::mutex> lock(_mtx_thread);
   while (!_tasks.empty() || _current_task_running)
-    _cnd_pool.wait(&_mtx_thread);
+    _cnd_pool.wait(lock);
 }
 
 /**
@@ -200,7 +199,7 @@ thread_pool::internal_thread::internal_thread(thread_pool* th_pool)
 /**
  *  Default destructor.
  */
-thread_pool::internal_thread::~internal_thread() throw () {
+thread_pool::internal_thread::~internal_thread() noexcept {
   wait();
 }
 
@@ -210,9 +209,9 @@ thread_pool::internal_thread::~internal_thread() throw () {
  */
 void thread_pool::internal_thread::quit() {
   // Lock the thread.
-  locker lock(&_th_pool->_mtx_thread);
+  std::lock_guard<std::mutex> lock(_th_pool->_mtx_thread);
   _quit = true;
-  _th_pool->_cnd_thread.wake_all();
+  _th_pool->_cnd_thread.notify_all();
 }
 
 /**
@@ -221,7 +220,7 @@ void thread_pool::internal_thread::quit() {
  */
 void thread_pool::internal_thread::_run() {
   // Lock the thread.
-  locker lock(&_th_pool->_mtx_thread);
+  std::unique_lock<std::mutex> lock(_th_pool->_mtx_thread);
   while (true) {
     while (!_th_pool->_tasks.empty()) {
       runnable* task(_th_pool->_tasks.front());
@@ -231,12 +230,12 @@ void thread_pool::internal_thread::_run() {
       task->run();
       if (task->get_auto_delete())
         delete task;
-      lock.relock();
+      lock.lock();
       --_th_pool->_current_task_running;
-      _th_pool->_cnd_pool.wake_one();
+      _th_pool->_cnd_pool.notify_one();
     }
     if (_th_pool->_quit || _quit)
       break;
-    _th_pool->_cnd_thread.wait(&_th_pool->_mtx_thread);
+    _th_pool->_cnd_thread.wait(lock);
   }
 }

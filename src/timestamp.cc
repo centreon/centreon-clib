@@ -227,7 +227,7 @@ void timestamp::add_useconds(long usecs) {
       us += 1000000;
     }
   }
-  _usecs = static_cast<unsigned int>(us);
+  _usecs = static_cast<uint32_t>(us);
   _transfer(&_secs, &_usecs);
   return ;
 }
@@ -387,7 +387,7 @@ void timestamp::_internal_copy(timestamp const& right) {
  *  @param[in,out] secs   The seconds.
  *  @param[in,out] usecs  The microseconds.
  */
-void timestamp::_transfer(time_t* secs, unsigned int* usecs) {
+void timestamp::_transfer(time_t* secs, uint32_t* usecs) {
   // Transforms unnecessary microseconds into seconds.
   *secs += (*usecs / 1000000);
   *usecs %= 1000000;

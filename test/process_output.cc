@@ -48,10 +48,10 @@ int main(int argc, char** argv) {
     p.exec(cmd);
     char buffer_write[16 * 1024];
     std::string buffer_read;
-    for (unsigned int i(0); i < sizeof(buffer_write); ++i)
+    for (uint32_t i(0); i < sizeof(buffer_write); ++i)
       buffer_write[i] = static_cast<char>(i);
-    unsigned int total_read(0);
-    unsigned int total_write(0);
+    uint32_t total_read(0);
+    uint32_t total_write(0);
     do {
       if (total_write < sizeof(buffer_write))
         total_write += p.write(

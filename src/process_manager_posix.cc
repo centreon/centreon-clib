@@ -213,7 +213,7 @@ void process_manager::_close_stream(int fd) throw () {
     }
 
     // Update process informations.
-    std::lock_guard<std::mutex> lock(p->_lock_process);
+    std::unique_lock<std::mutex> lock(p->_lock_process);
     if (p->_stream[process::out] == fd)
       p->_close(p->_stream[process::out]);
     else if (p->_stream[process::err] == fd)
@@ -223,12 +223,12 @@ void process_manager::_close_stream(int fd) throw () {
       if (p->_listener) {
         lock.unlock();
         (p->_listener->finished)(*p);
-        lock.relock();
+        lock.lock();
       }
       // Release condition variable.
-      p->_cv_buffer_err.wake_one();
-      p->_cv_buffer_out.wake_one();
-      p->_cv_process.wake_one();
+      p->_cv_buffer_err.notify_one();
+      p->_cv_buffer_out.notify_one();
+      p->_cv_process.notify_one();
     }
   }
   catch (std::exception const& e) {
@@ -247,9 +247,9 @@ void process_manager::_erase_timeout(process* p) {
   if (!p || !p->_timeout)
     return;
   std::lock_guard<std::mutex> lock(_lock_processes);
-  std::multimap<unsigned int, process*>::iterator
+  std::multimap<uint32_t, process*>::iterator
     it(_processes_timeout.find(p->_timeout));
-  std::multimap<unsigned int, process*>::iterator
+  std::multimap<uint32_t, process*>::iterator
     end(_processes_timeout.end());
   // Find and erase process from timeout list.
   while (it != end && it->first == p->_timeout) {
@@ -268,8 +268,8 @@ void process_manager::_erase_timeout(process* p) {
 void process_manager::_kill_processes_timeout() throw () {
   std::lock_guard<std::mutex> lock(_lock_processes);
   // Get the current time.
-  unsigned int now(time(NULL));
-  std::multimap<unsigned int, process*>::iterator
+  uint32_t now(time(NULL));
+  std::multimap<uint32_t, process*>::iterator
     it(_processes_timeout.begin());
   // Kill process who timeout and remove it from timeout list.
   while (it != _processes_timeout.end()
@@ -281,7 +281,7 @@ void process_manager::_kill_processes_timeout() throw () {
     catch (std::exception const& e) {
       log_error(logging::high) << e.what();
     }
-    std::multimap<unsigned int, process*>::iterator tmp(it++);
+    std::multimap<uint32_t, process*>::iterator tmp(it++);
     _processes_timeout.erase(tmp);
   }
   return;
@@ -294,8 +294,8 @@ void process_manager::_kill_processes_timeout() throw () {
  *
  *  @return Number of bytes read.
  */
-unsigned int process_manager::_read_stream(int fd) throw () {
-  unsigned int size(0);
+uint32_t process_manager::_read_stream(int fd) throw () {
+  uint32_t size(0);
   try {
     process* p(NULL);
     // Get process to link with fd.
@@ -310,7 +310,7 @@ unsigned int process_manager::_read_stream(int fd) throw () {
       p = it->second;
     }
 
-    std::lock_guard<std::mutex> lock(p->_lock_process);
+    std::unique_lock<std::mutex> lock(p->_lock_process);
     // Read content of the stream and push it.
     char buffer[4096];
     if (!(size = p->_read(fd, buffer, sizeof(buffer))))
@@ -318,7 +318,7 @@ unsigned int process_manager::_read_stream(int fd) throw () {
 
     if (p->_stream[process::out] == fd) {
       p->_buffer_out.append(buffer, size);
-      p->_cv_buffer_out.wake_one();
+      p->_cv_buffer_out.notify_one();
       // Notify listener if necessary.
       if (p->_listener) {
         lock.unlock();
@@ -327,7 +327,7 @@ unsigned int process_manager::_read_stream(int fd) throw () {
     }
     else if (p->_stream[process::err] == fd) {
       p->_buffer_err.append(buffer, size);
-      p->_cv_buffer_err.wake_one();
+      p->_cv_buffer_err.notify_one();
       // Notify listener if necessary.
       if (p->_listener) {
         lock.unlock();
@@ -362,8 +362,8 @@ void process_manager::_run() {
         char const* msg(strerror(errno));
         throw basic_error() << "poll failed: " << msg;
       }
-      for (unsigned int i(0), checked(0);
-           checked < static_cast<unsigned int>(ret) && i < _fds_size;
+      for (uint32_t i(0), checked(0);
+           checked < static_cast<uint32_t>(ret) && i < _fds_size;
            ++i) {
 
         // No event.
@@ -382,7 +382,7 @@ void process_manager::_run() {
         }
 
         // Data are available.
-        unsigned int size(0);
+        uint32_t size(0);
         if (_fds[i].revents & (POLLIN | POLLPRI))
           size = _read_stream(_fds[i].fd);
         // File descriptor was close.
@@ -422,7 +422,7 @@ void process_manager::_update_ending_process(
     return;
 
   // Update process informations.
-  std::lock_guard<std::mutex> lock(p->_lock_process);
+  std::unique_lock<std::mutex> lock(p->_lock_process);
   p->_end_time = timestamp::now();
   p->_status = status;
   p->_process = static_cast<pid_t>(-1);
@@ -433,12 +433,12 @@ void process_manager::_update_ending_process(
     if (p->_listener) {
       lock.unlock();
       (p->_listener->finished)(*p);
-      lock.relock();
+      lock.lock();
     }
     // Release condition variable.
-    p->_cv_buffer_err.wake_one();
-    p->_cv_buffer_out.wake_one();
-    p->_cv_process.wake_one();
+    p->_cv_buffer_err.notify_one();
+    p->_cv_buffer_out.notify_one();
+    p->_cv_process.notify_one();
   }
 }
 
@@ -477,7 +477,7 @@ void process_manager::_update_list() {
  */
 void process_manager::_wait_orphans_pid() throw () {
   try {
-    std::lock_guard<std::mutex> lock(_lock_processes);
+    std::unique_lock<std::mutex> lock(_lock_processes);
     std::list<orphan>::iterator it(_orphans_pid.begin());
     while (it != _orphans_pid.end()) {
       process* p(NULL);
@@ -497,7 +497,7 @@ void process_manager::_wait_orphans_pid() throw () {
       // Update process.
       lock.unlock();
       _update_ending_process(p, it->status);
-      lock.relock();
+      lock.lock();
 
       // Erase orphan pid.
       it = _orphans_pid.erase(it);

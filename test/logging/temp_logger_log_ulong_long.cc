@@ -39,7 +39,7 @@ int main() {
     std::unique_ptr<backend_test> obj(new backend_test);
     e.add(obj.get(), 3, 0);
 
-    unsigned long long ull(42);
+    uint64_t ull(42);
     temp_logger(1, 0) << ull;
     if (obj->get_nb_call() != 1)
       throw (basic_error() << "invalid number of call log");

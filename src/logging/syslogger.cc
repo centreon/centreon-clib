@@ -72,10 +72,10 @@ void syslogger::close() throw () {
  *  @param[in] size     The message's size.
  */
 void syslogger::log(
-                  unsigned long long types,
-                  unsigned int verbose,
+                  uint64_t types,
+                  uint32_t verbose,
                   char const* msg,
-                  unsigned int size) throw () {
+                  uint32_t size) throw () {
   (void)types;
   (void)verbose;
   (void)size;

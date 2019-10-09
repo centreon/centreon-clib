@@ -28,7 +28,7 @@ using namespace com::centreon::exceptions;
  *  @return 0 on success.
  */
 int main() {
-  const unsigned int line = __LINE__;
+  const uint32_t line = __LINE__;
 
   basic ex1;
   basic ex2(__FILE__, FUNCTION, line);

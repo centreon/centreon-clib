@@ -40,12 +40,12 @@ engine* engine::_instance = NULL;
  */
 unsigned long engine::add(
                         backend* obj,
-                        unsigned long long types,
-                        unsigned int verbose) {
+                        uint64_t types,
+                        uint32_t verbose) {
   if (!obj)
     throw (basic_error() << "add backend on the logging engine "
            "failed: bad argument (null pointer)");
-  if (verbose >= sizeof(unsigned int) * CHAR_BIT)
+  if (verbose >= sizeof(uint32_t) * CHAR_BIT)
     throw (basic_error() << "add backend on the logging engine "
            "failed: invalid verbose");
 
@@ -55,9 +55,9 @@ unsigned long engine::add(
   info->verbose = verbose;
 
   // Lock engine.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   info->id = ++_id;
-  for (unsigned int i(0); i <= verbose; ++i)
+  for (uint32_t i(0); i <= verbose; ++i)
     _list_types[i] |= types;
 
   _backends.push_back(info.get());
@@ -82,15 +82,15 @@ void engine::load() {
  *  @param[in] size     The string size to log.
  */
 void engine::log(
-               unsigned long long types,
-               unsigned int verbose,
+               uint64_t types,
+               uint32_t verbose,
                char const* msg,
-               unsigned int size) {
+               uint32_t size) {
   if (!msg)
     return;
 
   // Lock engine.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   for (std::vector<backend_info*>::const_iterator
          it(_backends.begin()), end(_backends.end());
        it != end;
@@ -108,7 +108,7 @@ void engine::log(
  */
 bool engine::remove(unsigned long id) {
   // Lock engine.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   for (std::vector<backend_info*>::iterator
          it(_backends.begin()), end(_backends.end());
        it != end;
@@ -129,15 +129,15 @@ bool engine::remove(unsigned long id) {
  *
  *  @return The number of backend was remove.
  */
-unsigned int engine::remove(backend* obj) {
+uint32_t engine::remove(backend* obj) {
   if (!obj)
     throw (basic_error() << "remove backend on the logging engine "
            "failed:bad argument (null pointer)");
 
   // Lock engine.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   std::vector<backend_info*>::iterator it(_backends.begin());
-  unsigned int count_remove(0);
+  uint32_t count_remove(0);
   while (it != _backends.end()) {
     if ((*it)->obj != obj)
       ++it;
@@ -156,7 +156,7 @@ unsigned int engine::remove(backend* obj) {
  *  Close and open all backend.
  */
 void engine::reopen() {
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   for (std::vector<backend_info*>::const_iterator
          it(_backends.begin()), end(_backends.end());
        it != end;
@@ -201,7 +201,7 @@ void engine::_rebuild_types() {
          it(_backends.begin()), end(_backends.end());
        it != end;
        ++it) {
-    for (unsigned int i(0); i <= (*it)->verbose; ++i)
+    for (uint32_t i(0); i <= (*it)->verbose; ++i)
       _list_types[i] |= (*it)->types;
   }
 }

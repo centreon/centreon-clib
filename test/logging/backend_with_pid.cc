@@ -35,9 +35,9 @@ using namespace com::centreon::logging;
 static bool check_pid(std::string const& data, char const* msg) {
   if (data[0] != '[' || data.size() < 4)
     return (false);
-  unsigned int pid_size(
-    static_cast<unsigned int>(data.size() - strlen(msg) - 1 - 3));
-  for (unsigned int i(1); i < pid_size; ++i)
+  uint32_t pid_size(
+    static_cast<uint32_t>(data.size() - strlen(msg) - 1 - 3));
+  for (uint32_t i(1); i < pid_size; ++i)
     if (!isdigit(data[i]))
       return (false);
   if (data.compare(3 + pid_size, strlen(msg), msg))

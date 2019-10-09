@@ -57,7 +57,7 @@ namespace              io {
     void               path(char const* path);
     void               path(std::string const& path);
     void               refresh();
-    unsigned long long size() const throw ();
+    uint64_t size() const throw ();
 
   private:
     void               _internal_copy(file_entry const& right);

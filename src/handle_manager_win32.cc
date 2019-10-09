@@ -65,7 +65,7 @@ void handle_manager::_setup_array() {
     }
 
     // Set handles.
-    unsigned int i(0);
+    uint32_t i(0);
     for (std::map<native_handle, handle_action*>::iterator
            it(_handles.begin()), end(_handles.end());
          it != end;

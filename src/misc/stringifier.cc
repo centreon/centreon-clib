@@ -184,7 +184,7 @@ stringifier& stringifier::operator<<(stringifier const& str) throw () {
  *
  *  @return This object.
  */
-stringifier& stringifier::operator<<(unsigned int u) throw () {
+stringifier& stringifier::operator<<(uint32_t u) throw () {
   return (_insert("%u", u));
 }
 
@@ -195,19 +195,8 @@ stringifier& stringifier::operator<<(unsigned int u) throw () {
  *
  *  @return This object.
  */
-stringifier& stringifier::operator<<(unsigned long long ull) throw () {
+stringifier& stringifier::operator<<(uint64_t ull) throw () {
   return (_insert("%llu", ull));
-}
-
-/**
- *  Insertion operator.
- *
- *  @param[in] ul  Unsigned long to concatenate to basic message.
- *
- *  @return This object.
- */
-stringifier& stringifier::operator<<(unsigned long ul) throw () {
-  return (_insert("%lu", ul));
 }
 
 /**
@@ -231,7 +220,7 @@ stringifier& stringifier::operator<<(void const* p) throw () {
  */
 stringifier& stringifier::append(
                             char const* str,
-                            unsigned int size) throw () {
+                            uint32_t size) throw () {
   return (_insert("%.*s", size, str));
 }
 
@@ -275,7 +264,7 @@ void stringifier::reset() throw () {
  *
  *  @return The size of the buffer.
  */
-unsigned int stringifier::size() const throw () {
+uint32_t stringifier::size() const throw () {
   return (_current);
 }
 
@@ -299,7 +288,7 @@ stringifier& stringifier::_insert(
   if (ret < 0)
     return (*this);
 
-  unsigned int size(static_cast<unsigned int>(ret + 1));
+  uint32_t size(static_cast<uint32_t>(ret + 1));
   if (size + _current > _size) {
     if (!_realloc(size + _current))
       return (*this);
@@ -326,7 +315,7 @@ stringifier& stringifier::_insert(
 template <typename T>
 stringifier& stringifier::_insert(
                             char const* format,
-                            unsigned int limit,
+                            uint32_t limit,
                             T val) throw () {
   int ret(snprintf(_buffer + _current,
                    _size - _current,
@@ -336,7 +325,7 @@ stringifier& stringifier::_insert(
   if (ret < 0)
     return (*this);
 
-  unsigned int size(static_cast<unsigned int>(ret + 1));
+  uint32_t size(static_cast<uint32_t>(ret + 1));
   if (size + _current > _size) {
     if (!_realloc(size + _current))
       return (*this);
@@ -380,7 +369,7 @@ stringifier& stringifier::_internal_copy(stringifier const& right) {
  *
  *  @return True on success, otherwise false.
  */
-bool stringifier::_realloc(unsigned int new_size) throw () {
+bool stringifier::_realloc(uint32_t new_size) throw () {
   try {
     _size = (new_size > _size * 2 ? new_size : _size * 2);
     char* new_buffer(new char[_size]);

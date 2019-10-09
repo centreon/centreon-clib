@@ -278,7 +278,7 @@ bool file_stream::rename(
       file_write.open(new_filename, "w");
 
       char data[4096];
-      unsigned int len;
+      uint32_t len;
       while ((len = file_read.read(data, sizeof(data))))
         file_write.write(data, len);
     }
