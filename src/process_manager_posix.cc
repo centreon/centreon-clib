@@ -27,7 +27,7 @@
 #include "com/centreon/logging/logger.hh"
 #include "com/centreon/process.hh"
 #include "com/centreon/process_listener.hh"
-#include "com/centreon/process_manager_posix.hh"
+#include "com/centreon/process_manager.hh"
 
 using namespace com::centreon;
 

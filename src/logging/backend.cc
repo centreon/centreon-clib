@@ -16,15 +16,9 @@
 ** For more information : contact@centreon.com
 */
 
-#ifdef _WIN32
-#include <windows.h>
-#else
 #include <sys/types.h>
 #include <unistd.h>
-#endif  // _WIN32
-
 #include <cstring>
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/concurrency/thread.hh"
 #include "com/centreon/logging/backend.hh"
 #include "com/centreon/misc/stringifier.hh"
@@ -183,11 +177,7 @@ void backend::_build_header(misc::stringifier& buffer) {
   else if (_show_timestamp == microsecond)
     buffer << "[" << timestamp::now().to_useconds() << "] ";
   if (_show_pid) {
-#ifdef _WIN32
-    buffer << "[" << GetCurrentProcessId() << "] ";
-#else
     buffer << "[" << getpid() << "] ";
-#endif
   }
   if (_show_thread_id)
     buffer << "[" << concurrency::thread::get_current_id() << "] ";

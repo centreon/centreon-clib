@@ -16,13 +16,44 @@
 ** For more information : contact@centreon.com
 */
 
-#ifndef CC_CONCURRENCY_READ_WRITE_LOCK_HH
-#define CC_CONCURRENCY_READ_WRITE_LOCK_HH
+#ifndef CC_CONCURRENCY_READ_WRITE_LOCK_POSIX_HH
+#define CC_CONCURRENCY_READ_WRITE_LOCK_POSIX_HH
 
-#ifdef _WIN32
-#include "com/centreon/concurrency/read_write_lock_win32.hh"
-#else
-#include "com/centreon/concurrency/read_write_lock_posix.hh"
-#endif  // Windows or POSIX implementation.
+#include <pthread.h>
+#include "com/centreon/namespace.hh"
 
-#endif  // !CC_CONCURRENCY_READ_WRITE_LOCK_HH
+CC_BEGIN()
+
+namespace concurrency {
+/**
+ *  @class read_write_lock read_write_lock_posix.hh
+ *"com/centreon/concurrency/read_write_lock.hh"
+ *  @brief Readers/writer lock.
+ *
+ *  Implementation of the readers/writer lock synchronization
+ *  primitive.
+ */
+class read_write_lock {
+ public:
+  read_write_lock();
+  ~read_write_lock() throw();
+  void read_lock();
+  bool read_lock(unsigned long timeout);
+  bool read_trylock();
+  void read_unlock();
+  void write_lock();
+  bool write_lock(unsigned long timeout);
+  bool write_trylock();
+  void write_unlock();
+
+ private:
+  read_write_lock(read_write_lock const& right);
+  read_write_lock& operator=(read_write_lock const& right);
+
+  pthread_rwlock_t _rwl;
+};
+}
+
+CC_END()
+
+#endif  // !CC_CONCURRENCY_READ_WRITE_LOCK_POSIX_HH

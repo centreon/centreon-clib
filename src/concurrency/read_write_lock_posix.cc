@@ -22,7 +22,7 @@
 #include <ctime>
 #include <pthread.h>
 #include "com/centreon/exceptions/basic.hh"
-#include "com/centreon/concurrency/read_write_lock_posix.hh"
+#include "com/centreon/concurrency/read_write_lock.hh"
 
 using namespace com::centreon::concurrency;
 
