@@ -32,8 +32,8 @@
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/exceptions/interruption.hh"
 #include "com/centreon/misc/command_line.hh"
-#include "com/centreon/process_manager_posix.hh"
-#include "com/centreon/process_posix.hh"
+#include "com/centreon/process_manager.hh"
+#include "com/centreon/process.hh"
 
 using namespace com::centreon;
 

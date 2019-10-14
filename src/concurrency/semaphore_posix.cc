@@ -23,7 +23,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "com/centreon/exceptions/basic.hh"
-#include "com/centreon/concurrency/semaphore_posix.hh"
+#include "com/centreon/concurrency/semaphore.hh"
 
 using namespace com::centreon::concurrency;
 
