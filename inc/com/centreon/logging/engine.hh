@@ -20,8 +20,8 @@
 #define CC_LOGGING_ENGINE_HH
 
 #include <climits>
+#include <mutex>
 #include <vector>
-#include "com/centreon/concurrency/mutex.hh"
 #include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -90,7 +90,7 @@ class engine {
   unsigned long _id;
   static engine* _instance;
   unsigned long long _list_types[sizeof(unsigned int) * CHAR_BIT];
-  mutable concurrency::mutex _mtx;
+  mutable std::mutex _mtx;
 };
 }
 

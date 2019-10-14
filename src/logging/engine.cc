@@ -20,12 +20,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-#include "com/centreon/concurrency/locker.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/backend.hh"
 #include "com/centreon/logging/engine.hh"
 
-using namespace com::centreon::concurrency;
 using namespace com::centreon::logging;
 
 // Class instance.
@@ -56,7 +54,7 @@ unsigned long engine::add(backend* obj,
   info->verbose = verbose;
 
   // Lock engine.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   info->id = ++_id;
   for (unsigned int i(0); i <= verbose; ++i)
     _list_types[i] |= types;
@@ -90,7 +88,7 @@ void engine::log(unsigned long long types,
     return;
 
   // Lock engine.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   for (std::vector<backend_info*>::const_iterator it(_backends.begin()),
        end(_backends.end());
        it != end;
@@ -108,7 +106,7 @@ void engine::log(unsigned long long types,
  */
 bool engine::remove(unsigned long id) {
   // Lock engine.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   for (std::vector<backend_info*>::iterator it(_backends.begin()),
        end(_backends.end());
        it != end;
@@ -135,7 +133,7 @@ unsigned int engine::remove(backend* obj) {
                            "failed:bad argument (null pointer)");
 
   // Lock engine.
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   std::vector<backend_info*>::iterator it(_backends.begin());
   unsigned int count_remove(0);
   while (it != _backends.end()) {
@@ -156,7 +154,7 @@ unsigned int engine::remove(backend* obj) {
  *  Close and open all backend.
  */
 void engine::reopen() {
-  locker lock(&_mtx);
+  std::lock_guard<std::mutex> lock(_mtx);
   for (std::vector<backend_info*>::const_iterator it(_backends.begin()),
        end(_backends.end());
        it != end;
