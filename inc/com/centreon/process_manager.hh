@@ -37,7 +37,7 @@ class process_listener;
  *"com/centreon/process_manager_posix.hh"
  *  @brief This class manage process.
  *
- *  This class is a singleton and manage process.
+ *  This class is a singleton, it manages processes.
  */
 class process_manager {
   struct orphan {

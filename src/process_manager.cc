@@ -71,9 +71,9 @@ void process_manager::add(process* p) {
     _processes_fd[p->_stream[process::err]] = p;
 
   // Add timeout to kill process if necessary.
-  if (p->_timeout)
+  if (p->_timeout) {
     _processes_timeout.insert({p->_timeout, p});
-
+  }
   // Need to update file descriptor list.
   _update = true;
 }
@@ -246,15 +246,12 @@ void process_manager::_erase_timeout(process* p) {
   if (!p || !p->_timeout)
     return;
   std::lock_guard<std::mutex> lock(_lock_processes);
-  auto it = _processes_timeout.find(p->_timeout),
-       end = _processes_timeout.end();
-  // Find and erase process from timeout list.
-  while (it != end && it->first == p->_timeout) {
+  auto range = _processes_timeout.equal_range(p->_timeout);
+  for (auto it = range.first; it != range.second; ++it) {
     if (it->second == p) {
       _processes_timeout.erase(it);
       break;
     }
-    ++it;
   }
 }
 
@@ -265,19 +262,17 @@ void process_manager::_kill_processes_timeout() noexcept {
   std::lock_guard<std::mutex> lock(_lock_processes);
   // Get the current time.
   std::time_t now(time(nullptr));
-  std::multimap<std::time_t, process*>::iterator it(
-      _processes_timeout.begin());
+
   // Kill process who timeout and remove it from timeout list.
-  while (it != _processes_timeout.end() && now >= it->first) {
-    process* p(it->second);
+  for (auto it = _processes_timeout.begin(), end = _processes_timeout.end(); it != end && it->first <= now; ) {
+    process* p = it->second;
     try {
       p->kill();
     }
     catch (std::exception const& e) {
       log_error(logging::high) << e.what();
     }
-    auto tmp = it++;
-    _processes_timeout.erase(tmp);
+    it = _processes_timeout.erase(it);
   }
 }
 
@@ -355,7 +350,7 @@ void process_manager::_run() {
         char const* msg(strerror(errno));
         throw basic_error() << "poll failed: " << msg;
       }
-      for (unsigned int i(0), checked(0);
+      for (unsigned int i = 0, checked = 0;
            checked < static_cast<unsigned int>(ret) && i < _fds_size;
            ++i) {
 
@@ -375,7 +370,7 @@ void process_manager::_run() {
         }
 
         // Data are available.
-        unsigned int size(0);
+        unsigned int size = 0;
         if (_fds[i].revents & (POLLIN | POLLPRI))
           size = _read_stream(_fds[i].fd);
         // File descriptor was close.
@@ -501,13 +496,13 @@ void process_manager::_wait_orphans_pid() noexcept {
 void process_manager::_wait_processes() noexcept {
   try {
     while (true) {
-      int status(0);
+      int status = 0;
       pid_t pid(::waitpid(-1, &status, WNOHANG));
       // No process are finished.
       if (pid <= 0)
         break;
 
-      process* p(nullptr);
+      process* p = nullptr;
       // Get process to link with pid and remove this pid
       // to the process manager.
       {

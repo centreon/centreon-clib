@@ -224,7 +224,7 @@ stringifier& stringifier::operator<<(void const* p) throw() {
  *  @return This object.
  */
 stringifier& stringifier::operator<<(std::thread::id const& id) throw() {
-  return (_insert("%p", id));
+  return (_insert("%lu", id));
 }
 
 /**

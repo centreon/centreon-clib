@@ -111,7 +111,7 @@ timestamp const& process::end_time() const throw() {
  *                     passed as environment to the new process. If env
  *                     is NULL, the current environement are passed of
  *                     the new process.
- *  @param[in] timeout Maximum time in seconde to execute process. After
+ *  @param[in] timeout Maximum time in seconds to execute process. After
  *                     this time the process will be kill.
  */
 void process::exec(char const* cmd, char** env, unsigned int timeout) {
@@ -119,8 +119,8 @@ void process::exec(char const* cmd, char** env, unsigned int timeout) {
 
   // Check if process already running.
   if (_is_running())
-    throw(basic_error() << "process " << _process
-                        << " is already started and has not been waited");
+    throw basic_error() << "process " << _process
+                        << " is already started and has not been waited";
 
   // Reset variable.
   _buffer_err.clear();

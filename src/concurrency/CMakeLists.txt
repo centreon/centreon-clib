@@ -24,8 +24,6 @@ set(INC_DIR "${INC_DIR}/concurrency")
 set(
   SOURCES
   ${SOURCES}
-  "${SRC_DIR}/read_write_lock_posix.cc"
-  "${SRC_DIR}/semaphore_posix.cc"
   "${SRC_DIR}/thread_posix.cc"
   PARENT_SCOPE
 )
@@ -34,10 +32,6 @@ set(
 set(
   HEADERS
   ${HEADERS}
-  "${INC_DIR}/read_locker.hh"
-  "${INC_DIR}/read_write_lock.hh"
-  "${INC_DIR}/semaphore.hh"
   "${INC_DIR}/thread.hh"
-  "${INC_DIR}/write_locker.hh"
   PARENT_SCOPE
 )
