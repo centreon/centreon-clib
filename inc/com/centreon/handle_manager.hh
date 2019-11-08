@@ -1,5 +1,5 @@
 /*
-** Copyright 2012-2013 Centreon
+** Copyright 2012-2013,2019 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -19,10 +19,6 @@
 #ifndef CC_HANDLE_MANAGER_HH
 #define CC_HANDLE_MANAGER_HH
 
-#ifdef _WIN32
-#include "com/centreon/handle_manager_win32.hh"
-#else
 #include "com/centreon/handle_manager_posix.hh"
-#endif  // Windows or POSIX implementation.
 
 #endif  // !CC_HANDLE_MANAGER_HH

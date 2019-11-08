@@ -16,17 +16,17 @@
 ** For more information : contact@centreon.com
 */
 
-#include "com/centreon/handle.hh"
 #include "com/centreon/handle_action.hh"
+#include "com/centreon/handle.hh"
 #include "com/centreon/handle_listener.hh"
 
 using namespace com::centreon;
 
 /**************************************
-*                                     *
-*           Public Methods            *
-*                                     *
-**************************************/
+ *                                     *
+ *           Public Methods            *
+ *                                     *
+ **************************************/
 
 /**
  *  Constructor.
@@ -50,7 +50,7 @@ handle_action::handle_action(handle_action const& right) : task(right) {
 /**
  *  Destructor.
  */
-handle_action::~handle_action() throw() {}
+handle_action::~handle_action() noexcept {}
 
 /**
  *  Assignment operator.
@@ -64,7 +64,7 @@ handle_action& handle_action::operator=(handle_action const& right) {
     task::operator=(right);
     _internal_copy(right);
   }
-  return (*this);
+  return *this;
 }
 
 /**
@@ -72,22 +72,26 @@ handle_action& handle_action::operator=(handle_action const& right) {
  *
  *  @return true if the task is threadable.
  */
-bool handle_action::is_threadable() const throw() { return (_is_threadable); }
+bool handle_action::is_threadable() const noexcept {
+  return _is_threadable;
+}
 
 /**
  *  Get the handle.
  *
  *  @return Handle.
  */
-handle* handle_action::get_handle() const throw() { return (_h); }
+handle* handle_action::get_handle() const noexcept {
+  return _h;
+}
 
 /**
  *  Get the listener.
  *
  *  @return Listener.
  */
-handle_listener* handle_action::get_handle_listener() const throw() {
-  return (_hl);
+handle_listener* handle_action::get_handle_listener() const noexcept {
+  return _hl;
 }
 
 /**
@@ -110,16 +114,16 @@ void handle_action::run() {
  *
  *  @param[in] a Action to perform.
  */
-void handle_action::set_action(action a) throw() {
+void handle_action::set_action(action a) noexcept {
   _action = a;
   return;
 }
 
 /**************************************
-*                                     *
-*           Private Methods           *
-*                                     *
-**************************************/
+ *                                     *
+ *           Private Methods           *
+ *                                     *
+ **************************************/
 
 /**
  *  Copy internal data members.
