@@ -18,7 +18,6 @@
 
 #include <cerrno>
 #include <cstring>
-#include <memory>
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/handle_action.hh"
 #include "com/centreon/handle_listener.hh"
@@ -33,24 +32,13 @@ using namespace com::centreon;
  *  @param[in] tm Task manager.
  */
 handle_manager::handle_manager(task_manager* tm)
-    : _array(NULL), _recreate_array(false), _task_manager(tm) {}
-
-/**
- *  Copy constructor.
- *
- *  @param[in] hm Object to copy.
- */
-handle_manager::handle_manager(handle_manager const& hm) {
-  _internal_copy(hm);
-}
+    : _array(nullptr), _recreate_array(false), _task_manager(tm) {}
 
 /**
  *  Destructor.
  */
-handle_manager::~handle_manager() throw() {
-  for (std::map<native_handle, handle_action*>::const_iterator
-           it(_handles.begin()),
-       end(_handles.end());
+handle_manager::~handle_manager() noexcept {
+  for (auto it = _handles.begin(), end = _handles.end();
        it != end; ++it)
     try {
       if (_task_manager)
@@ -59,19 +47,6 @@ handle_manager::~handle_manager() throw() {
     } catch (...) {
     }
   delete[] _array;
-}
-
-/**
- *  Assignment operator.
- *
- *  @param[in] hm Object to copy.
- *
- *  @return This object.
- */
-handle_manager& handle_manager::operator=(handle_manager const& hm) {
-  if (this != &hm)
-    _internal_copy(hm);
-  return *this;
 }
 
 /**
@@ -92,19 +67,18 @@ void handle_manager::add(handle* h, handle_listener* hl, bool is_threadable) {
   // Check native handle.
   native_handle nh(h->get_native_handle());
   if (nh == native_handle_null)
-    throw(basic_error() << "attempt to add handle with invalid native "
-                           "handle in the handle manager");
+    throw basic_error() << "attempt to add handle with invalid native "
+                           "handle in the handle manager";
 
   // Check that handle isn't already registered.
   if (_handles.find(nh) == _handles.end()) {
-    std::unique_ptr<handle_action> ha(new handle_action(h, hl, is_threadable));
-    std::pair<native_handle, handle_action*> item(nh, ha.get());
+    handle_action* ha = new handle_action(h, hl, is_threadable);
+    std::pair<native_handle, handle_action*> item(nh, ha);
     _handles.insert(item);
-    ha.release();
     _recreate_array = true;
   } else
-    throw(basic_error() << "attempt to add handle "
-                           "already monitored by handle manager");
+    throw basic_error() << "attempt to add handle "
+                           "already monitored by handle manager";
 }
 
 /**
@@ -115,9 +89,7 @@ void handle_manager::add(handle* h, handle_listener* hl, bool is_threadable) {
 void handle_manager::link(task_manager* tm) {
   // Remove old tasks.
   if (_task_manager)
-    for (std::map<native_handle, handle_action*>::iterator it(_handles.begin()),
-         end(_handles.end());
-         it != end; ++it)
+    for (auto it = _handles.begin(), end = _handles.end(); it != end; ++it)
       try {
         _task_manager->remove(it->second);
       } catch (...) {
@@ -183,30 +155,20 @@ unsigned int handle_manager::remove(handle_listener* hl) {
 }
 
 /**
- *  Copy internal data members.
- *
- *  @param[in] hm Object to copy.
- */
-void handle_manager::_internal_copy(handle_manager const& hm) {
-  link(hm._task_manager);  // Will remove tasks only, not register.
-  delete[] _array;
-  _array = NULL;
-  _recreate_array = true;
-  _handles = hm._handles;
-}
-
-/**
  *  Multiplex input/output and notify handle listeners if necessary and
  *  execute the task manager.
  */
 void handle_manager::multiplex() {
+  system("echo 'multiplex1...' >> /tmp/titi");
   // Check that task manager is present.
   if (!_task_manager)
-    throw(basic_error() << "cannot multiplex handles with no task manager");
+    throw basic_error() << "cannot multiplex handles with no task manager";
 
+  system("echo 'multiplex2...' >> /tmp/titi");
   // Create or update pollfd.
   _setup_array();
 
+  system("echo 'multiplex3...' >> /tmp/titi");
   // Determined the poll timeout with the next execution time.
   int timeout(-1);
   timestamp now(timestamp::now());
@@ -220,32 +182,43 @@ void handle_manager::multiplex() {
   else
     timeout = next.to_mseconds() - now.to_mseconds();
 
+  system("echo 'multiplex4...' >> /tmp/titi");
   // Wait events.
   int ret = _poll(_array, _handles.size(), timeout);
   if (ret == -1) {
     char const* msg(strerror(errno));
-    throw(basic_error() << "handle multiplexing failed: " << msg);
+    throw basic_error() << "handle multiplexing failed: " << msg;
   }
 
+  system("echo 'multiplex5...' >> /tmp/titi");
   // Dispatch events.
   int nb_check(0);
-  for (unsigned int i(0), end(_handles.size()); i < end && nb_check < ret;
-       ++i) {
-    if (!_array[i].revents)
+  for (uint32_t i = 0, end = _handles.size(); i < end && nb_check < ret; ++i) {
+    if (!_array[i].revents) {
+      system("echo 'multiplex5 no revents...' >> /tmp/titi");
       continue;
+    }
     handle_action* task(_handles[_array[i].fd]);
-    if (_array[i].revents & (POLLERR | POLLNVAL))
+    if (_array[i].revents & (POLLERR | POLLNVAL)) {
+      system("echo 'multiplex5 error...' >> /tmp/titi");
       task->set_action(handle_action::error);
-    else if (_array[i].revents & POLLOUT)
+    }
+    else if (_array[i].revents & POLLOUT) {
+      system("echo 'multiplex5 write...' >> /tmp/titi");
       task->set_action(handle_action::write);
-    else if (_array[i].revents & (POLLHUP | POLLIN | POLLPRI))
+    }
+    else if (_array[i].revents & (POLLHUP | POLLIN | POLLPRI)) {
+      system("echo 'multiplex5 read...' >> /tmp/titi");
       task->set_action(handle_action::read);
+    }
     _task_manager->add(task, now, task->is_threadable());
     ++nb_check;
   }
 
+  system("echo 'multiplex6...' >> /tmp/titi");
   // Flush task needs to be execute at this time.
   _task_manager->execute(timestamp::now());
+  system("echo 'multiplex7...' >> /tmp/titi");
 }
 
 /**
@@ -260,7 +233,7 @@ void handle_manager::multiplex() {
  *  @return A positive number on success, 0 if timeout, -1 on error and
  *          errno was set.
  */
-int handle_manager::_poll(pollfd* fds, nfds_t nfds, int timeout) throw() {
+int handle_manager::_poll(pollfd* fds, nfds_t nfds, int timeout) noexcept {
   int ret(0);
   do {
     ret = poll(fds, nfds, timeout);
@@ -279,7 +252,7 @@ void handle_manager::_setup_array() {
 
     // Is there any handle ?
     if (_handles.empty())
-      _array = NULL;
+      _array = nullptr;
     else {
       _array = new pollfd[_handles.size()];
       _recreate_array = false;

@@ -98,15 +98,21 @@ handle_listener* handle_action::get_handle_listener() const noexcept {
  *  Run the task.
  */
 void handle_action::run() {
-  action a(_action);
+  action a = _action;
   _action = none;
-  if (a == error)
-    _hl->error(*_h);
-  else if (a == read)
-    _hl->read(*_h);
-  else if (a == write)
-    _hl->write(*_h);
-  return;
+  switch (a) {
+    case error:
+      _hl->error(*_h);
+      break;
+    case read:
+      _hl->read(*_h);
+      break;
+    case write:
+      _hl->write(*_h);
+      break;
+    default:
+      break;
+  }
 }
 
 /**
@@ -116,7 +122,6 @@ void handle_action::run() {
  */
 void handle_action::set_action(action a) noexcept {
   _action = a;
-  return;
 }
 
 /**************************************
@@ -135,5 +140,4 @@ void handle_action::_internal_copy(handle_action const& right) {
   _h = right._h;
   _hl = right._hl;
   _is_threadable = right._is_threadable;
-  return;
 }

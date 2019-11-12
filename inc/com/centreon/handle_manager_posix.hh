@@ -40,10 +40,10 @@ class             task_manager;
  */
 class             handle_manager {
 public:
-                  handle_manager(task_manager* tm = NULL);
-                  handle_manager(handle_manager const& right);
+                  handle_manager(task_manager* tm = nullptr);
+                  handle_manager(handle_manager const& right) = delete;
   virtual         ~handle_manager() throw ();
-  handle_manager& operator=(handle_manager const& right);
+  handle_manager& operator=(handle_manager const& right) = delete;
   void            add(
                     handle* h,
                     handle_listener* hl,
@@ -54,7 +54,7 @@ public:
   unsigned int    remove(handle_listener* hl);
 
 private:
-  void            _internal_copy(handle_manager const& right);
+  //void            _internal_copy(handle_manager const& right);
   static int      _poll(
                     pollfd *fds,
                     nfds_t nfds,

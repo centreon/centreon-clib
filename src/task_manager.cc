@@ -16,6 +16,7 @@
 ** For more information : contact@centreon.com
 */
 
+#include <sstream>
 #include "com/centreon/task_manager.hh"
 #include <algorithm>
 #include <unistd.h>
@@ -82,6 +83,12 @@ uint64_t task_manager::add(task* t,
                        bool is_runnable,
                        bool should_delete) {
   std::lock_guard<std::mutex> lock(_tasks_m);
+
+  // FIXME DBR
+  std::ostringstream oss;
+  oss << "echo 'task_manager::add1...runnable"
+    << is_runnable << "' >> /tmp/titi";
+  system(oss.str().c_str());
   _tasks.emplace(when, internal_task(t, ++_current_id, 0, is_runnable,
                                      should_delete));
   return _current_id;
@@ -105,6 +112,12 @@ uint64_t task_manager::add(task* t,
                        bool is_runnable,
                        bool should_delete) {
   std::lock_guard<std::mutex> lock(_tasks_m);
+
+  // FIXME DBR
+  std::ostringstream oss;
+  oss << "echo 'task_manager::add2...runnable"
+    << is_runnable << "' >> /tmp/titi";
+  system(oss.str().c_str());
   _tasks.emplace(when, internal_task(t, ++_current_id, interval,
                                      is_runnable, should_delete));
   return _current_id;
@@ -192,28 +205,35 @@ bool task_manager::remove(uint64_t id) {
  *  @return The number of task to be execute.
  */
 uint32_t task_manager::execute(timestamp const& now) {
+  system("echo 'execute1...' >> /tmp/titi");
   std::deque<std::pair<timestamp, internal_task>> recurring;
   uint32_t retval = 0;
   std::unique_lock<std::mutex> lock(_tasks_m);
   auto it = _tasks.begin();
-  while (!_tasks.empty() && it->first <= now) {
+  while (it != _tasks.end() && it->first <= now) {
+    system("echo 'execute1 while' >> /tmp/titi");
     internal_task& itask = it->second;
     task* tsk = itask.tsk;
 
+    system("echo 'execute1 erase' >> /tmp/titi");
+    _tasks.erase(it);
+
     if (itask.interval) {
+      system("echo 'execute1 interval' >> /tmp/titi");
       timestamp new_time(now);
       new_time.add_useconds(itask.interval);
       recurring.emplace_back(std::make_pair(new_time, itask));
-      _tasks.erase(_tasks.begin());
     }
-    else
-      _tasks.erase(it);
 
+    system("echo 'execute1 unlock' >> /tmp/titi");
     lock.unlock();
 
-    if (itask.is_runnable)
+    if (itask.is_runnable) {
+      system("echo 'execute1 enqueue task' >> /tmp/titi");
       _enqueue(tsk);
+    }
     else {
+      system("echo 'execute1 wait...' >> /tmp/titi");
       /* This task needs to be run in the main thread without any concurrency */
       _wait_for_queue_empty();
       tsk->run();
@@ -225,10 +245,17 @@ uint32_t task_manager::execute(timestamp const& now) {
     lock.lock();
   }
 
+  system("echo 'execute2...' >> /tmp/titi");
   /* Update the task table with recurring tasks. */
   for (auto& t : recurring) {
     _tasks.insert(t);
   }
+  system("echo 'execute3...' >> /tmp/titi");
+
+  lock.unlock();
+  /* Wait for task ending. */
+  _wait_for_queue_empty();
+  system("echo 'execute4...' >> /tmp/titi");
   return retval;
 }
 
