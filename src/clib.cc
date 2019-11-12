@@ -18,7 +18,6 @@
 
 #include <cstdlib>
 #include "com/centreon/clib.hh"
-#include "com/centreon/logging/engine.hh"
 #include "com/centreon/process_manager.hh"
 
 using namespace com::centreon;
@@ -65,8 +64,6 @@ void clib::unload() {
  *  @param[in] flags Specify which elements to load.
  */
 clib::clib(unsigned int flags) {
-  if (flags & with_logging_engine)
-    logging::engine::load();
   if (flags & with_process_manager)
     process_manager::load();
 }
@@ -76,5 +73,4 @@ clib::clib(unsigned int flags) {
  */
 clib::~clib() throw() {
   process_manager::unload();
-  logging::engine::unload();
 }

@@ -24,7 +24,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include "com/centreon/exceptions/basic.hh"
-#include "com/centreon/logging/logger.hh"
 #include "com/centreon/process.hh"
 #include "com/centreon/process_listener.hh"
 #include "com/centreon/process_manager.hh"
@@ -232,7 +231,7 @@ void process_manager::_close_stream(int fd) noexcept {
     }
   }
   catch (std::exception const& e) {
-    log_error(logging::high) << e.what();
+    //log_error(logging::high) << e.what();
   }
 }
 
@@ -270,7 +269,7 @@ void process_manager::_kill_processes_timeout() noexcept {
       p->kill();
     }
     catch (std::exception const& e) {
-      log_error(logging::high) << e.what();
+      //log_error(logging::high) << e.what();
     }
     it = _processes_timeout.erase(it);
   }
@@ -324,7 +323,7 @@ unsigned int process_manager::_read_stream(int fd) noexcept {
     }
   }
   catch (std::exception const& e) {
-    log_error(logging::high) << e.what();
+    //log_error(logging::high) << e.what();
   }
   return size;
 }
@@ -379,8 +378,8 @@ void process_manager::_run() {
         //  Error!
         else if (_fds[i].revents & (POLLERR | POLLNVAL)) {
           _update = true;
-          log_error(logging::high) << "invalid fd " << _fds[i].fd
-                                   << " from process manager";
+          //log_error(logging::high) << "invalid fd " << _fds[i].fd
+            //                       << " from process manager";
         }
       }
       // Release finished process.
@@ -391,7 +390,7 @@ void process_manager::_run() {
     }
   }
   catch (std::exception const& e) {
-    log_error(logging::high) << e.what();
+    //log_error(logging::high) << e.what();
   }
 }
 
@@ -486,7 +485,7 @@ void process_manager::_wait_orphans_pid() noexcept {
     }
   }
   catch (std::exception const& e) {
-    log_error(logging::high) << e.what();
+    //log_error(logging::high) << e.what();
   }
 }
 
@@ -523,6 +522,6 @@ void process_manager::_wait_processes() noexcept {
     }
   }
   catch (std::exception const& e) {
-    log_error(logging::high) << e.what();
+    //log_error(logging::high) << e.what();
   }
 }

@@ -24,7 +24,6 @@ add_subdirectory("clib")
 add_subdirectory("concurrency")
 add_subdirectory("exceptions")
 add_subdirectory("io")
-add_subdirectory("logging")
 add_subdirectory("misc")
 
 # bin_test_process_output
