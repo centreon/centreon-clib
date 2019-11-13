@@ -20,6 +20,7 @@
 #  define CC_HANDLE_MANAGER_POSIX_HH
 
 #  include <map>
+#  include <mutex>
 #  include <poll.h>
 #  include <utility>
 #  include "com/centreon/namespace.hh"

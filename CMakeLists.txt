@@ -196,7 +196,7 @@ set(
   SOURCES
   "${SRC_DIR}/library_posix.cc"
   "${SRC_DIR}/process_manager.cc"
-  "${SRC_DIR}/process_posix.cc"
+  "${SRC_DIR}/process.cc"
   "${SRC_DIR}/clib.cc"
   "${SRC_DIR}/handle_manager.cc"
   "${SRC_DIR}/handle.cc"

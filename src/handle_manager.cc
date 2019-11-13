@@ -16,12 +16,13 @@
 ** For more information : contact@centreon.com
 */
 
+#include <sstream>
+#include "com/centreon/handle_manager.hh"
 #include <cerrno>
 #include <cstring>
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/handle_action.hh"
 #include "com/centreon/handle_listener.hh"
-#include "com/centreon/handle_manager.hh"
 #include "com/centreon/task_manager.hh"
 
 using namespace com::centreon;
@@ -38,8 +39,7 @@ handle_manager::handle_manager(task_manager* tm)
  *  Destructor.
  */
 handle_manager::~handle_manager() noexcept {
-  for (auto it = _handles.begin(), end = _handles.end();
-       it != end; ++it)
+  for (auto it = _handles.begin(), end = _handles.end(); it != end; ++it)
     try {
       if (_task_manager)
         _task_manager->remove(it->second);
@@ -164,9 +164,10 @@ void handle_manager::multiplex() {
   if (!_task_manager)
     throw basic_error() << "cannot multiplex handles with no task manager";
 
-  system("echo 'multiplex2...' >> /tmp/titi");
+  system("echo 'multiplex2 setup array...' >> /tmp/titi");
   // Create or update pollfd.
   _setup_array();
+  system("echo 'multiplex2 setup finished...' >> /tmp/titi");
 
   system("echo 'multiplex3...' >> /tmp/titi");
   // Determined the poll timeout with the next execution time.
@@ -191,6 +192,13 @@ void handle_manager::multiplex() {
   }
 
   system("echo 'multiplex5...' >> /tmp/titi");
+
+  //FIXME DBR
+  std::ostringstream oss;
+  oss << "echo 'multiplex5 _handles.size = " << _handles.size()
+    << " ret = " << ret << "' >> /tmp/titi";
+  system(oss.str().c_str());
+
   // Dispatch events.
   int nb_check(0);
   for (uint32_t i = 0, end = _handles.size(); i < end && nb_check < ret; ++i) {
@@ -202,14 +210,15 @@ void handle_manager::multiplex() {
     if (_array[i].revents & (POLLERR | POLLNVAL)) {
       system("echo 'multiplex5 error...' >> /tmp/titi");
       task->set_action(handle_action::error);
-    }
-    else if (_array[i].revents & POLLOUT) {
+    } else if (_array[i].revents & POLLOUT) {
       system("echo 'multiplex5 write...' >> /tmp/titi");
       task->set_action(handle_action::write);
-    }
-    else if (_array[i].revents & (POLLHUP | POLLIN | POLLPRI)) {
+    } else if (_array[i].revents & (POLLHUP | POLLIN | POLLPRI)) {
       system("echo 'multiplex5 read...' >> /tmp/titi");
       task->set_action(handle_action::read);
+    }
+    else {
+      system("echo 'multiplex5 NOTHING TO DO...' >> /tmp/titi");
     }
     _task_manager->add(task, now, task->is_threadable());
     ++nb_check;
@@ -261,8 +270,7 @@ void handle_manager::_setup_array() {
 
   // Update the pollfd.
   nfds_t nfds(0);
-  for (std::map<native_handle, handle_action*>::iterator it(_handles.begin()),
-       end(_handles.end());
+  for (auto it = _handles.begin(), end = _handles.end();
        it != end; ++it) {
     _array[nfds].fd = it->first;
     _array[nfds].events = 0;

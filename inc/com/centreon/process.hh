@@ -56,8 +56,8 @@ class process {
   virtual ~process() noexcept;
   void enable_stream(stream s, bool enable);
   timestamp const& end_time() const noexcept;
-  void exec(char const* cmd, char** env = NULL, unsigned int timeout = 0);
-  void exec(std::string const& cmd, unsigned int timeout = 0);
+  void exec(char const* cmd, char** env = nullptr, uint32_t timeout = 0);
+  void exec(std::string const& cmd, uint32_t timeout = 0);
   int exit_code() const noexcept;
   status exit_status() const noexcept;
   void kill();
@@ -69,9 +69,9 @@ class process {
   void terminate();
   void wait() const;
   bool wait(uint32_t timeout) const;
-  unsigned int write(std::string const& data);
-  unsigned int write(void const* data, unsigned int size);
   void update_ending_process(int status);
+  uint32_t write(std::string const& data);
+  uint32_t write(void const* data, uint32_t size);
 
  private:
   process(process const& p);

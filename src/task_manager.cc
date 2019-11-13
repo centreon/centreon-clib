@@ -40,7 +40,7 @@ task_manager::task_manager(uint32_t max_thread_count)
   for (uint32_t i = 0; i < max_thread_count; ++i)
     _workers.emplace_back([this] {
       while (true) {
-        task* t;
+        internal_task* t;
         {
           std::unique_lock<std::mutex> lock(_queue_m);
           _queue_cv.wait(lock, [this] { return _exit || !_queue.empty(); });
@@ -49,10 +49,11 @@ task_manager::task_manager(uint32_t max_thread_count)
 
           t = _queue.front();
           _queue.pop_front();
-          if (_queue.empty())
-            _queue_cv.notify_all();
         }
-        t->run();
+        t->tsk->run();
+        if (t->interval == 0) // auto_delete
+          delete t;
+        _queue_cv.notify_one();
       }
     });
 }
@@ -82,6 +83,7 @@ uint64_t task_manager::add(task* t,
                        timestamp const& when,
                        bool is_runnable,
                        bool should_delete) {
+  system("echo 'task_manager::add lock _tasks_m' >> /tmp/titi");
   std::lock_guard<std::mutex> lock(_tasks_m);
 
   // FIXME DBR
@@ -89,8 +91,11 @@ uint64_t task_manager::add(task* t,
   oss << "echo 'task_manager::add1...runnable"
     << is_runnable << "' >> /tmp/titi";
   system(oss.str().c_str());
-  _tasks.emplace(when, internal_task(t, ++_current_id, 0, is_runnable,
-                                     should_delete));
+
+  internal_task* itask =
+      new internal_task(t, ++_current_id, 0, is_runnable, should_delete);
+  _tasks.insert({when, itask});
+  system("echo 'task_manager::add unlock _tasks_m' >> /tmp/titi");
   return _current_id;
 }
 
@@ -111,6 +116,7 @@ uint64_t task_manager::add(task* t,
                        uint32_t interval,
                        bool is_runnable,
                        bool should_delete) {
+  system("echo 'task_manager::add2 lock _tasks_m' >> /tmp/titi");
   std::lock_guard<std::mutex> lock(_tasks_m);
 
   // FIXME DBR
@@ -118,8 +124,9 @@ uint64_t task_manager::add(task* t,
   oss << "echo 'task_manager::add2...runnable"
     << is_runnable << "' >> /tmp/titi";
   system(oss.str().c_str());
-  _tasks.emplace(when, internal_task(t, ++_current_id, interval,
-                                     is_runnable, should_delete));
+
+  internal_task* itask = new internal_task(t, ++_current_id, interval, is_runnable, should_delete);
+  _tasks.insert({when, itask});
   return _current_id;
 }
 
@@ -131,6 +138,7 @@ uint64_t task_manager::add(task* t,
  *          task need to be run.
  */
 timestamp task_manager::next_execution_time() const {
+  system("echo 'task_manager::next_execution_time lock _tasks_m' >> /tmp/titi");
   std::lock_guard<std::mutex> lock(_tasks_m);
   auto front = _tasks.begin();
   return (front == _tasks.end()) ? timestamp::max_time() : front->first;
@@ -149,20 +157,14 @@ uint32_t task_manager::remove(task* t) {
     return 0;
 
   // Lock the task manager.
+  system("echo 'task_manager::remove lock _tasks_m' >> /tmp/titi");
   std::lock_guard<std::mutex> lock(_tasks_m);
 
   uint32_t retval = 0;
   for (auto it = _tasks.begin(), end = _tasks.end(); it != end; ) {
-    if (it->second.tsk == t) {
-      //if (it->second.should_delete)
-      //  delete it->second.tsk;
-
-      {
-        std::lock_guard<std::mutex> lock(_queue_m);
-        if (std::find(_queue.begin(), _queue.end(), t) != _queue.end()) {
-          assert(1 == 0);
-        }
-      }
+    if (it->second->tsk == t) {
+      if (it->second->interval == 0)  // auto_delete
+        delete it->second;
       it = _tasks.erase(it);
       ++retval;
     }
@@ -182,14 +184,15 @@ uint32_t task_manager::remove(task* t) {
  */
 bool task_manager::remove(uint64_t id) {
   // Lock the task manager.
+  system("echo 'task_manager::remove2 lock _tasks_m' >> /tmp/titi");
   std::lock_guard<std::mutex> lock(_tasks_m);
 
   uint32_t retval = 0;
   for (auto it = _tasks.begin(), end = _tasks.end(); it != end; ++it) {
-    if (it->second.id == id) {
-      //if (it->second.should_delete)
-      //  delete it->second.tsk;
-      it = _tasks.erase(it);
+    if (it->second->id == id) {
+      if (it->second->interval == 0)  // auto_delete
+        delete it->second;
+      _tasks.erase(it);
       return true;
     }
   }
@@ -206,46 +209,50 @@ bool task_manager::remove(uint64_t id) {
  */
 uint32_t task_manager::execute(timestamp const& now) {
   system("echo 'execute1...' >> /tmp/titi");
-  std::deque<std::pair<timestamp, internal_task>> recurring;
+  std::deque<std::pair<timestamp, internal_task*>> recurring;
   uint32_t retval = 0;
+  system("echo 'task_manager::execute lock _tasks_m' >> /tmp/titi");
   std::unique_lock<std::mutex> lock(_tasks_m);
   auto it = _tasks.begin();
   while (it != _tasks.end() && it->first <= now) {
     system("echo 'execute1 while' >> /tmp/titi");
-    internal_task& itask = it->second;
-    task* tsk = itask.tsk;
+    // Get internal task.
+    internal_task* itask = it->second;
 
     system("echo 'execute1 erase' >> /tmp/titi");
+    // Remove entry
     _tasks.erase(it);
 
-    if (itask.interval) {
+    if (itask->interval) {
       system("echo 'execute1 interval' >> /tmp/titi");
       timestamp new_time(now);
-      new_time.add_useconds(itask.interval);
+      new_time.add_useconds(itask->interval);
       recurring.emplace_back(std::make_pair(new_time, itask));
     }
 
     system("echo 'execute1 unlock' >> /tmp/titi");
     lock.unlock();
 
-    if (itask.is_runnable) {
+    if (itask->is_runnable) {
       system("echo 'execute1 enqueue task' >> /tmp/titi");
-      _enqueue(tsk);
+      _enqueue(itask);
     }
     else {
       system("echo 'execute1 wait...' >> /tmp/titi");
       /* This task needs to be run in the main thread without any concurrency */
       _wait_for_queue_empty();
-      tsk->run();
+      itask->tsk->run();
+      if (itask->interval == 0) // auto_delete
+        delete itask;
     }
     ++retval;
 
     /* Reset iterator */
-    it = _tasks.begin();
     lock.lock();
+    it = _tasks.begin();
   }
 
-  system("echo 'execute2...' >> /tmp/titi");
+  system("echo 'execute2 recurring tasks inserted...' >> /tmp/titi");
   /* Update the task table with recurring tasks. */
   for (auto& t : recurring) {
     _tasks.insert(t);
@@ -264,13 +271,15 @@ uint32_t task_manager::execute(timestamp const& now) {
  *
  * @param t The task to add
  */
-void task_manager::_enqueue(task* t) {
+void task_manager::_enqueue(internal_task* t) {
   std::lock_guard<std::mutex> lock(_queue_m);
   _queue.push_back(t);
   _queue_cv.notify_all();
 }
 
 void task_manager::_wait_for_queue_empty() const {
-  std::unique_lock<std::mutex> lock(_tasks_m);
+  system("echo 'task_manager::wait_for_queue_empty lock _tasks_m' >> /tmp/titi");
+  std::unique_lock<std::mutex> lock(_queue_m);
   _queue_cv.wait(lock, [this] { return _queue.empty(); });
+  system("echo 'task_manager::wait_for_queue_empty EMPTY' >> /tmp/titi");
 }

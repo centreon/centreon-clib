@@ -38,7 +38,7 @@ class task_manager {
     uint64_t id;
     bool is_runnable;
     bool should_delete;
-    uint32_t interval;
+    uint32_t interval;    // When 0, this task is in auto_delete
     task* tsk;
 
     internal_task(task* tsk,
@@ -60,13 +60,13 @@ class task_manager {
   std::vector<std::thread> _workers;
 
   mutable std::mutex _tasks_m;
-  std::multimap<timestamp, internal_task> _tasks;
+  std::multimap<timestamp, internal_task*> _tasks;
 
   mutable std::mutex _queue_m;
   mutable std::condition_variable _queue_cv;
-  std::deque<task*> _queue;
+  std::deque<internal_task*> _queue;
 
-  void _enqueue(task* t);
+  void _enqueue(internal_task* t);
   void _wait_for_queue_empty() const;
 
  public:

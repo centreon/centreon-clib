@@ -16,6 +16,7 @@
 ** For more information : contact@centreon.com
 */
 
+#include <cstdlib>
 #include "com/centreon/handle_action.hh"
 #include "com/centreon/handle.hh"
 #include "com/centreon/handle_listener.hh"
@@ -105,6 +106,7 @@ void handle_action::run() {
       _hl->error(*_h);
       break;
     case read:
+      system("echo 'handle_action::run Call read on *_h' >> /tmp/titi");
       _hl->read(*_h);
       break;
     case write:
