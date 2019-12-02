@@ -99,8 +99,10 @@ handle_listener* handle_action::get_handle_listener() const noexcept {
  *  Run the task.
  */
 void handle_action::run() {
+  std::unique_lock<std::mutex> lock(_action_m);
   action a = _action;
   _action = none;
+  lock.unlock();
   switch (a) {
     case error:
       _hl->error(*_h);
@@ -122,6 +124,7 @@ void handle_action::run() {
  *  @param[in] a Action to perform.
  */
 void handle_action::set_action(action a) noexcept {
+  std::lock_guard<std::mutex> lock(_action_m);
   _action = a;
 }
 

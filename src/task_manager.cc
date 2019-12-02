@@ -39,22 +39,26 @@ task_manager::task_manager(uint32_t max_thread_count)
 
   for (uint32_t i = 0; i < max_thread_count; ++i)
     _workers.emplace_back([this] {
+      std::unique_lock<std::mutex> lock(_queue_m);
+      internal_task* t;
       while (true) {
-        internal_task* t;
-        {
-          std::unique_lock<std::mutex> lock(_queue_m);
-          _queue_cv.wait(lock, [this] { return _exit || !_queue.empty(); });
-          if (_exit && _queue.empty())
-            return;
+        _queue_cv.wait(lock, [this] { return _exit || !_queue.empty(); });
+        if (_queue.empty())
+          break;
 
-          t = _queue.front();
-          _queue.pop_front();
-        }
+        t = _queue.front();
+        _queue.pop_front();
+        if (_queue.empty())
+          _queue_cv.notify_all();
+
+        lock.unlock();
+
         t->tsk->run();
         if (t->interval == 0) // auto_delete
           delete t;
-        _queue_cv.notify_one();
+        lock.lock();
       }
+      _queue_cv.notify_all();
     });
 }
 
@@ -207,7 +211,7 @@ uint32_t task_manager::execute(timestamp const& now) {
       recurring.emplace_back(std::make_pair(new_time, itask));
     }
 
-    lock.unlock();
+    //lock.unlock();
 
     if (itask->is_runnable) {
       _enqueue(itask);
@@ -222,7 +226,7 @@ uint32_t task_manager::execute(timestamp const& now) {
     ++retval;
 
     /* Reset iterator */
-    lock.lock();
+    //lock.lock();
     it = _tasks.begin();
   }
 

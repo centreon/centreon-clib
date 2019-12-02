@@ -65,7 +65,10 @@ private:
   pollfd*         _array;
   std::map<native_handle, handle_action*>
                   _handles;
-  bool            _recreate_array;
+
+  std::mutex _recreate_array_m;
+  bool _recreate_array;
+
   task_manager*   _task_manager;
 };
 

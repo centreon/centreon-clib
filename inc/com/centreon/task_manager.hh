@@ -64,6 +64,9 @@ class task_manager {
 
   mutable std::mutex _queue_m;
   mutable std::condition_variable _queue_cv;
+
+  mutable std::condition_variable _empty_queue_cv;
+
   std::deque<internal_task*> _queue;
 
   void _enqueue(internal_task* t);

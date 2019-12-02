@@ -33,7 +33,7 @@ using namespace com::centreon;
  *  @param[in] tm Task manager.
  */
 handle_manager::handle_manager(task_manager* tm)
-    : _array(nullptr), _recreate_array(false), _task_manager(tm) {}
+    : _array(nullptr), _recreate_array{false}, _task_manager(tm) {}
 
 /**
  *  Destructor.
@@ -120,7 +120,10 @@ bool handle_manager::remove(handle* h) {
     _task_manager->remove(it->second);
   delete it->second;
   _handles.erase(it);
-  _recreate_array = true;
+  {
+    std::lock_guard<std::mutex> lock(_recreate_array_m);
+    _recreate_array = true;
+  }
   return true;
 }
 
@@ -150,7 +153,10 @@ unsigned int handle_manager::remove(handle_listener* hl) {
       ++count_erase;
     }
   }
-  _recreate_array = true;
+  {
+    std::lock_guard<std::mutex> lock(_recreate_array_m);
+    _recreate_array = true;
+  }
   return count_erase;
 }
 
@@ -233,16 +239,19 @@ int handle_manager::_poll(pollfd* fds, nfds_t nfds, int timeout) noexcept {
  */
 void handle_manager::_setup_array() {
   // Should we reallocate array ?
-  if (_recreate_array) {
-    // Remove old array.
-    delete[] _array;
+  {
+    std::lock_guard<std::mutex> lock(_recreate_array_m);
+    if (_recreate_array) {
+      // Remove old array.
+      delete[] _array;
 
-    // Is there any handle ?
-    if (_handles.empty())
-      _array = nullptr;
-    else {
-      _array = new pollfd[_handles.size()];
-      _recreate_array = false;
+      // Is there any handle ?
+      if (_handles.empty())
+        _array = nullptr;
+      else {
+        _array = new pollfd[_handles.size()];
+        _recreate_array = false;
+      }
     }
   }
 

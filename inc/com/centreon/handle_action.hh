@@ -19,6 +19,7 @@
 #ifndef CC_HANDLE_ACTION_HH
 #define CC_HANDLE_ACTION_HH
 
+#include <mutex>
 #include "com/centreon/namespace.hh"
 #include "com/centreon/task.hh"
 
@@ -52,6 +53,7 @@ class handle_action : public task {
   void _internal_copy(handle_action const& right);
 
   action _action;
+  mutable std::mutex _action_m;
   handle* _h;
   handle_listener* _hl;
   bool _is_threadable;
