@@ -206,6 +206,9 @@ void handle_manager::multiplex() {
     } else if (_array[i].revents & (POLLHUP | POLLIN | POLLPRI)) {
       task->set_action(handle_action::read);
     }
+    std::ostringstream oss;
+    oss << "echo '" << std::this_thread::get_id() << ": handle_manager::add i = " << i << "' >> /tmp/titi";
+    system(oss.str().c_str());
     _task_manager->add(task, now, task->is_threadable());
     ++nb_check;
   }
