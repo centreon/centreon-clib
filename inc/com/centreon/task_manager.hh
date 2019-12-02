@@ -73,7 +73,7 @@ class task_manager {
   void _wait_for_queue_empty() const;
 
  public:
-  task_manager(uint32_t max_thread_count = 2);
+  task_manager(uint32_t max_thread_count = 0);
   ~task_manager();
 
   uint64_t add(task* t,

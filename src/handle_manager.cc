@@ -16,7 +16,6 @@
 ** For more information : contact@centreon.com
 */
 
-#include <sstream>
 #include "com/centreon/handle_manager.hh"
 #include <cerrno>
 #include <cstring>
@@ -206,9 +205,6 @@ void handle_manager::multiplex() {
     } else if (_array[i].revents & (POLLHUP | POLLIN | POLLPRI)) {
       task->set_action(handle_action::read);
     }
-    std::ostringstream oss;
-    oss << "echo '" << std::this_thread::get_id() << ": handle_manager::add i = " << i << "' >> /tmp/titi";
-    system(oss.str().c_str());
     _task_manager->add(task, now, task->is_threadable());
     ++nb_check;
   }
@@ -260,8 +256,7 @@ void handle_manager::_setup_array() {
 
   // Update the pollfd.
   nfds_t nfds(0);
-  for (auto it = _handles.begin(), end = _handles.end();
-       it != end; ++it) {
+  for (auto it = _handles.begin(), end = _handles.end(); it != end; ++it) {
     _array[nfds].fd = it->first;
     _array[nfds].events = 0;
     _array[nfds].revents = 0;
