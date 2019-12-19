@@ -281,7 +281,6 @@ void process_manager::_kill_processes_timeout() throw () {
     process* p(it->second);
     try {
       p->kill();
-      p->_is_timeout = true;
     }
     catch (std::exception const& e) {
       log_error(logging::high) << e.what();
@@ -543,6 +542,8 @@ void process_manager::_wait_processes() throw () {
       }
 
       // Update process.
+      if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL)
+        p->_is_timeout = true;
       _update_ending_process(p, status);
     }
   }
