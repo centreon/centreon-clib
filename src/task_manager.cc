@@ -169,7 +169,6 @@ bool task_manager::remove(uint64_t id) {
   // Lock the task manager.
   std::lock_guard<std::mutex> lock(_tasks_m);
 
-  uint32_t retval = 0;
   for (auto it = _tasks.begin(), end = _tasks.end(); it != end; ++it) {
     if (it->second->id == id) {
       if (it->second->interval == 0)  // auto_delete
