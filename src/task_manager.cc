@@ -39,7 +39,7 @@ task_manager::task_manager(uint32_t max_thread_count)
 
   for (uint32_t i = 0; i < max_thread_count; ++i)
     _workers.emplace_back([this] {
-      while (true) {
+      for (;;) {
         internal_task* t;
         {
           std::unique_lock<std::mutex> lock(_queue_m);
@@ -53,7 +53,7 @@ task_manager::task_manager(uint32_t max_thread_count)
         t->tsk->run();
         if (t->interval == 0) // auto_delete
           delete t;
-        _queue_cv.notify_one();
+        _queue_cv.notify_all();
       }
     });
 }
