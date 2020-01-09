@@ -19,6 +19,7 @@
 #ifndef CC_HANDLE_ACTION_HH
 #define CC_HANDLE_ACTION_HH
 
+#include <atomic>
 #include "com/centreon/namespace.hh"
 #include "com/centreon/task.hh"
 
@@ -51,7 +52,7 @@ class handle_action : public task {
  private:
   void _internal_copy(handle_action const& right);
 
-  action _action;
+  std::atomic<action> _action;
   handle* _h;
   handle_listener* _hl;
   bool _is_threadable;
