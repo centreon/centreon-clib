@@ -15,7 +15,7 @@ if (env.BRANCH_NAME.startsWith('release-')) {
 ** Pipeline code.
 */
 stage('Source') {
-  node {
+  node('packerd') {
     sh 'setup_centreon_build.sh'
     dir('centreon-clib') {
       checkout scm
@@ -43,32 +43,32 @@ stage('Source') {
 try {
   stage('Package') {
     parallel 'centos7': {
-      node {
+      node('packerd') {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos7"
       }
     },
     'centos8': {
-      node {
+      node('packerd') {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos8"
       }
     },
     'debian10': {
-      node {
+      node('packerd') {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10"
       }
     },
     'debian10-armhf': {
-      node {
+      node('packerd') {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10-armhf"
       }
     /*
     },
     'opensuse-leap': {
-      node {
+      node('packerd') {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh opensuse-leap"
       }
@@ -81,7 +81,7 @@ try {
 
   if ((env.BUILD == 'RELEASE') || (env.BUILD == 'REFERENCE')) {
     stage('Delivery') {
-      node {
+      node('packerd') {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-delivery.sh"
       }
