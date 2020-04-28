@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <spdlog/spdlog.h>
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/backend.hh"
 #include "com/centreon/logging/engine.hh"
@@ -48,25 +49,33 @@ engine& engine::instance() noexcept {
 unsigned long engine::add(backend* obj,
                           unsigned long long types,
                           unsigned int verbose) {
-  if (!obj)
+  if (!obj) {
+    spdlog::debug("add backend on the logging engine failed: bad argument (null pointer)");
     throw(basic_error() << "add backend on the logging engine "
                            "failed: bad argument (null pointer)");
-  if (verbose >= sizeof(unsigned int) * CHAR_BIT)
+  }
+  if (verbose >= sizeof(unsigned int) * CHAR_BIT) {
+    spdlog::debug("add backend on the logging engine failed: invalid verbose");
     throw(basic_error() << "add backend on the logging engine "
                            "failed: invalid verbose");
+  }
 
+  spdlog::debug("A");
   std::unique_ptr<backend_info> info(new backend_info);
   info->obj = obj;
   info->types = types;
   info->verbose = verbose;
 
+  spdlog::debug("B");
   // Lock engine.
   std::lock_guard<std::mutex> lock(_mtx);
   info->id = ++_id;
   for (unsigned int i(0); i <= verbose; ++i)
     _list_types[i] |= types;
 
+  spdlog::debug("C");
   _backends.push_back(info.get());
+  spdlog::debug("D");
   return (info.release()->id);
 }
 

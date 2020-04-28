@@ -35,6 +35,15 @@ set(CLIB_MINOR 04)
 set(CLIB_PATCH 0)
 set(CLIB_VERSION "${CLIB_MAJOR}.${CLIB_MINOR}.${CLIB_PATCH}")
 
+include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+
+find_package(spdlog REQUIRED)
+
+include_directories(${spdlog_INCLUDE_DIRS})
+
+link_directories(${spdlog_LIB_DIRS})
+
+add_definitions(${spdlog_DEFINITIONS})
 
 # Include module to check existing libraries.
 include(CheckLibraryExists)
@@ -263,6 +272,7 @@ if (WITH_SHARED_LIB)
     ${LIB_THREAD}
     ${LIB_RT}
     ${LIB_DL}
+    ${spdlog_LIBRARIES}
   )
   # Set output name for the shared library.
   set_target_properties(
@@ -294,6 +304,7 @@ if (WITH_STATIC_LIB)
     ${LIB_THREAD}
     ${LIB_RT}
     ${LIB_DL}
+    ${spdlog_LIBRARIES}
   )
   # Set output name for the static library.
   set_target_properties(
