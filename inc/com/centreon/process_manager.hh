@@ -31,7 +31,6 @@
 CC_BEGIN()
 
 class process;
-class process_listener;
 
 /**
  *  @class process_manager process_manager_posix.hh
@@ -61,7 +60,6 @@ class process_manager {
   ~process_manager() noexcept;
   static void _close(int& fd) noexcept;
   void _close_stream(int fd) noexcept;
-  void _erase_timeout(process* p);
   void _kill_processes_timeout() noexcept;
   uint32_t _read_stream(int fd) noexcept;
   void _run();

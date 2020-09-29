@@ -19,6 +19,7 @@
 #ifndef CC_PROCESS_POSIX_HH
 #define CC_PROCESS_POSIX_HH
 
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <string>
@@ -46,16 +47,16 @@ class process {
   mutable std::condition_variable _cv_buffer_err;
   mutable std::condition_variable _cv_buffer_out;
   mutable std::condition_variable _cv_process_running;
-  std::array<bool, 3> _enable_stream;
-  timestamp _end_time;
-  bool _is_timeout;
+  std::atomic_bool _is_timeout;
   process_listener* _listener;
-  mutable std::mutex _lock_process;
   pid_t _process;
-  timestamp _start_time;
   int _status;
+  std::array<bool, 3> _enable_stream;
   std::array<int, 3> _stream;
   uint32_t _timeout;
+  timestamp _end_time;
+  mutable std::mutex _lock_process;
+  timestamp _start_time;
 
   static void _close(int& fd) noexcept;
   static pid_t _create_process_with_setpgid(char** args, char** env);
@@ -63,12 +64,13 @@ class process {
   static void _dev_null(int fd, int flags);
   static int _dup(int oldfd);
   static void _dup2(int oldfd, int newfd);
+  static void _pipe(int fds[2]);
+  static void _set_close_on_exec(int fd);
+
   bool _is_running() const noexcept;
   void _kill(int sig);
-  static void _pipe(int fds[2]);
   ssize_t do_read(int fd);
   void do_close(int fd);
-  static void _set_cloexec(int fd);
 
  public:
   enum status {
@@ -89,8 +91,8 @@ class process {
 
   void enable_stream(stream s, bool enable);
   timestamp const& end_time() const noexcept;
-  void exec(char const* cmd, char** env = nullptr, uint32_t timeout = 0);
-  void exec(std::string const& cmd, uint32_t timeout = 0);
+  void exec(const std::string& cmd, char** env, uint32_t timeout = 0);
+  void exec(const std::string& cmd, uint32_t timeout = 0);
   int exit_code() const noexcept;
   status exit_status() const noexcept;
   void kill();

@@ -38,6 +38,7 @@
 #include "com/centreon/process_listener.hh"
 #include "com/centreon/process_manager.hh"
 #include "com/centreon/process.hh"
+#include "com/centreon/clib_lock_guard.hh"
 
 using namespace com::centreon;
 
@@ -77,7 +78,7 @@ process::~process() noexcept {
  *  @param[in] enable Set to true to enable stderr.
  */
 void process::enable_stream(stream s, bool enable) {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  clib_lock_guard<std::mutex> lock(_lock_process, "enable_stream::_lock_process");
   if (_enable_stream[s] != enable) {
     // Process not running just set variable.
     if (!_is_running())
@@ -97,8 +98,8 @@ void process::enable_stream(stream s, bool enable) {
  *
  *  @return The ending timestamp.
  */
-timestamp const& process::end_time() const noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+const timestamp& process::end_time() const noexcept {
+  clib_lock_guard<std::mutex> lock(_lock_process, "end_time::_lock_process");
   return _end_time;
 }
 
@@ -113,8 +114,8 @@ timestamp const& process::end_time() const noexcept {
  *  @param[in] timeout Maximum time in seconds to execute process. After
  *                     this time the process will be kill.
  */
-void process::exec(char const* cmd, char** env, uint32_t timeout) {
-  std::lock_guard<std::mutex> lock(_lock_process);
+void process::exec(const std::string& cmd, char** env, uint32_t timeout) {
+  clib_lock_guard<std::mutex> lock(_lock_process, "exec::_lock_process");
 
   // Check if process already running.
   if (_is_running())
@@ -124,9 +125,9 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
   // Reset variable.
   _buffer_err.clear();
   _buffer_out.clear();
+  _start_time.clear();
   _end_time.clear();
   _is_timeout = false;
-  _start_time.clear();
   _status = 0;
 
   // Close the last file descriptor;
@@ -134,13 +135,13 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     _close(s);
 
   // Init file desciptor.
-  int std[3] = {-1, -1, -1};
+  std::array<int, 3> std{-1, -1, -1};
   int pipe_stream[3][2] = {{-1, -1}, {-1, -1}, {-1, -1}};
 
   // volatile prevent compiler optimization that might clobber variable.
   volatile bool restore_std(false);
 
-  std::lock_guard<std::mutex> gl_lock(gl_process_lock);
+  clib_lock_guard<std::mutex> gl_lock(gl_process_lock, "gl_process_lock");
   try {
     // Create backup FDs.
     std[0] = _dup(STDIN_FILENO);
@@ -148,8 +149,8 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     std[2] = _dup(STDERR_FILENO);
 
     // Backup FDs do not need to be inherited.
-    for (uint32_t i = 0; i < 3; ++i)
-      _set_cloexec(std[i]);
+    for (auto& s : std)
+      _set_close_on_exec(s);
 
     restore_std = true;
 
@@ -160,7 +161,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
       _pipe(pipe_stream[in]);
       _dup2(pipe_stream[in][0], STDIN_FILENO);
       _close(pipe_stream[in][0]);
-      _set_cloexec(pipe_stream[in][1]);
+      _set_close_on_exec(pipe_stream[in][1]);
     }
 
     if (!_enable_stream[out])
@@ -169,7 +170,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
       _pipe(pipe_stream[out]);
       _dup2(pipe_stream[out][1], STDOUT_FILENO);
       _close(pipe_stream[out][1]);
-      _set_cloexec(pipe_stream[out][0]);
+      _set_close_on_exec(pipe_stream[out][0]);
     }
 
     if (!_enable_stream[err])
@@ -178,7 +179,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
       _pipe(pipe_stream[err]);
       _dup2(pipe_stream[err][1], STDERR_FILENO);
       _close(pipe_stream[err][1]);
-      _set_cloexec(pipe_stream[err][0]);
+      _set_close_on_exec(pipe_stream[err][0]);
     }
 
     // Parse and get command line arguments.
@@ -200,7 +201,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     _dup2(std[0], STDIN_FILENO);
     _dup2(std[1], STDOUT_FILENO);
     _dup2(std[2], STDERR_FILENO);
-    for (unsigned int i(0); i < 3; ++i) {
+    for (uint32_t i = 0; i < 3; ++i) {
       _close(std[i]);
       _close(pipe_stream[i][i == in ? 0 : 1]);
       _stream[i] = pipe_stream[i][i == in ? 1 : 0];
@@ -221,7 +222,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     for (unsigned int i(0); i < 3; ++i) {
       _close(std[i]);
       _close(_stream[i]);
-      for (unsigned int j(0); j < 2; ++j)
+      for (uint32_t j = 0; j < 2; ++j)
         _close(pipe_stream[i][j]);
     }
     throw;
@@ -236,7 +237,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
  *                     this time the process will be kill.
  */
 void process::exec(std::string const& cmd, unsigned int timeout) {
-  exec(cmd.c_str(), NULL, timeout);
+  exec(cmd, NULL, timeout);
 }
 
 /**
@@ -245,7 +246,7 @@ void process::exec(std::string const& cmd, unsigned int timeout) {
  *  @return The exit code.
  */
 int process::exit_code() const noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  clib_lock_guard<std::mutex> lock(_lock_process, "exit_code::_lock_process");
   if (WIFEXITED(_status))
     return WEXITSTATUS(_status);
   return 0;
@@ -259,7 +260,7 @@ int process::exit_code() const noexcept {
  *  @return The exit status.
  */
 process::status process::exit_status() const noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  clib_lock_guard<std::mutex> lock(_lock_process, "exit_status::_lock_process");
   if (_is_timeout)
     return timeout;
   if (WIFEXITED(_status))
@@ -271,13 +272,13 @@ process::status process::exit_status() const noexcept {
  *  Kill process.
  */
 void process::kill() {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  clib_lock_guard<std::mutex> lock(_lock_process, "kill:_lock_process");
   _kill(SIGKILL);
 }
 
 void process::update_ending_process(int status) {
   // Update process informations.
-  std::unique_lock<std::mutex> lock(_lock_process);
+  clib_unique_lock<std::mutex> lock(_lock_process, "update_ending_process::_lock_process");
   _end_time = timestamp::now();
   _status = status;
   _process = static_cast<pid_t>(-1);
@@ -301,7 +302,7 @@ void process::update_ending_process(int status) {
  *  @param[out] data Destination buffer.
  */
 void process::read(std::string& data) {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  clib_unique_lock<std::mutex> lock(_lock_process, "read::_lock_process");
   // If buffer is empty and stream is open, we waiting data.
   if (_buffer_out.empty() && _stream[out] != -1)
     _cv_buffer_out.wait(lock);
@@ -316,7 +317,7 @@ void process::read(std::string& data) {
  *  @param[out] data Destination buffer.
  */
 void process::read_err(std::string& data) {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  clib_unique_lock<std::mutex> lock(_lock_process, "read_err::_lock_process");
   // If buffer is empty and stream is open, we waiting data.
   if (_buffer_err.empty() && _stream[err] != -1)
     _cv_buffer_err.wait(lock);
@@ -331,7 +332,7 @@ void process::read_err(std::string& data) {
  *  @param[in] enable  True to  use setpgid, otherwise false.
  */
 void process::setpgid_on_exec(bool enable) noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  clib_lock_guard<std::mutex> lock(_lock_process, "setpgid_on_exec::_lock_process");
   if (enable)
     _create_process = &_create_process_with_setpgid;
   else
@@ -344,7 +345,7 @@ void process::setpgid_on_exec(bool enable) noexcept {
  *  @return True if setpgid is enable, otherwise false.
  */
 bool process::setpgid_on_exec() const noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  clib_lock_guard<std::mutex> lock(_lock_process, "setpgid_on_exec::_lock_process");
   return _create_process == &_create_process_with_setpgid;
 }
 
@@ -354,7 +355,7 @@ bool process::setpgid_on_exec() const noexcept {
  *  @return The starting timestamp.
  */
 timestamp const& process::start_time() const noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  clib_lock_guard<std::mutex> lock(_lock_process, "start_time::_lock_process");
   return _start_time;
 }
 
@@ -362,7 +363,7 @@ timestamp const& process::start_time() const noexcept {
  *  Terminate process.
  */
 void process::terminate() {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  clib_lock_guard<std::mutex> lock(_lock_process, "terminate::_lock_process");
   _kill(SIGTERM);
 }
 
@@ -370,7 +371,7 @@ void process::terminate() {
  *  Wait for process termination.
  */
 void process::wait() const {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  clib_unique_lock<std::mutex> lock(_lock_process, "wait::_lock_process");
   while (_is_running())
     _cv_process_running.wait(lock);
 }
@@ -383,7 +384,7 @@ void process::wait() const {
  * @return true if process exited.
  */
 bool process::wait(uint32_t timeout) const {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  clib_unique_lock<std::mutex> lock(_lock_process, "wait2::_lock_process");
   return _cv_process_running.wait_for(lock, std::chrono::milliseconds(timeout),
                                       [this] { return !_is_running(); });
 }
@@ -408,7 +409,7 @@ unsigned int process::write(std::string const& data) {
  *  @return Number of bytes actually written.
  */
 unsigned int process::write(void const* data, unsigned int size) {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  clib_lock_guard<std::mutex> lock(_lock_process, "write::_lock_process");
   ssize_t wb = ::write(_stream[in], data, size);
   if (wb < 0) {
     char const* msg(strerror(errno));
@@ -421,7 +422,7 @@ unsigned int process::write(void const* data, unsigned int size) {
 }
 
 void process::do_close(int fd) {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  clib_unique_lock<std::mutex> lock(_lock_process, "do_close::_lock_process");
   if (_stream[process::out] == fd) {
     _close(_stream[process::out]);
     _cv_buffer_out.notify_one();
@@ -440,12 +441,6 @@ void process::do_close(int fd) {
     }
   }
 }
-
-/**************************************
-*                                     *
-*           Private Methods           *
-*                                     *
-**************************************/
 
 /**
  *  close syscall wrapper.
@@ -627,7 +622,7 @@ void process::_pipe(int fds[2]) {
 }
 
 ssize_t process::do_read(int fd) {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  clib_unique_lock<std::mutex> lock(_lock_process, "do_read::_lock_process");
   // Read content of the stream and push it.
   char buffer[4096];
   ssize_t size = ::read(fd, buffer, sizeof(buffer));
@@ -667,7 +662,7 @@ ssize_t process::do_read(int fd) {
  *
  *  @param[in] fd The file descriptor to set close on exec.
  */
-void process::_set_cloexec(int fd) {
+void process::_set_close_on_exec(int fd) {
   int flags(0);
   while ((flags = fcntl(fd, F_GETFD)) < 0) {
     if (errno == EINTR)
