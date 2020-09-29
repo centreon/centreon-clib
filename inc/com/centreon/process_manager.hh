@@ -24,6 +24,7 @@
 #include <mutex>
 #include <poll.h>
 #include <thread>
+#include <vector>
 #include <unordered_map>
 #include "com/centreon/namespace.hh"
 
@@ -46,8 +47,7 @@ class process_manager {
     int status;
   };
   std::thread* _thread;
-  pollfd* _fds;
-  uint32_t _fds_capacity;
+  std::vector<pollfd> _fds;
   int _fds_exit[2];
   uint32_t _fds_size;
   mutable std::mutex _lock_processes;

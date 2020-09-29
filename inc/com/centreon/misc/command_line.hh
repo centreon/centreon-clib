@@ -33,27 +33,26 @@ namespace misc {
  *  into array.
  */
 class command_line {
+  int _argc;
+  char** _argv;
+  size_t _size;
+
+  void _internal_copy(command_line const& right);
+  void _release();
+
  public:
   command_line();
   command_line(char const* cmdline, unsigned int size = 0);
   command_line(std::string const& cmdline);
   command_line(command_line const& right);
-  ~command_line() throw();
+  ~command_line() noexcept;
   command_line& operator=(command_line const& right);
-  bool operator==(command_line const& right) const throw();
-  bool operator!=(command_line const& right) const throw();
-  int get_argc() const throw();
-  char** get_argv() const throw();
+  bool operator==(command_line const& right) const noexcept;
+  bool operator!=(command_line const& right) const noexcept;
+  int get_argc() const noexcept;
+  char** get_argv() const noexcept;
   void parse(char const* cmdline, unsigned int size = 0);
   void parse(std::string const& cmdline);
-
- private:
-  void _internal_copy(command_line const& right);
-  void _release();
-
-  int _argc;
-  char** _argv;
-  size_t _size;
 };
 }
 

@@ -35,14 +35,8 @@ using namespace com::centreon;
 // Default varibale.
 static int const DEFAULT_TIMEOUT = 200;
 
-/**************************************
-*                                     *
-*           Public Methods            *
-*                                     *
-**************************************/
-
 /**
- *  Add process to the process manager.
+ *  Add process to the process manager. _lock_process is already locked here.
  *
  *  @param[in] p    The process to manage.
  *  @param[in] obj  The object to notify.
@@ -55,8 +49,6 @@ void process_manager::add(process* p) {
   // We lock _lock_processes before to avoid deadlocks
   std::lock_guard<std::mutex> lock(_lock_processes);
 
-  // Check if the process need to be managed.
-  std::lock_guard<std::mutex> lock_process(p->_lock_process);
   if (p->_process == static_cast<pid_t>(-1))
     throw basic_error() << "invalid process: not running";
 
@@ -99,10 +91,10 @@ process_manager& process_manager::instance() {
  */
 process_manager::process_manager()
     : _thread{nullptr},
-      _fds(new pollfd[64]),
-      _fds_capacity(64),
+      _fds(64),
       _fds_size(0),
       _update(true) {
+
   // Create pipe to notify ending to the process manager thread.
   if (::pipe(_fds_exit)) {
     char const* msg(strerror(errno));
@@ -146,9 +138,6 @@ process_manager::~process_manager() noexcept {
 
   {
     std::lock_guard<std::mutex> lock(_lock_processes);
-
-    // Release memory.
-    delete[] _fds;
 
     // Release ressources.
     _close(_fds_exit[0]);
@@ -214,7 +203,6 @@ void process_manager::_erase_timeout(process* p) {
   // Check process viability.
   if (!p || !p->_timeout)
     return;
-  std::lock_guard<std::mutex> lock(_lock_processes);
   auto range = _processes_timeout.equal_range(p->_timeout);
   for (auto it = range.first; it != range.second; ++it) {
     if (it->second == p) {
@@ -280,8 +268,8 @@ unsigned int process_manager::_read_stream(int fd) noexcept {
  */
 void process_manager::_run() {
   try {
-    bool quit(false);
-    while (true) {
+    bool quit = false;
+    for (;;) {
       // Update the file descriptor list.
       _update_list();
 
@@ -289,7 +277,7 @@ void process_manager::_run() {
         break;
 
       // Wait event on file descriptor.
-      int ret(poll(_fds, _fds_size, DEFAULT_TIMEOUT));
+      int ret(poll(_fds.data(), _fds_size, DEFAULT_TIMEOUT));
       if (ret < 0 && errno == EINTR)
         ret = 0;
       else if (ret < 0) {
@@ -350,7 +338,8 @@ void process_manager::_run() {
 }
 
 /**
- *  Update process informations at the end of the process.
+ *  Update process informations at the end of the process. _lock_processes must
+ *  be locked.
  *
  *  @param[in] p       The process to update informations.
  *  @param[in] status  The status of the process to set.
@@ -374,10 +363,9 @@ void process_manager::_update_list() {
     return;
 
   // Resize file descriptor list.
-  if (_processes_fd.size() > _fds_capacity) {
-    delete[] _fds;
-    _fds_capacity = _processes_fd.size();
-    _fds = new pollfd[_fds_capacity];
+  if (_processes_fd.size() > _fds.size()) {
+    size_t capacity = _processes_fd.size();
+    _fds = std::vector<pollfd>(capacity);
   }
   // Set file descriptor to wait event.
   _fds_size = 0;
@@ -397,7 +385,7 @@ void process_manager::_update_list() {
  */
 void process_manager::_wait_orphans_pid() noexcept {
   try {
-    std::unique_lock<std::mutex> lock(_lock_processes);
+    std::lock_guard<std::mutex> lock(_lock_processes);
     std::deque<orphan>::iterator it = _orphans_pid.begin();
     while (it != _orphans_pid.end()) {
       process* p(nullptr);
@@ -414,9 +402,7 @@ void process_manager::_wait_orphans_pid() noexcept {
       }
 
       // Update process.
-      lock.unlock();
       _update_ending_process(p, it->status);
-      lock.lock();
 
       // Erase orphan pid.
       it = _orphans_pid.erase(it);
@@ -442,16 +428,15 @@ void process_manager::_wait_processes() noexcept {
       process* p = nullptr;
       // Get process to link with pid and remove this pid
       // to the process manager.
-      {
-        std::lock_guard<std::mutex> lock(_lock_processes);
-        auto it = _processes_pid.find(pid);
-        if (it == _processes_pid.end()) {
-          _orphans_pid.push_back(orphan(pid, status));
-          continue;
-        }
-        p = it->second;
-        _processes_pid.erase(it);
+
+      std::lock_guard<std::mutex> lock(_lock_processes);
+      auto it = _processes_pid.find(pid);
+      if (it == _processes_pid.end()) {
+        _orphans_pid.push_back(orphan(pid, status));
+        continue;
       }
+      p = it->second;
+      _processes_pid.erase(it);
 
       // Update process.
       if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL)

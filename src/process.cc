@@ -16,6 +16,8 @@
 ** For more information : contact@centreon.com
 */
 
+#include <iostream>
+
 #include <algorithm>
 #include <cerrno>
 #include <csignal>
@@ -45,14 +47,10 @@ extern char** environ;
 // Global process lock.
 static std::mutex gl_process_lock;
 
-/**************************************
-*                                     *
-*           Public Methods            *
-*                                     *
-**************************************/
-
 /**
- *  Default constructor.
+ * @brief Constructor
+ *
+ * @param listener
  */
 process::process(process_listener* listener)
     : _create_process(&_create_process_with_setpgid),
@@ -60,10 +58,9 @@ process::process(process_listener* listener)
       _listener(listener),
       _process(static_cast<pid_t>(-1)),
       _status(0),
-      _timeout(0) {
-  memset(_enable_stream, 1, sizeof(_enable_stream));
-  memset(_stream, -1, sizeof(_stream));
-}
+      _enable_stream{true, true, true},
+      _stream{-1, -1, -1},
+      _timeout(0) {}
 
 /**
  *  Destructor.
@@ -82,7 +79,7 @@ process::~process() noexcept {
 void process::enable_stream(stream s, bool enable) {
   std::lock_guard<std::mutex> lock(_lock_process);
   if (_enable_stream[s] != enable) {
-    // Process not running juste set variable.
+    // Process not running just set variable.
     if (!_is_running())
       _enable_stream[s] = enable;
     // Process running and stream is enable, close stream.
@@ -117,7 +114,7 @@ timestamp const& process::end_time() const noexcept {
  *                     this time the process will be kill.
  */
 void process::exec(char const* cmd, char** env, uint32_t timeout) {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  std::lock_guard<std::mutex> lock(_lock_process);
 
   // Check if process already running.
   if (_is_running())
@@ -133,8 +130,8 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
   _status = 0;
 
   // Close the last file descriptor;
-  for (unsigned int i(0); i < 3; ++i)
-    _close(_stream[i]);
+  for (auto& s : _stream)
+    _close(s);
 
   // Init file desciptor.
   int std[3] = {-1, -1, -1};
@@ -151,7 +148,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     std[2] = _dup(STDERR_FILENO);
 
     // Backup FDs do not need to be inherited.
-    for (unsigned int i(0); i < 3; ++i)
+    for (uint32_t i = 0; i < 3; ++i)
       _set_cloexec(std[i]);
 
     restore_std = true;
@@ -210,7 +207,6 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     }
 
     // Add process to the process manager.
-    lock.unlock();
     process_manager::instance().add(this);
   }
   catch (...) {
@@ -593,7 +589,8 @@ void process::_dup2(int oldfd, int newfd) {
 }
 
 /**
- *  Get is the current process run.
+ *  Get is the current process run. It's not this function responsability to
+ *  lock _lock_process.
  *
  *  @return True is process run, otherwise false.
  */
