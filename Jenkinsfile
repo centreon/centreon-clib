@@ -13,28 +13,10 @@ stage('Source') {
 
 try {
   stage('Package') {
-    parallel 'centos6': {
-      node {
-        sh 'cd /opt/centreon-build && git pull && cd -'
-        sh '/opt/centreon-build/jobs/clib/3.4/mon-clib-package.sh centos6'
-      }
-    },
-    'centos7': {
+    parallel 'centos7': {
       node {
         sh 'cd /opt/centreon-build && git pull && cd -'
         sh '/opt/centreon-build/jobs/clib/3.4/mon-clib-package.sh centos7'
-      }
-    },
-    'debian9': {
-      node {
-        sh 'cd /opt/centreon-build && git pull && cd -'
-        sh '/opt/centreon-build/jobs/clib/3.4/mon-clib-package.sh debian9'
-      }
-    },
-    'debian9-armhf': {
-      node {
-        sh 'cd /opt/centreon-build && git pull && cd -'
-        sh '/opt/centreon-build/jobs/clib/3.4/mon-clib-package.sh debian9-armhf'
       }
     }
     if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
