@@ -62,7 +62,9 @@ elif [ -r /etc/issue ] ; then
     fi
     pkgs=(
       gcc
+      g++
       ninja-build
+      pkg-config
     )
     for i in "${pkgs[@]}"; do
       if ! dpkg -l --no-pager $i | grep "^ii" ; then
