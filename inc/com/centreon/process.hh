@@ -59,7 +59,7 @@ class process {
   mutable std::condition_variable _cv_buffer_err;
   mutable std::condition_variable _cv_buffer_out;
   mutable std::condition_variable _cv_process_running;
-  std::array<bool, 3> _enable_stream;
+  const std::array<bool, 3> _enable_stream;
   std::array<int, 3> _stream;
   timestamp _end_time;
   bool _is_timeout;
@@ -84,11 +84,11 @@ class process {
   static void _set_cloexec(int fd);
 
  public:
-  process(process_listener* l = nullptr);
+  process(process_listener* l = nullptr, bool in_stream = true, bool out_stream = true, bool err_stream = true);
   virtual ~process() noexcept;
   process(const process&) = delete;
   process& operator=(const process&) = delete;
-  void enable_stream(stream s, bool enable);
+  //void enable_stream(stream s, bool enable);
   timestamp const& end_time() const noexcept;
   void exec(char const* cmd, char** env = nullptr, uint32_t timeout = 0);
   void exec(std::string const& cmd, uint32_t timeout = 0);
