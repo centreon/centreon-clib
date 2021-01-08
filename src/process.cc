@@ -55,9 +55,9 @@ static std::mutex gl_process_lock;
 /**
  *  Default constructor.
  */
-process::process(process_listener* listener)
+process::process(process_listener* listener, bool in_stream, bool out_stream, bool err_stream)
     : _create_process(&_create_process_with_setpgid),
-      _enable_stream{true, true, true},
+      _enable_stream{in_stream, out_stream, err_stream},
       _stream{-1, -1, -1},
       _is_timeout{false},
       _listener(listener),
@@ -81,21 +81,21 @@ process::~process() noexcept {
  *  @param[in] s      The stream to set (enum stream).
  *  @param[in] enable Set to true to enable the stream.
  */
-void process::enable_stream(stream s, bool enable) {
-  std::lock_guard<std::mutex> lock(_lock_process);
-  if (_enable_stream[s] != enable) {
-    // Process not running: just set variable.
-    if (!_is_running())
-      _enable_stream[s] = enable;
-    // Process running and stream is enable, close stream.
-    else if (!enable)
-      _close(_stream[s]);
-    // Do not change stream status.
-    else
-      throw basic_error() << "cannot reenable \"" << s
-                          << "\" while process is running";
-  }
-}
+//void process::enable_stream(stream s, bool enable) {
+//  std::lock_guard<std::mutex> lock(_lock_process);
+//  if (_enable_stream[s] != enable) {
+//    // Process not running: just set variable.
+//    if (!_is_running())
+//      _enable_stream[s] = enable;
+//    // Process running and stream is enable, close stream.
+//    else if (!enable)
+//      _close(_stream[s]);
+//    // Do not change stream status.
+//    else
+//      throw basic_error() << "cannot reenable \"" << s
+//                          << "\" while process is running";
+//  }
+//}
 
 /**
  *  Get the time when the process execution finished.
@@ -200,13 +200,13 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
 
     // Parent execution.
     _start_time = timestamp::now();
-    _timeout = (timeout ? time(NULL) + timeout : 0);
+    _timeout = (timeout ? time(nullptr) + timeout : 0);
 
     // Restore original FDs.
     _dup2(std[0], STDIN_FILENO);
     _dup2(std[1], STDOUT_FILENO);
     _dup2(std[2], STDERR_FILENO);
-    for (uint32_t i = 0; i < 3; ++i) {
+    for (int32_t i = 0; i < 3; ++i) {
       _close(std[i]);
       _close(pipe_stream[i][i == in ? 0 : 1]);
       _stream[i] = pipe_stream[i][i == in ? 1 : 0];
@@ -225,7 +225,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     }
 
     // Close all file descriptor.
-    for (unsigned int i(0); i < 3; ++i) {
+    for (uint32_t i = 0; i < 3; ++i) {
       _close(std[i]);
       _close(_stream[i]);
       for (unsigned int j(0); j < 2; ++j)
@@ -448,12 +448,6 @@ void process::do_close(int fd) {
     }
   }
 }
-
-/**************************************
-*                                     *
-*           Private Methods           *
-*                                     *
-**************************************/
 
 /**
  *  close syscall wrapper.
