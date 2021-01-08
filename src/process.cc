@@ -1,5 +1,5 @@
 /*
-** Copyright 2012-2013 Centreon
+** Copyright 2012-2013,2020-2021 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 ** For more information : contact@centreon.com
 */
 
+#include <cassert>
 #include <algorithm>
 #include <cerrno>
 #include <csignal>
@@ -56,33 +57,34 @@ static std::mutex gl_process_lock;
  */
 process::process(process_listener* listener)
     : _create_process(&_create_process_with_setpgid),
-      _is_timeout(false),
+      _enable_stream{true, true, true},
+      _stream{-1, -1, -1},
+      _is_timeout{false},
       _listener(listener),
       _process(static_cast<pid_t>(-1)),
       _status(0),
-      _timeout(0) {
-  memset(_enable_stream, 1, sizeof(_enable_stream));
-  memset(_stream, -1, sizeof(_stream));
-}
+      _timeout(0) {}
 
 /**
  *  Destructor.
  */
 process::~process() noexcept {
-  kill();
-  wait();
+  std::unique_lock<std::mutex> lock(_lock_process);
+  _kill(SIGKILL);
+  _cv_process_running.wait(lock, [this] { return !_is_running(); });
 }
 
 /**
- *  Enable or disable process' stream.
+ *  Enable or disable process' stream. It's a little more than just a setter.
+ *  Several checks are done, we can not do anything.
  *
- *  @param[in] s      The stream to set.
- *  @param[in] enable Set to true to enable stderr.
+ *  @param[in] s      The stream to set (enum stream).
+ *  @param[in] enable Set to true to enable the stream.
  */
 void process::enable_stream(stream s, bool enable) {
   std::lock_guard<std::mutex> lock(_lock_process);
   if (_enable_stream[s] != enable) {
-    // Process not running juste set variable.
+    // Process not running: just set variable.
     if (!_is_running())
       _enable_stream[s] = enable;
     // Process running and stream is enable, close stream.
@@ -133,7 +135,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
   _status = 0;
 
   // Close the last file descriptor;
-  for (unsigned int i(0); i < 3; ++i)
+  for (uint32_t i = 0; i < 3; ++i)
     _close(_stream[i]);
 
   // Init file desciptor.
@@ -151,7 +153,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     std[2] = _dup(STDERR_FILENO);
 
     // Backup FDs do not need to be inherited.
-    for (unsigned int i(0); i < 3; ++i)
+    for (int32_t i = 0; i < 3; ++i)
       _set_cloexec(std[i]);
 
     restore_std = true;
@@ -186,7 +188,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
 
     // Parse and get command line arguments.
     misc::command_line cmdline(cmd);
-    char** args(cmdline.get_argv());
+    char** args = cmdline.get_argv();
 
     // volatile prevent compiler optimization
     // that might clobber variable.
@@ -194,6 +196,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
 
     // Create new process.
     _process = _create_process(args, my_env);
+    assert(_process != -1);
 
     // Parent execution.
     _start_time = timestamp::now();
@@ -203,7 +206,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     _dup2(std[0], STDIN_FILENO);
     _dup2(std[1], STDOUT_FILENO);
     _dup2(std[2], STDERR_FILENO);
-    for (unsigned int i(0); i < 3; ++i) {
+    for (uint32_t i = 0; i < 3; ++i) {
       _close(std[i]);
       _close(pipe_stream[i][i == in ? 0 : 1]);
       _stream[i] = pipe_stream[i][i == in ? 1 : 0];
@@ -363,7 +366,8 @@ timestamp const& process::start_time() const noexcept {
 }
 
 /**
- *  Terminate process.
+ *  Terminate process. We don't wait for the termination, the SIGTERM signal
+ *  is just sent.
  */
 void process::terminate() {
   std::lock_guard<std::mutex> lock(_lock_process);
@@ -566,7 +570,7 @@ void process::_dev_null(int fd, int flags) {
  *  @return The new descriptor.
  */
 int process::_dup(int oldfd) {
-  int newfd(0);
+  int newfd;
   while ((newfd = dup(oldfd)) < 0) {
     if (errno == EINTR)
       continue;
