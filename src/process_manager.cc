@@ -1,5 +1,5 @@
 /*
-** Copyright 2012-2013 Centreon
+** Copyright 2012-2013, 2021 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -49,19 +49,22 @@ static int const DEFAULT_TIMEOUT = 200;
  */
 void process_manager::add(process* p) {
   // Check viability pointer.
-  if (!p)
-    throw basic_error() << "invalid process: null pointer";
+  // FIXME DBR: impossible case...
+  assert(p);
 
   // We lock _lock_processes before to avoid deadlocks
   std::lock_guard<std::mutex> lock(_lock_processes);
 
-  // Check if the process need to be managed.
-  std::lock_guard<std::mutex> lock_process(p->_lock_process);
-  if (p->_process == static_cast<pid_t>(-1))
-    throw basic_error() << "invalid process: not running";
+  // This is impossible since add is called from process::exec and _process
+  // is correctly set in this method or throws an exception...
+  //if (p->_process == static_cast<pid_t>(-1))
+  //  throw basic_error() << "invalid process: not running";
 
   // Add pid process to use waitpid.
   _processes_pid[p->_process] = p;
+
+  // Check if the process need to be managed.
+  std::lock_guard<std::mutex> lock_process(p->_lock_process);
 
   // Monitor err/out output if necessary.
   if (p->_enable_stream[process::out])
