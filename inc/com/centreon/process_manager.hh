@@ -19,6 +19,7 @@
 #ifndef CC_PROCESS_MANAGER_POSIX_HH
 #define CC_PROCESS_MANAGER_POSIX_HH
 
+#include <atomic>
 #include <vector>
 #include <deque>
 #include <map>
@@ -49,14 +50,14 @@ class process_manager {
   std::thread* _thread;
   std::vector<pollfd> _fds;
   uint32_t _fds_capacity;
-  int32_t _fds_exit[2];
+  std::array<int32_t, 2> _fds_exit;
   uint32_t _fds_size;
   mutable std::mutex _lock_processes;
   std::deque<orphan> _orphans_pid;
   std::unordered_map<int32_t, process*> _processes_fd;
   std::unordered_map<pid_t, process*> _processes_pid;
   std::multimap<uint32_t, process*> _processes_timeout;
-  bool _update;
+  std::atomic_bool _update;
 
   process_manager();
   ~process_manager() noexcept;
