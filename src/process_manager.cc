@@ -16,6 +16,7 @@
 ** For more information : contact@centreon.com
 */
 
+#include <cassert>
 #include <algorithm>
 #include <cerrno>
 #include <cstdlib>
@@ -49,22 +50,10 @@ static int const DEFAULT_TIMEOUT = 200;
  */
 void process_manager::add(process* p) {
   // Check viability pointer.
-  // FIXME DBR: impossible case...
   assert(p);
 
   // We lock _lock_processes before to avoid deadlocks
   std::lock_guard<std::mutex> lock(_lock_processes);
-
-  // This is impossible since add is called from process::exec and _process
-  // is correctly set in this method or throws an exception...
-  //if (p->_process == static_cast<pid_t>(-1))
-  //  throw basic_error() << "invalid process: not running";
-
-  // Add pid process to use waitpid.
-  _processes_pid[p->_process] = p;
-
-  // Check if the process need to be managed.
-  std::lock_guard<std::mutex> lock_process(p->_lock_process);
 
   // Monitor err/out output if necessary.
   if (p->_enable_stream[process::out])
@@ -78,6 +67,10 @@ void process_manager::add(process* p) {
 
   // Need to update file descriptor list.
   _update = true;
+
+  // Add pid process to use waitpid.
+  _processes_pid[p->_process] = p;
+
   write(_fds_exit[1], "up", 2);
 }
 
@@ -102,10 +95,9 @@ process_manager& process_manager::instance() {
  */
 process_manager::process_manager()
     : _thread{nullptr},
-      _fds(new pollfd[64]),
-      _fds_capacity(64),
       _fds_size(0),
       _update(true) {
+  _fds.reserve(64);
   // Create pipe to notify ending to the process manager thread.
   if (::pipe(_fds_exit)) {
     char const* msg(strerror(errno));
@@ -151,7 +143,7 @@ process_manager::~process_manager() noexcept {
     std::lock_guard<std::mutex> lock(_lock_processes);
 
     // Release memory.
-    delete[] _fds;
+    _fds.clear();
 
     // Release ressources.
     _close(_fds_exit[0]);
@@ -255,8 +247,8 @@ void process_manager::_kill_processes_timeout() noexcept {
  *
  *  @return Number of bytes read.
  */
-unsigned int process_manager::_read_stream(int fd) noexcept {
-  unsigned int size(0);
+uint32_t process_manager::_read_stream(int fd) noexcept {
+  uint32_t size(0);
   try {
     process* p;
     // Get process to link with fd.
@@ -283,8 +275,8 @@ unsigned int process_manager::_read_stream(int fd) noexcept {
  */
 void process_manager::_run() {
   try {
-    bool quit(false);
-    while (true) {
+    bool quit{false};
+    for (;;) {
       // Update the file descriptor list.
       _update_list();
 
@@ -292,15 +284,15 @@ void process_manager::_run() {
         break;
 
       // Wait event on file descriptor.
-      int ret(poll(_fds, _fds_size, DEFAULT_TIMEOUT));
+      int ret(poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT));
       if (ret < 0 && errno == EINTR)
         ret = 0;
       else if (ret < 0) {
         char const* msg(strerror(errno));
         throw basic_error() << "poll failed: " << msg;
       }
-      for (unsigned int i = 0, checked = 0;
-           checked < static_cast<unsigned int>(ret) && i < _fds_size;
+      for (uint32_t i = 0, checked = 0;
+           checked < static_cast<uint32_t>(ret) && i < _fds_size;
            ++i) {
 
         // No event.
@@ -326,7 +318,7 @@ void process_manager::_run() {
         }
 
         // Data are available.
-        unsigned int size = 0;
+        uint32_t size = 0;
         if (_fds[i].revents & (POLLIN | POLLPRI))
           size = _read_stream(_fds[i].fd);
         // File descriptor was close.
@@ -372,24 +364,20 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
  */
 void process_manager::_update_list() {
   std::lock_guard<std::mutex> lock(_lock_processes);
-  // No need update.
+  // No need to update.
   if (!_update)
     return;
 
-  // Resize file descriptor list.
-  if (_processes_fd.size() > _fds_capacity) {
-    delete[] _fds;
-    _fds_capacity = _processes_fd.size();
-    _fds = new pollfd[_fds_capacity];
-  }
   // Set file descriptor to wait event.
-  _fds_size = 0;
+  _fds.resize(_processes_fd.size());
+  auto itt = _fds.begin();
+  _fds_size = _fds.size();
   for (auto it = _processes_fd.begin(), end = _processes_fd.end();
        it != end; ++it) {
-    _fds[_fds_size].fd = it->first;
-    _fds[_fds_size].events = POLLIN | POLLPRI | POLL_HUP;
-    _fds[_fds_size].revents = 0;
-    ++_fds_size;
+    itt->fd = it->first;
+    itt->events = POLLIN | POLLPRI | POLL_HUP;
+    itt->revents = 0;
+    ++itt;
   }
   // Disable update.
   _update = false;
