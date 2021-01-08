@@ -84,27 +84,22 @@ process_manager& process_manager::instance() {
   return instance;
 }
 
-/**************************************
-*                                     *
-*           Private Methods           *
-*                                     *
-**************************************/
-
 /**
- *  Default constructor.
+ *  Default constructor. It is private. No need to call, we just use the static
+ *  internal function instance().
  */
 process_manager::process_manager()
     : _thread{nullptr},
-      _fds_size(0),
+      _fds_size{0},
       _update(true) {
   _fds.reserve(64);
   // Create pipe to notify ending to the process manager thread.
-  if (::pipe(_fds_exit)) {
-    char const* msg(strerror(errno));
+  if (::pipe(_fds_exit.data())) {
+    char const* msg = strerror(errno);
     throw basic_error() << "pipe creation failed: " << msg;
   }
 
-  process::_set_cloexec(_fds_exit[1]);
+  process::set_cloexec(_fds_exit[1]);
 
   // Add exit fd to the file descriptor list.
   _processes_fd[_fds_exit[0]] = nullptr;
@@ -284,12 +279,14 @@ void process_manager::_run() {
         break;
 
       // Wait event on file descriptor.
-      int ret(poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT));
-      if (ret < 0 && errno == EINTR)
-        ret = 0;
-      else if (ret < 0) {
-        char const* msg(strerror(errno));
-        throw basic_error() << "poll failed: " << msg;
+      int ret = poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT);
+      if (ret < 0) {
+        if (errno == EINTR)
+          ret = 0;
+        else {
+          const char* msg = strerror(errno);
+          throw basic_error() << "poll failed: " << msg;
+        }
       }
       for (uint32_t i = 0, checked = 0;
            checked < static_cast<uint32_t>(ret) && i < _fds_size;
@@ -363,15 +360,18 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
  *  Update list of file descriptor to watch.
  */
 void process_manager::_update_list() {
-  std::lock_guard<std::mutex> lock(_lock_processes);
   // No need to update.
   if (!_update)
     return;
 
+  std::lock_guard<std::mutex> lock(_lock_processes);
+
   // Set file descriptor to wait event.
-  _fds.resize(_processes_fd.size());
+  if (_processes_fd.size() != _fds_size) {
+    _fds.resize(_processes_fd.size());
+    _fds_size = _fds.size();
+  }
   auto itt = _fds.begin();
-  _fds_size = _fds.size();
   for (auto it = _processes_fd.begin(), end = _processes_fd.end();
        it != end; ++it) {
     itt->fd = it->first;
