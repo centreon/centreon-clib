@@ -22,12 +22,6 @@
 
 using namespace com::centreon;
 
-/**************************************
- *                                     *
- *           Public Methods            *
- *                                     *
- **************************************/
-
 /**
  *  Default constructor.
  */
@@ -115,7 +109,7 @@ void (*library::resolve_proc(char const* symbol))() {
     void* data;
   } type;
   type.data = resolve(symbol);
-  return (type.func);
+  return type.func;
 }
 
 /**
@@ -124,7 +118,7 @@ void (*library::resolve_proc(char const* symbol))() {
  *  @see resolve_proc
  */
 void (*library::resolve_proc(std::string const& symbol))() {
-  return (resolve_proc(symbol.c_str()));
+  return resolve_proc(symbol.c_str());
 }
 
 /**
@@ -135,5 +129,5 @@ void library::unload() {
     return;
   if (dlclose(_handle))
     throw basic_error() << "unload library failed: " << dlerror();
-  _handle = NULL;
+  _handle = nullptr;
 }
