@@ -16,6 +16,8 @@
 ** For more information : contact@centreon.com
 */
 
+#include <iostream>
+
 #include <cassert>
 #include <algorithm>
 #include <cerrno>
@@ -69,33 +71,11 @@ process::process(process_listener* listener, bool in_stream, bool out_stream, bo
  *  Destructor.
  */
 process::~process() noexcept {
+  std::cout << "fin process\n";
   std::unique_lock<std::mutex> lock(_lock_process);
   _kill(SIGKILL);
   _cv_process_running.wait(lock, [this] { return !_is_running(); });
 }
-
-/**
- *  Enable or disable process' stream. It's a little more than just a setter.
- *  Several checks are done, we can not do anything.
- *
- *  @param[in] s      The stream to set (enum stream).
- *  @param[in] enable Set to true to enable the stream.
- */
-//void process::enable_stream(stream s, bool enable) {
-//  std::lock_guard<std::mutex> lock(_lock_process);
-//  if (_enable_stream[s] != enable) {
-//    // Process not running: just set variable.
-//    if (!_is_running())
-//      _enable_stream[s] = enable;
-//    // Process running and stream is enable, close stream.
-//    else if (!enable)
-//      _close(_stream[s]);
-//    // Do not change stream status.
-//    else
-//      throw basic_error() << "cannot reenable \"" << s
-//                          << "\" while process is running";
-//  }
-//}
 
 /**
  *  Get the time when the process execution finished.
@@ -105,6 +85,16 @@ process::~process() noexcept {
 timestamp const& process::end_time() const noexcept {
   std::lock_guard<std::mutex> lock(_lock_process);
   return _end_time;
+}
+
+/**
+ *  Get is the current process run.
+ *
+ *  @return True is process run, otherwise false.
+ */
+bool process::_is_running() const noexcept {
+  return _process != static_cast<pid_t>(-1) || _stream[in] != -1 ||
+          _stream[out] != -1 || _stream[err] != -1;
 }
 
 /**
@@ -135,7 +125,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
   _status = 0;
 
   // Close the last file descriptor;
-  for (uint32_t i = 0; i < 3; ++i)
+  for (int32_t i = 0; i < 3; ++i)
     _close(_stream[i]);
 
   // Init file desciptor.
@@ -591,21 +581,12 @@ void process::_dup2(int oldfd, int newfd) {
 }
 
 /**
- *  Get is the current process run.
- *
- *  @return True is process run, otherwise false.
- */
-bool process::_is_running() const noexcept {
-  return _process != static_cast<pid_t>(-1) || _stream[in] != -1 ||
-          _stream[out] != -1 || _stream[err] != -1;
-}
-
-/**
  *  kill syscall wrapper.
  *
  *  @param[in] sig The signal number.
  */
 void process::_kill(int sig) {
+  std::cout << "process kill " << sig << "\n";
   if (_process && _process != static_cast<pid_t>(-1)) {
     if (::kill(_process, sig) != 0) {
       char const* msg(strerror(errno));
