@@ -19,14 +19,14 @@
 #ifndef CC_PROCESS_MANAGER_POSIX_HH
 #define CC_PROCESS_MANAGER_POSIX_HH
 
+#include <poll.h>
 #include <atomic>
-#include <vector>
 #include <deque>
 #include <map>
 #include <mutex>
-#include <poll.h>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 #include "com/centreon/namespace.hh"
 
 CC_BEGIN()
@@ -50,7 +50,7 @@ class process_manager {
   std::thread* _thread;
   std::vector<pollfd> _fds;
   uint32_t _fds_capacity;
-  //std::array<int32_t, 2> _fds_exit;
+  // std::array<int32_t, 2> _fds_exit;
   uint32_t _fds_size;
   mutable std::mutex _lock_processes;
   std::deque<orphan> _orphans_pid;

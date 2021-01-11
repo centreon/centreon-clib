@@ -19,8 +19,8 @@
 #ifndef CC_TIMESTAMP_HH
 #define CC_TIMESTAMP_HH
 
-#include <ctime>
 #include <cstdint>
+#include <ctime>
 #include "com/centreon/namespace.hh"
 
 CC_BEGIN()
