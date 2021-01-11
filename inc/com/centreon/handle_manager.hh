@@ -24,7 +24,6 @@
 #include <mutex>
 #include <utility>
 #include "com/centreon/handle.hh"
-#include "com/centreon/namespace.hh"
 
 CC_BEGIN()
 

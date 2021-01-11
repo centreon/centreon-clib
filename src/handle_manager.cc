@@ -19,7 +19,6 @@
 #include "com/centreon/handle_manager.hh"
 #include <cerrno>
 #include <cstring>
-#include <sstream>
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/handle_action.hh"
 #include "com/centreon/handle_listener.hh"
