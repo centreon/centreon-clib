@@ -16,6 +16,8 @@
 ** For more information : contact@centreon.com
 */
 
+#include <iostream>
+
 #include <cassert>
 #include <algorithm>
 #include <cerrno>
@@ -112,6 +114,7 @@ process_manager::process_manager()
  *  Destructor.
  */
 process_manager::~process_manager() noexcept {
+  std::cout << "fin process_manager\n";
   // Kill all running process.
   {
     std::lock_guard<std::mutex> lock(_lock_processes);
@@ -120,7 +123,7 @@ process_manager::~process_manager() noexcept {
       try {
         it->second->kill();
       }
-      catch (std::exception const& e) {
+      catch (const std::exception& e) {
         (void)e;
       }
     }
@@ -190,7 +193,7 @@ void process_manager::_close_stream(int fd) noexcept {
     // Update process informations.
     p->do_close(fd);
   }
-  catch (std::exception const& e) {
+  catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
 }
@@ -228,7 +231,7 @@ void process_manager::_kill_processes_timeout() noexcept {
     try {
       p->kill();
     }
-    catch (std::exception const& e) {
+    catch (const std::exception& e) {
       log_error(logging::high) << e.what();
     }
     it = _processes_timeout.erase(it);
@@ -259,7 +262,7 @@ uint32_t process_manager::_read_stream(int fd) noexcept {
 
     size = p->do_read(fd);
   }
-  catch (std::exception const& e) {
+  catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
   return size;
@@ -305,11 +308,13 @@ void process_manager::_run() {
             char buf[3];
             buf[3] = 0;
             read(_fds_exit[0], buf, 2);
+            std::cout << "read exit " << i << "\n";
             continue;
           } else {
             _processes_fd.erase(_fds[i].fd);
             _update = true;
             quit = true;
+            std::cout << "read fin\n";
             continue;
           }
         }
@@ -336,7 +341,7 @@ void process_manager::_run() {
       _kill_processes_timeout();
     }
   }
-  catch (std::exception const& e) {
+  catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
 }
@@ -413,7 +418,7 @@ void process_manager::_wait_orphans_pid() noexcept {
       it = _orphans_pid.erase(it);
     }
   }
-  catch (std::exception const& e) {
+  catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
 }
@@ -450,7 +455,7 @@ void process_manager::_wait_processes() noexcept {
       _update_ending_process(p, status);
     }
   }
-  catch (std::exception const& e) {
+  catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
 }
