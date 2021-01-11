@@ -50,7 +50,7 @@ class process_manager {
   std::thread* _thread;
   std::vector<pollfd> _fds;
   uint32_t _fds_capacity;
-  std::array<int32_t, 2> _fds_exit;
+  //std::array<int32_t, 2> _fds_exit;
   uint32_t _fds_size;
   mutable std::mutex _lock_processes;
   std::deque<orphan> _orphans_pid;
@@ -58,6 +58,7 @@ class process_manager {
   std::unordered_map<pid_t, process*> _processes_pid;
   std::multimap<uint32_t, process*> _processes_timeout;
   std::atomic_bool _update;
+  std::atomic_bool _running;
 
   process_manager();
   ~process_manager() noexcept;

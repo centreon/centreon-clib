@@ -73,7 +73,7 @@ void process_manager::add(process* p) {
   // Add pid process to use waitpid.
   _processes_pid[p->_process] = p;
 
-  write(_fds_exit[1], "up", 2);
+  //write(_fds_exit[1], "up", 2);
 }
 
 /**
@@ -96,15 +96,15 @@ process_manager::process_manager()
       _update(true) {
   _fds.reserve(64);
   // Create pipe to notify ending to the process manager thread.
-  if (::pipe(_fds_exit.data())) {
-    char const* msg = strerror(errno);
-    throw basic_error() << "pipe creation failed: " << msg;
-  }
+  //if (::pipe(_fds_exit.data())) {
+  //  char const* msg = strerror(errno);
+  //  throw basic_error() << "pipe creation failed: " << msg;
+  //}
 
-  process::set_cloexec(_fds_exit[1]);
+  //process::set_cloexec(_fds_exit[1]);
 
   // Add exit fd to the file descriptor list.
-  _processes_fd[_fds_exit[0]] = nullptr;
+  //_processes_fd[_fds_exit[0]] = nullptr;
 
   // Run process manager thread.
   _thread = new std::thread(&process_manager::_run, this);
@@ -130,9 +130,10 @@ process_manager::~process_manager() noexcept {
   }
 
   // Exit process manager thread.
-  _close(_fds_exit[1]);
+  //_close(_fds_exit[1]);
 
   // Waiting the end of the process manager thread.
+  _running = false;
   _thread->join();
   delete _thread;
   _thread = nullptr;
@@ -144,7 +145,7 @@ process_manager::~process_manager() noexcept {
     _fds.clear();
 
     // Release ressources.
-    _close(_fds_exit[0]);
+    //_close(_fds_exit[0]);
 
     // Waiting all process.
     int ret(0);
@@ -272,16 +273,15 @@ uint32_t process_manager::_read_stream(int fd) noexcept {
  *  Internal thread to monitor processes.
  */
 void process_manager::_run() {
+  _running = true;
   try {
-    bool quit{false};
     for (;;) {
       // Update the file descriptor list.
       _update_list();
 
-      if (quit && _fds_size == 0)
+      if  (!_running && _fds.size() == 0 && _processes_pid.size() == 0 && _orphans_pid.size() == 0)
         break;
 
-      // Wait event on file descriptor.
       int ret = poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT);
       if (ret < 0) {
         if (errno == EINTR)
@@ -303,21 +303,21 @@ void process_manager::_run() {
 
         // The process manager destructor was called,
         // it's time to quit the loop.
-        if (_fds[i].fd == _fds_exit[0]) {
-          if (_fds[i].revents & POLLIN) {
-            char buf[3];
-            buf[3] = 0;
-            read(_fds_exit[0], buf, 2);
-            std::cout << "read exit " << i << "\n";
-            continue;
-          } else {
-            _processes_fd.erase(_fds[i].fd);
-            _update = true;
-            quit = true;
-            std::cout << "read fin\n";
-            continue;
-          }
-        }
+        //if (_fds[i].fd == _fds_exit[0]) {
+        //  if (_fds[i].revents & POLLIN) {
+        //    char buf[3];
+        //    buf[3] = 0;
+        //    read(_fds_exit[0], buf, 2);
+        //    std::cout << "read exit " << i << "\n";
+        //    continue;
+        //  } else {
+        //    _processes_fd.erase(_fds[i].fd);
+        //    _update = true;
+        //    quit = true;
+        //    std::cout << "read fin\n";
+        //    continue;
+        //  }
+        //}
 
         // Data are available.
         uint32_t size = 0;
@@ -344,6 +344,7 @@ void process_manager::_run() {
   catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
+  std::cout << "PROCESS MANAGER RUN END...\n";
 }
 
 /**
@@ -353,6 +354,7 @@ void process_manager::_run() {
  *  @param[in] status  The status of the process to set.
  */
 void process_manager::_update_ending_process(process* p, int status) noexcept {
+  std::cout << "process_manager::_update_ending_process\n";
   // Check process viability.
   if (!p)
     return;
