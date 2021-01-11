@@ -16,8 +16,6 @@
 ** For more information : contact@centreon.com
 */
 
-#include <iostream>
-
 #include <fcntl.h>
 #include <poll.h>
 #include <algorithm>
@@ -48,12 +46,6 @@ extern char** environ;
 // Global process lock.
 static std::mutex gl_process_lock;
 
-/**************************************
- *                                     *
- *           Public Methods            *
- *                                     *
- **************************************/
-
 /**
  *  Default constructor.
  */
@@ -74,7 +66,6 @@ process::process(process_listener* listener,
  *  Destructor.
  */
 process::~process() noexcept {
-  std::cout << "fin process\n";
   std::unique_lock<std::mutex> lock(_lock_process);
   _kill(SIGKILL);
   _cv_process_running.wait(lock, [this] { return !_is_running(); });
@@ -281,21 +272,16 @@ void process::update_ending_process(int status) {
   _status = status;
   _process = static_cast<pid_t>(-1);
   _close(_stream[process::in]);
-  std::cout << "process::update_ending_process is_runngin=" << _is_running()
-            << "\n";
   if (!_is_running()) {
-    std::cout << "progress:update_ending_process 1\n";
     // Notify listener if necessary.
     if (_listener) {
       lock.unlock();
       (_listener->finished)(*this);
     }
-    std::cout << "progress:update_ending_process 2\n";
     // Release condition variable.
     _cv_buffer_err.notify_one();
     _cv_buffer_out.notify_one();
     _cv_process_running.notify_one();
-    std::cout << "progress:update_ending_process " << this << " notify\n";
   }
 }
 
@@ -376,7 +362,6 @@ void process::terminate() {
  */
 void process::wait() const {
   std::unique_lock<std::mutex> lock(_lock_process);
-  std::cout << "process:wait..." << this << " : " << _is_running() << "\n";
   _cv_process_running.wait(lock, [this] { return !_is_running(); });
 }
 
@@ -592,7 +577,6 @@ void process::_dup2(int oldfd, int newfd) {
  *  @param[in] sig The signal number.
  */
 void process::_kill(int sig) {
-  std::cout << "process kill " << sig << "\n";
   if (_process && _process != static_cast<pid_t>(-1)) {
     if (::kill(_process, sig) != 0) {
       char const* msg(strerror(errno));
