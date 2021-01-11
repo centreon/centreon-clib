@@ -23,7 +23,6 @@
 #include <condition_variable>
 #include <mutex>
 #include <string>
-#include "com/centreon/namespace.hh"
 #include "com/centreon/timestamp.hh"
 
 CC_BEGIN()

@@ -48,7 +48,7 @@ struct hash<std::pair<T, U> > {
   std::size_t operator()(std::pair<T, U> const& p) const {
     std::hash<T> h1;
     std::hash<U> h2;
-    return (h1(p.first) ^ h2(p.second));
+    return h1(p.first) ^ h2(p.second);
   }
 };
 }  // namespace std
@@ -73,7 +73,7 @@ struct hash<std::pair<T, U> > {
   std::size_t operator()(std::pair<T, U> const& p) const {
     std::tr1::hash<T> h1;
     std::tr1::hash<U> h2;
-    return (h1(p.first) ^ h2(p.second));
+    return h1(p.first) ^ h2(p.second);
   }
 };
 }  // namespace tr1
@@ -85,22 +85,22 @@ template <class Key, class T, class Hash, class Pred, class Alloc>
 bool operator==(umap<Key, T, Hash, Pred, Alloc> const& lhs,
                 umap<Key, T, Hash, Pred, Alloc> const& rhs) {
   if (lhs.size() != rhs.size())
-    return (false);
+    return false;
   for (typename umap<Key, T, Hash, Pred, Alloc>::const_iterator it(lhs.begin()),
        end(lhs.end());
        it != end; ++it) {
     typename umap<Key, T, Hash, Pred, Alloc>::const_iterator it_find(
         rhs.find(it->first));
     if (it_find == rhs.end() || it_find->second != it->second)
-      return (false);
+      return false;
   }
-  return (true);
+  return true;
 }
 // Missing not equal operator for unrodered map on tr1.
 template <class Key, class T, class Hash, class Pred, class Alloc>
 bool operator!=(umap<Key, T, Hash, Pred, Alloc> const& lhs,
                 umap<Key, T, Hash, Pred, Alloc> const& rhs) {
-  return (!operator==(lhs, rhs));
+  return !operator==(lhs, rhs);
 }
 
 // Missing equal operator for unrodered multimap on tr1.
@@ -108,7 +108,7 @@ template <class Key, class T, class Hash, class Pred, class Alloc>
 bool operator==(umultimap<Key, T, Hash, Pred, Alloc> const& lhs,
                 umultimap<Key, T, Hash, Pred, Alloc> const& rhs) {
   if (lhs.size() != rhs.size())
-    return (false);
+    return false;
   for (typename umap<Key, T, Hash, Pred, Alloc>::const_iterator it(lhs.begin()),
        end(lhs.end());
        it != end; ++it) {
@@ -123,15 +123,15 @@ bool operator==(umultimap<Key, T, Hash, Pred, Alloc> const& lhs,
       }
     }
     if (!find)
-      return (false);
+      return false;
   }
-  return (true);
+  return true;
 }
 // Missing not equal operator for unrodered multimap on tr1.
 template <class Key, class T, class Hash, class Pred, class Alloc>
 bool operator!=(umultimap<Key, T, Hash, Pred, Alloc> const& lhs,
                 umultimap<Key, T, Hash, Pred, Alloc> const& rhs) {
-  return (!operator==(lhs, rhs));
+  return !operator==(lhs, rhs);
 }
 }  // namespace std
 
