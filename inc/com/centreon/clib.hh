@@ -19,8 +19,8 @@
 #ifndef CC_CLIB_HH
 #define CC_CLIB_HH
 
-#include "com/centreon/namespace.hh"
 #include "com/centreon/logging/engine.hh"
+#include "com/centreon/namespace.hh"
 #include "com/centreon/process_manager.hh"
 
 #endif  // !CC_CLIB_HH

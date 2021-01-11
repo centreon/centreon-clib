@@ -16,9 +16,9 @@
 ** For more information : contact@centreon.com
 */
 
-#include <limits>
-#include <sys/time.h>
 #include "com/centreon/timestamp.hh"
+#include <sys/time.h>
+#include <limits>
 
 using namespace com::centreon;
 
@@ -37,7 +37,8 @@ timestamp::timestamp(time_t secs, int32_t usecs) : _secs(secs), _usecs(0) {
  *
  *  @param[in] right  The object to copy.
  */
-timestamp::timestamp(const timestamp& right) : _secs{right._secs}, _usecs{right._usecs} {}
+timestamp::timestamp(const timestamp& right)
+    : _secs{right._secs}, _usecs{right._usecs} {}
 
 /**
  *  Assignment operator.
@@ -84,8 +85,7 @@ bool timestamp::operator!=(const timestamp& right) const noexcept {
  *  @return True if less, otherwise false.
  */
 bool timestamp::operator<(const timestamp& right) const noexcept {
-  return _secs < right._secs ||
-          (_secs == right._secs && _usecs < right._usecs);
+  return _secs < right._secs || (_secs == right._secs && _usecs < right._usecs);
 }
 
 /**
@@ -97,7 +97,7 @@ bool timestamp::operator<(const timestamp& right) const noexcept {
  */
 bool timestamp::operator<=(const timestamp& right) const noexcept {
   return _secs < right._secs ||
-    (_secs == right._secs && _usecs <= right._usecs);
+         (_secs == right._secs && _usecs <= right._usecs);
 }
 
 /**
@@ -108,8 +108,7 @@ bool timestamp::operator<=(const timestamp& right) const noexcept {
  *  @return True if greater, otherwise false.
  */
 bool timestamp::operator>(const timestamp& right) const noexcept {
-  return _secs > right._secs ||
-          (_secs == right._secs && _usecs > right._usecs);
+  return _secs > right._secs || (_secs == right._secs && _usecs > right._usecs);
 }
 
 /**
@@ -121,7 +120,7 @@ bool timestamp::operator>(const timestamp& right) const noexcept {
  */
 bool timestamp::operator>=(const timestamp& right) const noexcept {
   return _secs > right._secs ||
-    (_secs == right._secs && _usecs >= right._usecs);
+         (_secs == right._secs && _usecs >= right._usecs);
 }
 
 /**
@@ -208,8 +207,7 @@ void timestamp::add_useconds(int32_t usecs) {
       --_secs;
       us += 1000000;
     }
-  }
-  else if (us >= 1000000) {
+  } else if (us >= 1000000) {
     _secs += us / 1000000;
     us %= 1000000;
   }
@@ -309,7 +307,9 @@ int64_t timestamp::to_mseconds() const noexcept {
  *
  *  @return The time in seconds.
  */
-time_t timestamp::to_seconds() const noexcept { return _secs; }
+time_t timestamp::to_seconds() const noexcept {
+  return _secs;
+}
 
 /**
  *  Get the time in microseconds.

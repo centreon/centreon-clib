@@ -18,15 +18,15 @@
 
 #include <iostream>
 
-#include <cassert>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <algorithm>
+#include <cassert>
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/logger.hh"
 #include "com/centreon/process.hh"
@@ -39,10 +39,10 @@ using namespace com::centreon;
 static int const DEFAULT_TIMEOUT = 200;
 
 /**************************************
-*                                     *
-*           Public Methods            *
-*                                     *
-**************************************/
+ *                                     *
+ *           Public Methods            *
+ *                                     *
+ **************************************/
 
 /**
  *  Add process to the process manager.
@@ -73,7 +73,7 @@ void process_manager::add(process* p) {
   // Add pid process to use waitpid.
   _processes_pid[p->_process] = p;
 
-  //write(_fds_exit[1], "up", 2);
+  // write(_fds_exit[1], "up", 2);
 }
 
 /**
@@ -91,17 +91,15 @@ process_manager& process_manager::instance() {
  *  internal function instance().
  */
 process_manager::process_manager()
-    : _thread{nullptr},
-      _fds_size{0},
-      _update(true) {
+    : _thread{nullptr}, _fds_size{0}, _update(true) {
   _fds.reserve(64);
   // Create pipe to notify ending to the process manager thread.
-  //if (::pipe(_fds_exit.data())) {
+  // if (::pipe(_fds_exit.data())) {
   //  char const* msg = strerror(errno);
   //  throw basic_error() << "pipe creation failed: " << msg;
   //}
 
-  //process::set_cloexec(_fds_exit[1]);
+  // process::set_cloexec(_fds_exit[1]);
 
   // Add exit fd to the file descriptor list.
   //_processes_fd[_fds_exit[0]] = nullptr;
@@ -122,8 +120,7 @@ process_manager::~process_manager() noexcept {
          it != end; ++it) {
       try {
         it->second->kill();
-      }
-      catch (const std::exception& e) {
+      } catch (const std::exception& e) {
         (void)e;
       }
     }
@@ -193,8 +190,7 @@ void process_manager::_close_stream(int fd) noexcept {
 
     // Update process informations.
     p->do_close(fd);
-  }
-  catch (const std::exception& e) {
+  } catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
 }
@@ -227,12 +223,12 @@ void process_manager::_kill_processes_timeout() noexcept {
   std::time_t now(time(nullptr));
 
   // Kill process who timeout and remove it from timeout list.
-  for (auto it = _processes_timeout.begin(), end = _processes_timeout.end(); it != end && it->first <= now; ) {
+  for (auto it = _processes_timeout.begin(), end = _processes_timeout.end();
+       it != end && it->first <= now;) {
     process* p = it->second;
     try {
       p->kill();
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
       log_error(logging::high) << e.what();
     }
     it = _processes_timeout.erase(it);
@@ -262,8 +258,7 @@ uint32_t process_manager::_read_stream(int fd) noexcept {
     }
 
     size = p->do_read(fd);
-  }
-  catch (const std::exception& e) {
+  } catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
   return size;
@@ -279,7 +274,8 @@ void process_manager::_run() {
       // Update the file descriptor list.
       _update_list();
 
-      if  (!_running && _fds.size() == 0 && _processes_pid.size() == 0 && _orphans_pid.size() == 0)
+      if (!_running && _fds.size() == 0 && _processes_pid.size() == 0 &&
+          _orphans_pid.size() == 0)
         break;
 
       int ret = poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT);
@@ -292,9 +288,7 @@ void process_manager::_run() {
         }
       }
       for (uint32_t i = 0, checked = 0;
-           checked < static_cast<uint32_t>(ret) && i < _fds_size;
-           ++i) {
-
+           checked < static_cast<uint32_t>(ret) && i < _fds_size; ++i) {
         // No event.
         if (!_fds[i].revents)
           continue;
@@ -303,7 +297,7 @@ void process_manager::_run() {
 
         // The process manager destructor was called,
         // it's time to quit the loop.
-        //if (_fds[i].fd == _fds_exit[0]) {
+        // if (_fds[i].fd == _fds_exit[0]) {
         //  if (_fds[i].revents & POLLIN) {
         //    char buf[3];
         //    buf[3] = 0;
@@ -330,8 +324,8 @@ void process_manager::_run() {
         //  Error!
         else if (_fds[i].revents & (POLLERR | POLLNVAL)) {
           _update = true;
-          log_error(logging::high) << "invalid fd " << _fds[i].fd
-                                   << " from process manager";
+          log_error(logging::high)
+              << "invalid fd " << _fds[i].fd << " from process manager";
         }
       }
       // Release finished process.
@@ -340,8 +334,7 @@ void process_manager::_run() {
       // Kill process in timeout.
       _kill_processes_timeout();
     }
-  }
-  catch (const std::exception& e) {
+  } catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
   std::cout << "PROCESS MANAGER RUN END...\n";
@@ -379,8 +372,8 @@ void process_manager::_update_list() {
     _fds_size = _fds.size();
   }
   auto itt = _fds.begin();
-  for (auto it = _processes_fd.begin(), end = _processes_fd.end();
-       it != end; ++it) {
+  for (auto it = _processes_fd.begin(), end = _processes_fd.end(); it != end;
+       ++it) {
     itt->fd = it->first;
     itt->events = POLLIN | POLLPRI | POLL_HUP;
     itt->revents = 0;
@@ -419,8 +412,7 @@ void process_manager::_wait_orphans_pid() noexcept {
       // Erase orphan pid.
       it = _orphans_pid.erase(it);
     }
-  }
-  catch (const std::exception& e) {
+  } catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
 }
@@ -456,8 +448,7 @@ void process_manager::_wait_processes() noexcept {
         p->_is_timeout = true;
       _update_ending_process(p, status);
     }
-  }
-  catch (const std::exception& e) {
+  } catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
 }
