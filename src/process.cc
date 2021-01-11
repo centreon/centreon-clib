@@ -134,7 +134,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
 
     // Backup FDs do not need to be inherited.
     for (int32_t i = 0; i < 3; ++i)
-      set_cloexec(std[i]);
+      _set_cloexec(std[i]);
 
     restore_std = true;
 
@@ -145,7 +145,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
       _pipe(pipe_stream[in]);
       _dup2(pipe_stream[in][0], STDIN_FILENO);
       _close(pipe_stream[in][0]);
-      set_cloexec(pipe_stream[in][1]);
+      _set_cloexec(pipe_stream[in][1]);
     }
 
     if (!_enable_stream[out])
@@ -154,7 +154,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
       _pipe(pipe_stream[out]);
       _dup2(pipe_stream[out][1], STDOUT_FILENO);
       _close(pipe_stream[out][1]);
-      set_cloexec(pipe_stream[out][0]);
+      _set_cloexec(pipe_stream[out][0]);
     }
 
     if (!_enable_stream[err])
@@ -163,7 +163,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
       _pipe(pipe_stream[err]);
       _dup2(pipe_stream[err][1], STDERR_FILENO);
       _close(pipe_stream[err][1]);
-      set_cloexec(pipe_stream[err][0]);
+      _set_cloexec(pipe_stream[err][0]);
     }
 
     // Parse and get command line arguments.
@@ -635,7 +635,7 @@ ssize_t process::do_read(int fd) {
  *
  *  @param[in] fd The file descriptor to set close on exec.
  */
-void process::set_cloexec(int fd) {
+void process::_set_cloexec(int fd) {
   int flags(0);
   while ((flags = fcntl(fd, F_GETFD)) < 0) {
     if (errno == EINTR)
