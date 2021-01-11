@@ -17,24 +17,20 @@
 */
 
 #include <fcntl.h>
-#include <poll.h>
 #include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <csignal>
 #include <cstdlib>
 #include <cstring>
-#include <mutex>
 #ifdef HAVE_SPAWN_H
 #include <spawn.h>
 #endif  // HAVE_SPAWN_H
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/exceptions/interruption.hh"
 #include "com/centreon/misc/command_line.hh"
-#include "com/centreon/process.hh"
 #include "com/centreon/process_listener.hh"
 #include "com/centreon/process_manager.hh"
 
