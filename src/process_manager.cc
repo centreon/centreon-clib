@@ -16,9 +16,6 @@
 ** For more information : contact@centreon.com
 */
 
-#include <iostream>
-
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <algorithm>
@@ -26,10 +23,8 @@
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
-#include <mutex>
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/logger.hh"
-#include "com/centreon/process.hh"
 #include "com/centreon/process_listener.hh"
 #include "com/centreon/process_manager.hh"
 
@@ -37,12 +32,6 @@ using namespace com::centreon;
 
 // Default varibale.
 static int const DEFAULT_TIMEOUT = 200;
-
-/**************************************
- *                                     *
- *           Public Methods            *
- *                                     *
- **************************************/
 
 /**
  *  Add process to the process manager.
@@ -93,16 +82,6 @@ process_manager& process_manager::instance() {
 process_manager::process_manager()
     : _thread{nullptr}, _fds_size{0}, _update(true) {
   _fds.reserve(64);
-  // Create pipe to notify ending to the process manager thread.
-  // if (::pipe(_fds_exit.data())) {
-  //  char const* msg = strerror(errno);
-  //  throw basic_error() << "pipe creation failed: " << msg;
-  //}
-
-  // process::set_cloexec(_fds_exit[1]);
-
-  // Add exit fd to the file descriptor list.
-  //_processes_fd[_fds_exit[0]] = nullptr;
 
   // Run process manager thread.
   _thread = new std::thread(&process_manager::_run, this);
@@ -112,7 +91,6 @@ process_manager::process_manager()
  *  Destructor.
  */
 process_manager::~process_manager() noexcept {
-  std::cout << "fin process_manager\n";
   // Kill all running process.
   {
     std::lock_guard<std::mutex> lock(_lock_processes);
@@ -140,9 +118,6 @@ process_manager::~process_manager() noexcept {
 
     // Release memory.
     _fds.clear();
-
-    // Release ressources.
-    //_close(_fds_exit[0]);
 
     // Waiting all process.
     int ret(0);
@@ -295,24 +270,6 @@ void process_manager::_run() {
 
         ++checked;
 
-        // The process manager destructor was called,
-        // it's time to quit the loop.
-        // if (_fds[i].fd == _fds_exit[0]) {
-        //  if (_fds[i].revents & POLLIN) {
-        //    char buf[3];
-        //    buf[3] = 0;
-        //    read(_fds_exit[0], buf, 2);
-        //    std::cout << "read exit " << i << "\n";
-        //    continue;
-        //  } else {
-        //    _processes_fd.erase(_fds[i].fd);
-        //    _update = true;
-        //    quit = true;
-        //    std::cout << "read fin\n";
-        //    continue;
-        //  }
-        //}
-
         // Data are available.
         uint32_t size = 0;
         if (_fds[i].revents & (POLLIN | POLLPRI))
@@ -337,7 +294,6 @@ void process_manager::_run() {
   } catch (const std::exception& e) {
     log_error(logging::high) << e.what();
   }
-  std::cout << "PROCESS MANAGER RUN END...\n";
 }
 
 /**
@@ -347,7 +303,6 @@ void process_manager::_run() {
  *  @param[in] status  The status of the process to set.
  */
 void process_manager::_update_ending_process(process* p, int status) noexcept {
-  std::cout << "process_manager::_update_ending_process\n";
   // Check process viability.
   if (!p)
     return;
