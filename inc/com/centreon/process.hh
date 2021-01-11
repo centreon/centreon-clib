@@ -19,10 +19,10 @@
 #ifndef CC_PROCESS_POSIX_HH
 #define CC_PROCESS_POSIX_HH
 
+#include <sys/types.h>
 #include <condition_variable>
 #include <mutex>
 #include <string>
-#include <sys/types.h>
 #include "com/centreon/namespace.hh"
 #include "com/centreon/timestamp.hh"
 
@@ -41,16 +41,8 @@ class process {
   friend class process_manager;
 
  public:
-  enum status {
-    normal = 0,
-    crash = 1,
-    timeout = 2
-  };
-  enum stream {
-    in = 0,
-    out = 1,
-    err = 2
-  };
+  enum status { normal = 0, crash = 1, timeout = 2 };
+  enum stream { in = 0, out = 1, err = 2 };
 
  private:
   std::string _buffer_err;
@@ -83,11 +75,14 @@ class process {
   void do_close(int fd);
 
  public:
-  process(process_listener* l = nullptr, bool in_stream = true, bool out_stream = true, bool err_stream = true);
+  process(process_listener* l = nullptr,
+          bool in_stream = true,
+          bool out_stream = true,
+          bool err_stream = true);
   virtual ~process() noexcept;
   process(const process&) = delete;
   process& operator=(const process&) = delete;
-  //void enable_stream(stream s, bool enable);
+  // void enable_stream(stream s, bool enable);
   timestamp const& end_time() const noexcept;
   void exec(char const* cmd, char** env = nullptr, uint32_t timeout = 0);
   void exec(std::string const& cmd, uint32_t timeout = 0);

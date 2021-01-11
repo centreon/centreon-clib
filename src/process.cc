@@ -18,27 +18,27 @@
 
 #include <iostream>
 
-#include <cassert>
+#include <fcntl.h>
+#include <poll.h>
 #include <algorithm>
+#include <cassert>
 #include <cerrno>
 #include <csignal>
 #include <cstdlib>
 #include <cstring>
-#include <fcntl.h>
-#include <poll.h>
 #include <mutex>
 #ifdef HAVE_SPAWN_H
-#  include <spawn.h>
-#endif // HAVE_SPAWN_H
+#include <spawn.h>
+#endif  // HAVE_SPAWN_H
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/exceptions/interruption.hh"
 #include "com/centreon/misc/command_line.hh"
+#include "com/centreon/process.hh"
 #include "com/centreon/process_listener.hh"
 #include "com/centreon/process_manager.hh"
-#include "com/centreon/process.hh"
 
 using namespace com::centreon;
 
@@ -49,15 +49,18 @@ extern char** environ;
 static std::mutex gl_process_lock;
 
 /**************************************
-*                                     *
-*           Public Methods            *
-*                                     *
-**************************************/
+ *                                     *
+ *           Public Methods            *
+ *                                     *
+ **************************************/
 
 /**
  *  Default constructor.
  */
-process::process(process_listener* listener, bool in_stream, bool out_stream, bool err_stream)
+process::process(process_listener* listener,
+                 bool in_stream,
+                 bool out_stream,
+                 bool err_stream)
     : _create_process(&_create_process_with_setpgid),
       _enable_stream{in_stream, out_stream, err_stream},
       _stream{-1, -1, -1},
@@ -94,7 +97,7 @@ timestamp const& process::end_time() const noexcept {
  */
 bool process::_is_running() const noexcept {
   return _process != static_cast<pid_t>(-1) || _stream[in] != -1 ||
-          _stream[out] != -1 || _stream[err] != -1;
+         _stream[out] != -1 || _stream[err] != -1;
 }
 
 /**
@@ -205,8 +208,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     // Add process to the process manager.
     lock.unlock();
     process_manager::instance().add(this);
-  }
-  catch (...) {
+  } catch (...) {
     // Restore original FDs.
     if (restore_std) {
       _dup2(std[0], STDIN_FILENO);
@@ -279,7 +281,8 @@ void process::update_ending_process(int status) {
   _status = status;
   _process = static_cast<pid_t>(-1);
   _close(_stream[process::in]);
-  std::cout << "process::update_ending_process is_runngin=" << _is_running() << "\n";
+  std::cout << "process::update_ending_process is_runngin=" << _is_running()
+            << "\n";
   if (!_is_running()) {
     std::cout << "progress:update_ending_process 1\n";
     // Notify listener if necessary.
@@ -380,7 +383,8 @@ void process::wait() const {
 /**
  *  Wait for process termination.
  *
- * @param timeout Maximum number of milliseconds to wait for process termination.
+ * @param timeout Maximum number of milliseconds to wait for process
+ * termination.
  *
  * @return true if process exited.
  */
@@ -427,8 +431,7 @@ void process::do_close(int fd) {
   if (_stream[process::out] == fd) {
     _close(_stream[process::out]);
     _cv_buffer_out.notify_one();
-  }
-  else if (_stream[process::err] == fd) {
+  } else if (_stream[process::err] == fd) {
     _close(_stream[process::err]);
     _cv_buffer_err.notify_one();
   }
@@ -473,8 +476,8 @@ pid_t process::_create_process_with_setpgid(char** args, char** env) {
   if (ret) {
     posix_spawnattr_destroy(&attr);
     throw basic_error()
-          << "cannot set process group ID of to-be-spawned process: "
-          << strerror(ret);
+        << "cannot set process group ID of to-be-spawned process: "
+        << strerror(ret);
   }
   if (posix_spawnp(&pid, args[0], NULL, &attr, args, env)) {
     char const* msg(strerror(errno));
@@ -542,8 +545,7 @@ void process::_dev_null(int fd, int flags) {
   }
   try {
     _dup2(newfd, fd);
-  }
-  catch (...) {
+  } catch (...) {
     _close(newfd);
     throw;
   }
