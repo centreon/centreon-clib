@@ -279,16 +279,20 @@ void process::update_ending_process(int status) {
   _status = status;
   _process = static_cast<pid_t>(-1);
   _close(_stream[process::in]);
+  std::cout << "process::update_ending_process is_runngin=" << _is_running() << "\n";
   if (!_is_running()) {
+    std::cout << "progress:update_ending_process 1\n";
     // Notify listener if necessary.
     if (_listener) {
       lock.unlock();
       (_listener->finished)(*this);
     }
+    std::cout << "progress:update_ending_process 2\n";
     // Release condition variable.
     _cv_buffer_err.notify_one();
     _cv_buffer_out.notify_one();
     _cv_process_running.notify_one();
+    std::cout << "progress:update_ending_process " << this << " notify\n";
   }
 }
 
@@ -369,8 +373,8 @@ void process::terminate() {
  */
 void process::wait() const {
   std::unique_lock<std::mutex> lock(_lock_process);
-  while (_is_running())
-    _cv_process_running.wait(lock);
+  std::cout << "process:wait..." << this << " : " << _is_running() << "\n";
+  _cv_process_running.wait(lock, [this] { return !_is_running(); });
 }
 
 /**
