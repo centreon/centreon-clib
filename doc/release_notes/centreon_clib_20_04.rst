@@ -1,6 +1,24 @@
-===================
-Centreon Clib 20.04
-===================
+=====================
+Centreon Clib 20.04.1
+=====================
+
+*********
+Bug fixes
+*********
+
+Deadlock removed
+================
+Start/Stop process_manager mechanism is rewritten and much more simpler. The
+consequences are that there are less dead locks in the processes management.
+
+Timestamp
+=========
+The simple cases that are addition, subtraction and some others cases, have
+their computations simplified, that is to say less computations, so faster.
+
+=====================
+Centreon Clib 20.04.0
+=====================
 
 *********
 Bug fixes
