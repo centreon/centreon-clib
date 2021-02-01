@@ -42,7 +42,7 @@ download site](https://download.centreon.com).
 This paragraph is only a quickstart guide for the compilation of
 Centreon Clib.
 
-## CentOS / Debian / Raspbian
+### CentOS / Debian / Raspbian
 
 Compilation of these distributions is pretty straightforward.
 
