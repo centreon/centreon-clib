@@ -21,6 +21,7 @@
 #include "com/centreon/clib.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/process.hh"
+#include "com/centreon/process_manager.hh"
 
 using namespace com::centreon;
 
@@ -31,6 +32,7 @@ using namespace com::centreon;
  */
 int main() {
   int ret(EXIT_SUCCESS);
+  process_manager::load();
   try {
     process p;
     char* env[] = {(char*)"key1=value1", (char*)"key2=value2",
@@ -42,10 +44,10 @@ int main() {
     p.wait();
     if (p.exit_code() != EXIT_SUCCESS)
       throw(basic_error() << "check environment failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     ret = EXIT_FAILURE;
     std::cerr << "error: " << e.what() << std::endl;
   }
+  process_manager::unload();
   return ret;
 }

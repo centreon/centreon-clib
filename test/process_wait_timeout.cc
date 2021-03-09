@@ -21,6 +21,7 @@
 #include "com/centreon/clib.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/process.hh"
+#include "com/centreon/process_manager.hh"
 
 using namespace com::centreon;
 
@@ -31,6 +32,7 @@ using namespace com::centreon;
  */
 int main() {
   int ret(EXIT_SUCCESS);
+  process_manager::load();
   try {
     process p;
     p.exec("./bin_test_process_output check_sleep 1");
@@ -40,10 +42,10 @@ int main() {
     if (p.wait(1500) == false)
       throw(basic_error() << "wait timeout failed: "
                              "waiting less than necessary");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     ret = EXIT_FAILURE;
     std::cerr << "error: " << e.what() << std::endl;
   }
+  process_manager::unload();
   return ret;
 }

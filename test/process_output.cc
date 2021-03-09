@@ -23,6 +23,7 @@
 #include "com/centreon/clib.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/process.hh"
+#include "com/centreon/process_manager.hh"
 
 using namespace com::centreon;
 
@@ -33,6 +34,7 @@ using namespace com::centreon;
  */
 int main(int argc, char** argv) {
   int ret(EXIT_SUCCESS);
+  process_manager::load();
   try {
     if (argc != 2 || (strcmp(argv[1], "err") && strcmp(argv[1], "out"))) {
       std::cerr << "usage: " << argv[0] << " err|out" << std::endl;
@@ -68,10 +70,10 @@ int main(int argc, char** argv) {
       throw basic_error() << "invalid data write";
     if (total_write != total_read)
       throw basic_error() << "invalid data read";
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     ret = EXIT_FAILURE;
     std::cerr << "error: " << e.what() << std::endl;
   }
+  process_manager::unload();
   return ret;
 }

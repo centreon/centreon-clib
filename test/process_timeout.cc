@@ -21,6 +21,7 @@
 #include "com/centreon/clib.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/process.hh"
+#include "com/centreon/process_manager.hh"
 
 using namespace com::centreon;
 
@@ -31,6 +32,7 @@ using namespace com::centreon;
  */
 int main() {
   int ret(EXIT_SUCCESS);
+  process_manager::load();
   try {
     process p;
     p.exec("./bin_test_process_output check_sleep 5", NULL, 1);
@@ -38,10 +40,10 @@ int main() {
     timestamp exectime(p.end_time() - p.start_time());
     if (exectime.to_seconds() > 1)
       throw(basic_error() << "timeout failed: " << exectime.to_useconds());
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     ret = EXIT_FAILURE;
     std::cerr << "error: " << e.what() << std::endl;
   }
+  process_manager::unload();
   return ret;
 }

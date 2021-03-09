@@ -31,6 +31,8 @@
 
 using namespace com::centreon;
 
+process_manager* process_manager::_instance{nullptr};
+
 // Default varibale.
 static int const DEFAULT_TIMEOUT = 200;
 
@@ -66,14 +68,26 @@ void process_manager::add(process* p) {
   // write(_fds_exit[1], "up", 2);
 }
 
+void process_manager::load() {
+  if (_instance == nullptr)
+    _instance = new process_manager;
+}
+
+void process_manager::unload() {
+  if (_instance) {
+    delete _instance;
+    _instance = nullptr;
+  }
+}
+
 /**
  *  Get instance of the process manager.
  *
  *  @return the process manager.
  */
 process_manager& process_manager::instance() {
-  static process_manager instance;
-  return instance;
+  assert(_instance);
+  return *_instance;
 }
 
 /**

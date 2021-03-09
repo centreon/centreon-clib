@@ -42,6 +42,7 @@ class process_listener;
  *  This class is a singleton, it manages processes.
  */
 class process_manager {
+  static process_manager* _instance;
   struct orphan {
     orphan(pid_t _pid = 0, int _status = 0) : pid(_pid), status(_status) {}
     pid_t pid;
@@ -73,6 +74,8 @@ class process_manager {
   void _wait_processes() noexcept;
 
  public:
+  static void load();
+  static void unload();
   void add(process* p);
   static process_manager& instance();
   process_manager& operator=(process_manager const& p) = delete;
