@@ -11,6 +11,9 @@
 Start/Stop process_manager mechanism is rewritten and much more simpler. The
 consequences are that there are less dead locks in the processes management.
 
+The process manager calls waitpid with the NOHANG flag, so that it cannot be
+blocked in this call.
+
 *Timestamp*
 
 The simple cases that are addition, subtraction and some others cases, have
