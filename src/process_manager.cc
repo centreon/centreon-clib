@@ -16,6 +16,8 @@
 ** For more information : contact@centreon.com
 */
 
+#include <iostream>
+
 #include <sys/wait.h>
 #include <unistd.h>
 #include <algorithm>
@@ -252,22 +254,28 @@ void process_manager::_run() {
   _running = true;
   try {
     for (;;) {
+std::cout << "manager::_run1\n";
       // Update the file descriptor list.
       _update_list();
 
+std::cout << "manager::_run2\n";
       if (!_running && _fds.size() == 0 && _processes_pid.size() == 0 &&
           _orphans_pid.size() == 0)
         break;
 
+std::cout << "manager::_run3\n";
       int ret = poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT);
+std::cout << "manager::_run4 ret = " << ret << "\n";
       if (ret < 0) {
         if (errno == EINTR)
           ret = 0;
         else {
+std::cout << "manager::_run5\n";
           const char* msg = strerror(errno);
           throw basic_error() << "poll failed: " << msg;
         }
       }
+std::cout << "manager::_run6\n";
       for (uint32_t i = 0, checked = 0;
            checked < static_cast<uint32_t>(ret) && i < _fds_size; ++i) {
         // No event.
@@ -276,6 +284,7 @@ void process_manager::_run() {
 
         ++checked;
 
+std::cout << "manager::_run7\n";
         // Data are available.
         uint32_t size = 0;
         if (_fds[i].revents & (POLLIN | POLLPRI))
@@ -291,13 +300,18 @@ void process_manager::_run() {
               << "invalid fd " << _fds[i].fd << " from process manager";
         }
       }
+std::cout << "manager::_run8\n";
       // Release finished process.
       _wait_processes();
+std::cout << "manager::_run9\n";
       _wait_orphans_pid();
+std::cout << "manager::_run10\n";
       // Kill process in timeout.
       _kill_processes_timeout();
+std::cout << "manager::_run11\n";
     }
   } catch (const std::exception& e) {
+std::cout << "manager::_run12 " << e.what() << "\n";
     log_error(logging::high) << e.what();
   }
 }
