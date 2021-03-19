@@ -93,6 +93,7 @@ process_manager::process_manager()
  *  Destructor.
  */
 process_manager::~process_manager() noexcept {
+std::cout << "process_manager destroyed1...\n";
   // Kill all running process.
   {
     std::lock_guard<std::mutex> lock(_lock_processes);
@@ -111,7 +112,9 @@ process_manager::~process_manager() noexcept {
 
   // Waiting the end of the process manager thread.
   _running = false;
+std::cout << "process_manager destroyed2...\n";
   _thread->join();
+std::cout << "process_manager destroyed3...\n";
   delete _thread;
   _thread = nullptr;
 
@@ -133,6 +136,7 @@ process_manager::~process_manager() noexcept {
         break;
     }
   }
+std::cout << "process_manager destroyed4...\n";
 }
 
 /**
@@ -254,11 +258,9 @@ void process_manager::_run() {
   _running = true;
   try {
     for (;;) {
-std::cout << "manager::_run1\n";
       // Update the file descriptor list.
       _update_list();
 
-std::cout << "manager::_run2\n";
       if (!_running && _fds.size() == 0 && _processes_pid.size() == 0 &&
           _orphans_pid.size() == 0)
         break;
@@ -270,7 +272,6 @@ std::cout << "manager::_run4 ret = " << ret << "\n";
         if (errno == EINTR)
           ret = 0;
         else {
-std::cout << "manager::_run5\n";
           const char* msg = strerror(errno);
           throw basic_error() << "poll failed: " << msg;
         }
@@ -284,7 +285,6 @@ std::cout << "manager::_run6\n";
 
         ++checked;
 
-std::cout << "manager::_run7\n";
         // Data are available.
         uint32_t size = 0;
         if (_fds[i].revents & (POLLIN | POLLPRI))
@@ -300,15 +300,11 @@ std::cout << "manager::_run7\n";
               << "invalid fd " << _fds[i].fd << " from process manager";
         }
       }
-std::cout << "manager::_run8\n";
       // Release finished process.
       _wait_processes();
-std::cout << "manager::_run9\n";
       _wait_orphans_pid();
-std::cout << "manager::_run10\n";
       // Kill process in timeout.
       _kill_processes_timeout();
-std::cout << "manager::_run11\n";
     }
   } catch (const std::exception& e) {
 std::cout << "manager::_run12 " << e.what() << "\n";
