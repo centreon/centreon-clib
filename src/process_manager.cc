@@ -263,7 +263,7 @@ std::cout << "manager::_run2\n";
           _orphans_pid.size() == 0)
         break;
 
-std::cout << "manager::_run3\n";
+std::cout << "manager::_run3 _fds.size() = " << _fds.size() << " ; _fds_size = " << _fds_size << " ; _running = " << _running << " ; _processes_pid.size() = " << _processes_pid.size() << " ; orphans_pid.size() = " << _orphans_pid.size() << "\n";
       int ret = poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT);
 std::cout << "manager::_run4 ret = " << ret << "\n";
       if (ret < 0) {
