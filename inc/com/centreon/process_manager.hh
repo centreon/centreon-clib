@@ -50,7 +50,6 @@ class process_manager {
   std::thread* _thread;
   std::vector<pollfd> _fds;
   uint32_t _fds_capacity;
-  uint32_t _fds_size;
   mutable std::mutex _lock_processes;
   std::deque<orphan> _orphans_pid;
   std::unordered_map<int32_t, process*> _processes_fd;

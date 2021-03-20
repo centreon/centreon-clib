@@ -82,7 +82,7 @@ process_manager& process_manager::instance() {
  *  internal function instance().
  */
 process_manager::process_manager()
-    : _thread{nullptr}, _fds_size{0}, _update(true) {
+    : _thread{nullptr}, _update(true) {
   _fds.reserve(64);
 
   // Run process manager thread.
@@ -93,7 +93,7 @@ process_manager::process_manager()
  *  Destructor.
  */
 process_manager::~process_manager() noexcept {
-std::cout << "process_manager destroyed1...\n";
+std::cout << "process_manager destroyed1..." << std::endl;
   // Kill all running process.
   {
     std::lock_guard<std::mutex> lock(_lock_processes);
@@ -112,9 +112,9 @@ std::cout << "process_manager destroyed1...\n";
 
   // Waiting the end of the process manager thread.
   _running = false;
-std::cout << "process_manager destroyed2...\n";
+std::cout << "process_manager destroyed2..." << std::endl;
   _thread->join();
-std::cout << "process_manager destroyed3...\n";
+std::cout << "process_manager destroyed3..." << std::endl;
   delete _thread;
   _thread = nullptr;
 
@@ -136,7 +136,7 @@ std::cout << "process_manager destroyed3...\n";
         break;
     }
   }
-std::cout << "process_manager destroyed4...\n";
+std::cout << "process_manager destroyed4..." << std::endl;
 }
 
 /**
@@ -265,9 +265,9 @@ void process_manager::_run() {
           _orphans_pid.size() == 0)
         break;
 
-std::cout << "manager::_run3 _fds.size() = " << _fds.size() << " ; _fds_size = " << _fds_size << " ; _running = " << _running << " ; _processes_pid.size() = " << _processes_pid.size() << " ; orphans_pid.size() = " << _orphans_pid.size() << "\n";
+std::cout << "manager::_run3 _fds.size() = " << _fds.size() << " ; _running = " << _running << " ; _processes_pid.size() = " << _processes_pid.size() << " ; orphans_pid.size() = " << _orphans_pid.size() << std::endl;
       int ret = poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT);
-std::cout << "manager::_run4 ret = " << ret << "\n";
+std::cout << "manager::_run4 ret = " << ret << std::endl;
       if (ret < 0) {
         if (errno == EINTR)
           ret = 0;
@@ -276,9 +276,9 @@ std::cout << "manager::_run4 ret = " << ret << "\n";
           throw basic_error() << "poll failed: " << msg;
         }
       }
-std::cout << "manager::_run6\n";
+std::cout << "manager::_run6" << std::endl;
       for (uint32_t i = 0, checked = 0;
-           checked < static_cast<uint32_t>(ret) && i < _fds_size; ++i) {
+           checked < static_cast<uint32_t>(ret) && i < _fds.size(); ++i) {
         // No event.
         if (!_fds[i].revents)
           continue;
@@ -307,7 +307,7 @@ std::cout << "manager::_run6\n";
       _kill_processes_timeout();
     }
   } catch (const std::exception& e) {
-std::cout << "manager::_run12 " << e.what() << "\n";
+std::cout << "manager::_run12 " << e.what() << std::endl;
     log_error(logging::high) << e.what();
   }
 }
@@ -338,10 +338,9 @@ void process_manager::_update_list() {
   std::lock_guard<std::mutex> lock(_lock_processes);
 
   // Set file descriptor to wait event.
-  if (_processes_fd.size() != _fds_size) {
+  if (_processes_fd.size() != _fds.size())
     _fds.resize(_processes_fd.size());
-    _fds_size = _fds.size();
-  }
+
   auto itt = _fds.begin();
   for (auto it = _processes_fd.begin(), end = _processes_fd.end(); it != end;
        ++it) {
