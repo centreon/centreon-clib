@@ -392,7 +392,9 @@ void process_manager::_wait_processes() noexcept {
   try {
     for (;;) {
       int status = 0;
+std::cout << "manager::wait_processes1" << std::endl;
       pid_t pid(::waitpid(-1, &status, WNOHANG));
+std::cout << "manager::wait_processes2" << std::endl;
       // No process are finished.
       if (pid <= 0)
         break;
@@ -402,6 +404,7 @@ void process_manager::_wait_processes() noexcept {
       // to the process manager.
       {
         std::lock_guard<std::mutex> lock(_lock_processes);
+std::cout << "manager::wait_processes3" << std::endl;
         auto it = _processes_pid.find(pid);
         if (it == _processes_pid.end()) {
           _orphans_pid.push_back(orphan(pid, status));
@@ -411,12 +414,16 @@ void process_manager::_wait_processes() noexcept {
         _processes_pid.erase(it);
       }
 
+std::cout << "manager::wait_processes4" << std::endl;
       // Update process.
       if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL)
         p->_is_timeout = true;
+std::cout << "manager::wait_processes5" << std::endl;
       _update_ending_process(p, status);
     }
   } catch (const std::exception& e) {
+std::cout << "manager::wait_processes6: " << e.what() << std::endl;
     log_error(logging::high) << e.what();
   }
+std::cout << "manager::wait_processes7: " << std::endl;
 }
