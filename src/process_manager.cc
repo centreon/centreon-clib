@@ -36,7 +36,66 @@ using namespace com::centreon;
 static int const DEFAULT_TIMEOUT = 200;
 
 /**
- *  Add process to the process manager.
+ *  Default constructor. It is private. No need to call, we just use the static
+ *  internal function instance().
+ */
+process_manager::process_manager()
+    : _update(true),
+      _thread{&process_manager::_run, this} {
+  std::unique_lock<std::mutex> lck(_running_m);
+  _running_cv.wait(lck, [this] () -> bool { return _running; });
+}
+
+/**
+ *  Destructor.
+ */
+process_manager::~process_manager() noexcept {
+std::cout << "process_manager destroyed1..." << std::endl;
+  // Kill all running process.
+  {
+    std::lock_guard<std::mutex> lock(_lock_processes);
+    for (auto it = _processes_pid.begin(), end = _processes_pid.end();
+         it != end; ++it) {
+      try {
+        it->second->kill();
+      } catch (const std::exception& e) {
+        (void)e;
+      }
+    }
+  }
+
+  // Exit process manager thread.
+  //_close(_fds_exit[1]);
+
+  // Waiting the end of the process manager thread.
+  _running = false;
+std::cout << "process_manager destroyed2..." << std::endl;
+  _thread.join();
+std::cout << "process_manager destroyed3..." << std::endl;
+
+  {
+    std::lock_guard<std::mutex> lock(_lock_processes);
+
+    // Release memory.
+    _fds.clear();
+
+    // Waiting all process.
+    int status(0);
+    auto time_limit = std::chrono::system_clock::now() + std::chrono::seconds(10);
+    int ret = ::waitpid(-1, &status, WNOHANG);
+    while (ret >= 0 || (ret < 0 && errno == EINTR)) {
+      if (ret == 0)
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      ret = ::waitpid(-1, &status, WNOHANG);
+      if (std::chrono::system_clock::now() >= time_limit)
+        break;
+    }
+  }
+std::cout << "process_manager destroyed4..." << std::endl;
+}
+
+/**
+ *  Add a process to the process manager.
  *
  *  @param[in] p    The process to manage.
  *  @param[in] obj  The object to notify.
@@ -78,68 +137,6 @@ process_manager& process_manager::instance() {
 }
 
 /**
- *  Default constructor. It is private. No need to call, we just use the static
- *  internal function instance().
- */
-process_manager::process_manager()
-    : _thread{nullptr}, _update(true) {
-  _fds.reserve(64);
-
-  // Run process manager thread.
-  _thread = new std::thread(&process_manager::_run, this);
-}
-
-/**
- *  Destructor.
- */
-process_manager::~process_manager() noexcept {
-std::cout << "process_manager destroyed1..." << std::endl;
-  // Kill all running process.
-  {
-    std::lock_guard<std::mutex> lock(_lock_processes);
-    for (auto it = _processes_pid.begin(), end = _processes_pid.end();
-         it != end; ++it) {
-      try {
-        it->second->kill();
-      } catch (const std::exception& e) {
-        (void)e;
-      }
-    }
-  }
-
-  // Exit process manager thread.
-  //_close(_fds_exit[1]);
-
-  // Waiting the end of the process manager thread.
-  _running = false;
-std::cout << "process_manager destroyed2..." << std::endl;
-  _thread->join();
-std::cout << "process_manager destroyed3..." << std::endl;
-  delete _thread;
-  _thread = nullptr;
-
-  {
-    std::lock_guard<std::mutex> lock(_lock_processes);
-
-    // Release memory.
-    _fds.clear();
-
-    // Waiting all process.
-    int status(0);
-    auto time_limit = std::chrono::system_clock::now() + std::chrono::seconds(10);
-    int ret = ::waitpid(-1, &status, WNOHANG);
-    while (ret >= 0 || (ret < 0 && errno == EINTR)) {
-      if (ret == 0)
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      ret = ::waitpid(-1, &status, WNOHANG);
-      if (std::chrono::system_clock::now() >= time_limit)
-        break;
-    }
-  }
-std::cout << "process_manager destroyed4..." << std::endl;
-}
-
-/**
  *  close syscall wrapper.
  *
  *  @param[in, out] fd The file descriptor to close.
@@ -166,11 +163,9 @@ void process_manager::_close_stream(int fd) noexcept {
       std::lock_guard<std::mutex> lock(_lock_processes);
       _update = true;
       std::unordered_map<int, process*>::iterator it(_processes_fd.find(fd));
-      if (it == _processes_fd.end()) {
-        _update = true;
-        throw basic_error() << "invalid fd: "
-                               "not found into processes fd list";
-      }
+      if (it == _processes_fd.end())
+        throw basic_error() << "invalid fd: not found in processes fd list";
+
       p = it->second;
       _processes_fd.erase(it);
     }
@@ -239,7 +234,7 @@ uint32_t process_manager::_read_stream(int fd) noexcept {
       std::unordered_map<int, process*>::iterator it(_processes_fd.find(fd));
       if (it == _processes_fd.end()) {
         _update = true;
-        throw basic_error() << "invalid fd: not found into processes fd list";
+        throw basic_error() << "invalid fd: not found in processes fd list";
       }
       p = it->second;
     }
@@ -255,11 +250,17 @@ uint32_t process_manager::_read_stream(int fd) noexcept {
  *  Internal thread to monitor processes.
  */
 void process_manager::_run() {
-  _running = true;
+  {
+    std::lock_guard<std::mutex> lck(_running_m);
+    _fds.reserve(64);
+    _running = true;
+    _running_cv.notify_all();
+  }
   try {
     for (;;) {
       // Update the file descriptor list.
-      _update_list();
+      if (_update)
+        _update_list();
 
       if (!_running && _fds.size() == 0 && _processes_pid.size() == 0 &&
           _orphans_pid.size() == 0)
@@ -328,13 +329,9 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
 }
 
 /**
- *  Update list of file descriptor to watch.
+ *  Update list of file descriptors to watch.
  */
 void process_manager::_update_list() {
-  // No need to update.
-  if (!_update)
-    return;
-
   std::lock_guard<std::mutex> lock(_lock_processes);
 
   // Set file descriptor to wait event.
