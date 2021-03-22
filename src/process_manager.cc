@@ -321,12 +321,15 @@ std::cout << "manager::_run12 " << e.what() << std::endl;
  *  @param[in] status  The status of the process to set.
  */
 void process_manager::_update_ending_process(process* p, int status) noexcept {
+std::cout << "update_ending_process1" << std::endl;
   // Check process viability.
   if (!p)
     return;
 
   p->update_ending_process(status);
+std::cout << "update_ending_process2" << std::endl;
   _erase_timeout(p);
+std::cout << "update_ending_process3" << std::endl;
 }
 
 /**
@@ -392,9 +395,7 @@ void process_manager::_wait_processes() noexcept {
   try {
     for (;;) {
       int status = 0;
-std::cout << "manager::wait_processes1" << std::endl;
       pid_t pid(::waitpid(-1, &status, WNOHANG));
-std::cout << "manager::wait_processes2" << std::endl;
       // No process are finished.
       if (pid <= 0)
         break;
@@ -404,7 +405,6 @@ std::cout << "manager::wait_processes2" << std::endl;
       // to the process manager.
       {
         std::lock_guard<std::mutex> lock(_lock_processes);
-std::cout << "manager::wait_processes3" << std::endl;
         auto it = _processes_pid.find(pid);
         if (it == _processes_pid.end()) {
           _orphans_pid.push_back(orphan(pid, status));
@@ -414,7 +414,6 @@ std::cout << "manager::wait_processes3" << std::endl;
         _processes_pid.erase(it);
       }
 
-std::cout << "manager::wait_processes4" << std::endl;
       // Update process.
       if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL)
         p->_is_timeout = true;
