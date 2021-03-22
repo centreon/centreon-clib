@@ -17,6 +17,7 @@
 */
 
 #include <sstream>
+#include <iostream>
 
 #include <fcntl.h>
 #include <algorithm>
@@ -64,9 +65,13 @@ process::process(process_listener* listener,
  *  Destructor.
  */
 process::~process() noexcept {
+  std::cout << "process destruction1" << std::endl;
   std::unique_lock<std::mutex> lock(_lock_process);
+  std::cout << "process destruction2" << std::endl;
   _kill(SIGKILL);
+  std::cout << "process destruction3" << std::endl;
   _cv_process_running.wait(lock, [this] { return !_is_running(); });
+  std::cout << "process destruction4" << std::endl;
 }
 
 /**
