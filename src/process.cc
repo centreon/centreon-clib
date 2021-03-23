@@ -65,11 +65,8 @@ process::process(process_listener* listener,
  *  Destructor.
  */
 process::~process() noexcept {
-  std::cout << "process destruction1" << std::endl;
   std::unique_lock<std::mutex> lock(_lock_process);
-  std::cout << "process destruction2" << std::endl;
   _kill(SIGKILL);
-  std::cout << "process destruction3" << std::endl;
   _cv_process_running.wait(lock, [this] { return !_is_running(); });
   std::cout << "process destruction4" << std::endl;
 }
@@ -269,16 +266,20 @@ void process::kill() {
 }
 
 void process::update_ending_process(int status) {
+std::cout << "process::update_ending_process1" << std::endl;
   // Update process informations.
   std::unique_lock<std::mutex> lock(_lock_process);
+std::cout << "process::update_ending_process2" << std::endl;
   _end_time = timestamp::now();
   _status = status;
   _process = static_cast<pid_t>(-1);
   _close(_stream[process::in]);
+std::cout << "process::update_ending_process3" << std::endl;
   if (!_is_running()) {
     // Notify listener if necessary.
     if (_listener) {
       lock.unlock();
+std::cout << "process::update_ending_process4" << std::endl;
       (_listener->finished)(*this);
     }
     // Release condition variable.
@@ -286,6 +287,7 @@ void process::update_ending_process(int status) {
     _cv_buffer_out.notify_one();
     _cv_process_running.notify_one();
   }
+std::cout << "process::update_ending_process5" << std::endl;
 }
 
 /**
