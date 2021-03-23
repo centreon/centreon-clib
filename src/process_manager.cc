@@ -358,6 +358,7 @@ void process_manager::_update_list() {
  *  Waiting orphans pid.
  */
 void process_manager::_wait_orphans_pid() noexcept {
+std::cout << "wait orphans1" << std::endl;
   try {
     std::unique_lock<std::mutex> lock(_lock_processes);
     std::deque<orphan>::iterator it = _orphans_pid.begin();
@@ -374,6 +375,7 @@ void process_manager::_wait_orphans_pid() noexcept {
         p = it_p->second;
         _processes_pid.erase(it_p);
       }
+std::cout << "wait orphans2" << std::endl;
 
       // Update process.
       lock.unlock();
@@ -383,9 +385,12 @@ void process_manager::_wait_orphans_pid() noexcept {
       // Erase orphan pid.
       it = _orphans_pid.erase(it);
     }
+std::cout << "wait orphans3" << std::endl;
   } catch (const std::exception& e) {
     log_error(logging::high) << e.what();
+std::cout << "wait orphans4" << std::endl;
   }
+std::cout << "wait orphans5" << std::endl;
 }
 
 /**
