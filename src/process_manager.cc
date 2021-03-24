@@ -16,6 +16,7 @@
 ** For more information : contact@centreon.com
 */
 
+#include "com/centreon/process_manager.hh"
 #include <sys/wait.h>
 #include <unistd.h>
 #include <algorithm>
@@ -26,7 +27,6 @@
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/logger.hh"
 #include "com/centreon/process_listener.hh"
-#include "com/centreon/process_manager.hh"
 
 using namespace com::centreon;
 
@@ -38,11 +38,9 @@ static int const DEFAULT_TIMEOUT = 200;
  *  internal function instance().
  */
 process_manager::process_manager()
-    : _update(true),
-      _running{false},
-      _thread{&process_manager::_run, this} {
+    : _update(true), _running{false}, _thread{&process_manager::_run, this} {
   std::unique_lock<std::mutex> lck(_running_m);
-  _running_cv.wait(lck, [this] () -> bool { return _running; });
+  _running_cv.wait(lck, [this]() -> bool { return _running; });
 }
 
 /**
@@ -77,7 +75,8 @@ process_manager::~process_manager() noexcept {
 
     // Waiting all process.
     int status(0);
-    auto time_limit = std::chrono::system_clock::now() + std::chrono::seconds(10);
+    auto time_limit =
+        std::chrono::system_clock::now() + std::chrono::seconds(10);
     int ret = ::waitpid(-1, &status, WNOHANG);
     while (ret >= 0 || (ret < 0 && errno == EINTR)) {
       if (ret == 0)
