@@ -16,8 +16,6 @@
 ** For more information : contact@centreon.com
 */
 
-#include <iostream>
-
 #include <sys/wait.h>
 #include <unistd.h>
 #include <algorithm>
@@ -51,7 +49,6 @@ process_manager::process_manager()
  *  Destructor.
  */
 process_manager::~process_manager() noexcept {
-std::cout << "process_manager destroyed1..." << std::endl;
   // Kill all running process.
   {
     std::lock_guard<std::mutex> lock(_lock_processes);
@@ -70,9 +67,7 @@ std::cout << "process_manager destroyed1..." << std::endl;
 
   // Waiting the end of the process manager thread.
   _running = false;
-std::cout << "process_manager destroyed2..." << std::endl;
   _thread.join();
-std::cout << "process_manager destroyed3..." << std::endl;
 
   {
     std::lock_guard<std::mutex> lock(_lock_processes);
@@ -92,7 +87,6 @@ std::cout << "process_manager destroyed3..." << std::endl;
         break;
     }
   }
-std::cout << "process_manager destroyed4..." << std::endl;
 }
 
 /**
@@ -267,9 +261,7 @@ void process_manager::_run() {
           _orphans_pid.size() == 0)
         break;
 
-std::cout << "manager::_run3 _fds.size() = " << _fds.size() << " ; _running = " << _running << " ; _processes_pid.size() = " << _processes_pid.size() << " ; orphans_pid.size() = " << _orphans_pid.size() << std::endl;
       int ret = poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT);
-std::cout << "manager::_run4 ret = " << ret << std::endl;
       if (ret < 0) {
         if (errno == EINTR)
           ret = 0;
@@ -278,7 +270,6 @@ std::cout << "manager::_run4 ret = " << ret << std::endl;
           throw basic_error() << "poll failed: " << msg;
         }
       }
-std::cout << "manager::_run6" << std::endl;
       for (uint32_t i = 0, checked = 0;
            checked < static_cast<uint32_t>(ret) && i < _fds.size(); ++i) {
         // No event.
@@ -309,7 +300,6 @@ std::cout << "manager::_run6" << std::endl;
       _kill_processes_timeout();
     }
   } catch (const std::exception& e) {
-std::cout << "manager::_run12 " << e.what() << std::endl;
     log_error(logging::high) << e.what();
   }
 }
@@ -321,15 +311,12 @@ std::cout << "manager::_run12 " << e.what() << std::endl;
  *  @param[in] status  The status of the process to set.
  */
 void process_manager::_update_ending_process(process* p, int status) noexcept {
-std::cout << "update_ending_process1" << std::endl;
   // Check process viability.
   if (!p)
     return;
 
   p->update_ending_process(status);
-std::cout << "update_ending_process2" << std::endl;
   _erase_timeout(p);
-std::cout << "update_ending_process3" << std::endl;
 }
 
 /**
@@ -358,7 +345,6 @@ void process_manager::_update_list() {
  *  Waiting orphans pid.
  */
 void process_manager::_wait_orphans_pid() noexcept {
-std::cout << "wait orphans1" << std::endl;
   try {
     std::unique_lock<std::mutex> lock(_lock_processes);
     std::deque<orphan>::iterator it = _orphans_pid.begin();
@@ -375,7 +361,6 @@ std::cout << "wait orphans1" << std::endl;
         p = it_p->second;
         _processes_pid.erase(it_p);
       }
-std::cout << "wait orphans2" << std::endl;
 
       // Update process.
       lock.unlock();
@@ -385,12 +370,9 @@ std::cout << "wait orphans2" << std::endl;
       // Erase orphan pid.
       it = _orphans_pid.erase(it);
     }
-std::cout << "wait orphans3" << std::endl;
   } catch (const std::exception& e) {
     log_error(logging::high) << e.what();
-std::cout << "wait orphans4" << std::endl;
   }
-std::cout << "wait orphans5" << std::endl;
 }
 
 /**
@@ -422,12 +404,9 @@ void process_manager::_wait_processes() noexcept {
       // Update process.
       if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL)
         p->_is_timeout = true;
-std::cout << "manager::wait_processes5" << std::endl;
       _update_ending_process(p, status);
     }
   } catch (const std::exception& e) {
-std::cout << "manager::wait_processes6: " << e.what() << std::endl;
     log_error(logging::high) << e.what();
   }
-std::cout << "manager::wait_processes7: " << std::endl;
 }
