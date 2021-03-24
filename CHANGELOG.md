@@ -8,8 +8,11 @@
 
 *Deadlock removed*
 
-Start/Stop process_manager mechanism is rewritten and much more simpler. The
+Start/Stop process\_manager mechanism is rewritten and much more simpler. The
 consequences are that there are less dead locks in the processes management.
+
+The process manager calls waitpid with the NOHANG flag, so that it cannot be
+blocked in this call.
 
 *Timestamp*
 

@@ -34,14 +34,13 @@ int main() {
   try {
     process p;
     p.exec("./bin_test_process_output check_sleep 1");
-    if (p.wait(500) == true)
-      throw(basic_error() << "wait timeout failed: "
-                             "waiting more than necessary");
-    if (p.wait(1500) == false)
-      throw(basic_error() << "wait timeout failed: "
-                             "waiting less than necessary");
-  }
-  catch (std::exception const& e) {
+    if (p.wait(500))
+      throw basic_error() << "wait timeout failed: "
+                             "waiting more than necessary";
+    if (!p.wait(1500))
+      throw basic_error() << "wait timeout failed: "
+                             "waiting less than necessary";
+  } catch (std::exception const& e) {
     ret = EXIT_FAILURE;
     std::cerr << "error: " << e.what() << std::endl;
   }
