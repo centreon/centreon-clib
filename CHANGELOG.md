@@ -1,5 +1,14 @@
 # Changelog
 
+## 20.10.2
+
+### Bugfixes
+
+*Libraries loading*
+
+A library is loaded lazily now. This allows not to check all link issues during
+the load.
+
 ## 20.10.1
 
 `February x, 2021`
