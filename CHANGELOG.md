@@ -1,13 +1,23 @@
 # Changelog
 
-## 20.10.2
+## 20.10.3
 
-### Bugfixes
+### Bug fixes
 
 *Libraries loading*
 
-A library is loaded lazily now. This allows not to check all link issues during
+libraries are loaded lazily now. This allows not to check all link issues during
 the load.
+
+## 20.10.2
+
+### Enhancement
+
+*Compilation in C++14 with conan-center*
+
+bintray has stopped. We had to switch to the conan-center. And then our conan
+dependencies had to upgrade and then we had to switch to C++14. So here is the
+corresponding compilation.
 
 ## 20.10.1
 
