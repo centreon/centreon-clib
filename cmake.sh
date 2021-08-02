@@ -4,7 +4,7 @@ show_help() {
 cat << EOF
 Usage: ${0##*/} -n=[yes|no] -v
 
-This program build Centreon-engine
+This program build Centreon-clib
 
     -f|--force    : force rebuild
     -r|--release  : Build on release mode
