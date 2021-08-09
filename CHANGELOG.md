@@ -1,5 +1,22 @@
 # Changelog
 
+## 20.04.3
+
+### Bugfixes
+
+*Deadlock removed*
+
+The logs mutex needs to be recursive, because sometimes we create logs, that log
+informations.
+
+## 20.04.2
+
+### Enhancement
+
+No change concerning the code. This is the first time, we provide this library
+compiled using C++14 with the last C++ ABI. The binary changes needed a new
+version.
+
 ## 20.04.1
 
 `February x, 2021`
