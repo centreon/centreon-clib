@@ -1,5 +1,12 @@
 # Changelog
 
+## 21.04.3
+
+*Deadlock removed*
+
+The logs mutex needs to be recursive, because sometimes we create logs, that log
+informations.
+
 ## 21.04.2
 
 *Libraries loading*
