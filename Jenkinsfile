@@ -20,7 +20,7 @@ if (env.BRANCH_NAME.startsWith('release-')) {
 ** Pipeline code.
 */
 stage('Source') {
-  node {
+  node("C++") {
     sh 'setup_centreon_build.sh'
     dir('centreon-clib') {
       checkout scm
@@ -46,7 +46,7 @@ stage('Source') {
 try {
   // sonarQube step to get qualityGate result
   stage('Quality gate') {
-    node {
+    node("C++") {
       def qualityGate = waitForQualityGate()
       if (qualityGate.status != 'OK') {
         currentBuild.result = 'FAIL'
@@ -59,25 +59,25 @@ try {
 
   stage('Package') {
     parallel 'packaging centos7': {
-      node {
+      node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos7"
       }
     },
     'packaging centos8': {
-      node {
+      node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos8"
       }
     },
     'packaging debian10': {
-      node {
+      node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10"
       }
     },
     'packaging debian10-armhf': {
-      node {
+      node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10-armhf"
       }
@@ -89,7 +89,7 @@ try {
 
   if ((env.BUILD == 'RELEASE') || (env.BUILD == 'QA')) {
     stage('Delivery') {
-      node {
+      node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-delivery.sh"
       }
