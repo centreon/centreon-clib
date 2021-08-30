@@ -62,12 +62,14 @@ try {
       node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos7"
+        archiveArtifacts artifacts: "output/x86_64/*.rpm"
       }
     },
     'packaging centos8': {
       node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos8"
+        archiveArtifacts artifacts: "output/x86_64/*.rpm"
       }
     },
     'packaging debian10': {
