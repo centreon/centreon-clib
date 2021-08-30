@@ -1,14 +1,17 @@
-import groovy.json.JsonSlurper
-
 /*
 ** Variables.
 */
+properties([buildDiscarder(logRotator(numToKeepStr: '10'))])
 def serie = '21.10'
 def maintenanceBranch = "${serie}.x"
+def qaBranch = "dev-${serie}"
+
 if (env.BRANCH_NAME.startsWith('release-')) {
   env.BUILD = 'RELEASE'
 } else if ((env.BRANCH_NAME == 'master') || (env.BRANCH_NAME == maintenanceBranch)) {
   env.BUILD = 'REFERENCE'
+} else if ((env.BRANCH_NAME == 'develop') || (env.BRANCH_NAME == qaBranch)) {
+  env.BUILD = 'QA'
 } else {
   env.BUILD = 'CI'
 }
@@ -55,44 +58,36 @@ try {
   }
 
   stage('Package') {
-    parallel 'centos7': {
+    parallel 'packaging centos7': {
       node {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos7"
       }
     },
-    'centos8': {
+    'packaging centos8': {
       node {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos8"
       }
     },
-    'debian10': {
+    'packaging debian10': {
       node {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10"
       }
     },
-    'debian10-armhf': {
+    'packaging debian10-armhf': {
       node {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10-armhf"
       }
-    /*
-    },
-    'opensuse-leap': {
-      node {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh opensuse-leap"
-      }
-    */
     }
     if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
-      error('Package stage failure.');
+      error('Packaging stage failure');
     }
   }
 
-  if ((env.BUILD == 'RELEASE') || (env.BUILD == 'REFERENCE')) {
+  if ((env.BUILD == 'RELEASE') || (env.BUILD == 'QA')) {
     stage('Delivery') {
       node {
         sh 'setup_centreon_build.sh'
