@@ -1,14 +1,16 @@
-import groovy.json.JsonSlurper
-
 /*
 ** Variables.
 */
 def serie = '20.10'
 def maintenanceBranch = "${serie}.x"
+def qaBranch = "dev-${serie}"
+
 if (env.BRANCH_NAME.startsWith('release-')) {
   env.BUILD = 'RELEASE'
 } else if ((env.BRANCH_NAME == 'master') || (env.BRANCH_NAME == maintenanceBranch)) {
   env.BUILD = 'REFERENCE'
+} else if ((env.BRANCH_NAME == 'develop') || (env.BRANCH_NAME == qaBranch)) {
+  env.BUILD = 'QA'
 } else {
   env.BUILD = 'CI'
 }
@@ -17,7 +19,7 @@ if (env.BRANCH_NAME.startsWith('release-')) {
 ** Pipeline code.
 */
 stage('Source') {
-  node {
+  node("C++") {
     sh 'setup_centreon_build.sh'
     dir('centreon-clib') {
       checkout scm
@@ -43,8 +45,7 @@ stage('Source') {
 try {
   // sonarQube step to get qualityGate result
   stage('Quality gate') {
-    node {
-      sleep 120
+    node("C++") {
       def qualityGate = waitForQualityGate()
       if (qualityGate.status != 'OK') {
         currentBuild.result = 'FAIL'
@@ -56,46 +57,40 @@ try {
   }
 
   stage('Package') {
-    parallel 'centos7': {
-      node {
+    parallel 'packaging centos7': {
+      node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos7"
+        archiveArtifacts artifacts: "output/x86_64/*.rpm"
       }
     },
-    'centos8': {
-      node {
+    'packaging centos8': {
+      node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos8"
+        archiveArtifacts artifacts: "output/x86_64/*.rpm"
       }
     },
-    'debian10': {
-      node {
+    'packaging debian10': {
+      node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10"
       }
     },
-    'debian10-armhf': {
-      node {
+    'packaging debian10-armhf': {
+      node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10-armhf"
       }
-    /*
-    },
-    'opensuse-leap': {
-      node {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh opensuse-leap"
-      }
-    */
     }
     if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
-      error('Package stage failure.');
+      error('Packaging stage failure');
     }
   }
 
-  if ((env.BUILD == 'RELEASE') || (env.BUILD == 'REFERENCE')) {
+  if ((env.BUILD == 'RELEASE') || (env.BUILD == 'QA')) {
     stage('Delivery') {
-      node {
+      node("C++") {
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-delivery.sh"
       }
