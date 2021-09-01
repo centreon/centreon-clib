@@ -636,10 +636,10 @@ void process::_pipe(int fds[2]) {
 }
 
 ssize_t process::do_read(int fd) {
-  std::unique_lock<std::mutex> lock(_lock_process);
   // Read content of the stream and push it.
   char buffer[4096];
   ssize_t size = ::read(fd, buffer, sizeof(buffer));
+
   if (size == -1) {
     char const* msg(strerror(errno));
     if (errno == EINTR)
@@ -650,21 +650,25 @@ ssize_t process::do_read(int fd) {
   if (size == 0)
     return 0;
 
-  if (_stream[process::out] == fd) {
-    _buffer_out.append(buffer, size);
-    _cv_buffer_out.notify_one();
-    // Notify listener if necessary.
-    if (_listener) {
-      lock.unlock();
-      (_listener->data_is_available)(*this);
-    }
-  } else if (_stream[process::err] == fd) {
-    _buffer_err.append(buffer, size);
-    _cv_buffer_err.notify_one();
-    // Notify listener if necessary.
-    if (_listener) {
-      lock.unlock();
-      (_listener->data_is_available_err)(*this);
+  {
+    std::unique_lock<std::mutex> lock(_lock_process);
+
+    if (_stream[out] == fd) {
+      _buffer_out.append(buffer, size);
+      _cv_buffer_out.notify_one();
+      // Notify listener if necessary.
+      if (_listener) {
+        lock.unlock();
+        (_listener->data_is_available)(*this);
+      }
+    } else if (_stream[err] == fd) {
+      _buffer_err.append(buffer, size);
+      _cv_buffer_err.notify_one();
+      // Notify listener if necessary.
+      if (_listener) {
+        lock.unlock();
+        (_listener->data_is_available_err)(*this);
+      }
     }
   }
 
