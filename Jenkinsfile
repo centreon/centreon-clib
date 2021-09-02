@@ -87,7 +87,6 @@ try {
     stage('Delivery') {
       node("C++") {
         unstash 'el7-rpms'
-        unstash 'el8-rpms'
         sh 'setup_centreon_build.sh'
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-delivery.sh"
       }
