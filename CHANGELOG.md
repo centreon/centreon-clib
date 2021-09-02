@@ -7,6 +7,11 @@
 The logs mutex needs to be recursive, because sometimes we create logs, that log
 informations.
 
+*Deadlock removed*
+
+This one is in the process class. When the process is stopping and we write to
+its stdin, we could arrive to a deadlock.
+
 ## 21.04.2
 
 *Libraries loading*
