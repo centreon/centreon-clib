@@ -435,15 +435,22 @@ static std::string to_string(const char* data, size_t size) {
  *  @return Number of bytes actually written.
  */
 unsigned int process::write(void const* data, unsigned int size) {
-  std::lock_guard<std::mutex> lock(_lock_process);
-  ssize_t wb = ::write(_stream[in], data, size);
+  int fd;
+  pid_t my_process;
+  {
+    std::lock_guard<std::mutex> lock(_lock_process);
+    fd = _stream[in];
+    my_process = _process;
+  }
+
+  ssize_t wb = ::write(fd, data, size);
   if (wb < 0) {
     char const* msg(strerror(errno));
     if (errno == EINTR)
       throw interruption_error() << msg;
     throw basic_error() << "could not write '"
                         << to_string(static_cast<const char*>(data), size)
-                        << "' on process " << _process << "'s input: " << msg;
+                        << "' on process " << my_process << "'s input: " << msg;
   }
   return wb;
 }

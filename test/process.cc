@@ -84,7 +84,8 @@ TEST(ClibProcess, ProcessOutputThWrite) {
   std::string cmd("./test/bin_test_process_output check_output ");
   cmd += argv[1];
 
-  static constexpr size_t size = 1024;
+  static constexpr size_t size = 10 * 1024;
+  static constexpr size_t count = 30;
 
   process p;
   std::promise<bool> prm;
@@ -102,7 +103,7 @@ TEST(ClibProcess, ProcessOutputThWrite) {
     for (unsigned int i = 0; i < size; ++i)
       buffer_write[i] = static_cast<char>('A' + i % 26);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < count; i++) {
       unsigned int total_write = 0;
       do {
         if (total_write < size)
@@ -111,7 +112,7 @@ TEST(ClibProcess, ProcessOutputThWrite) {
       } while (total_write < size);
     }
     std::cout << "W ";
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < count; i++)
       std::cout << buffer_write;
     std::cout << std::endl;
   });
@@ -124,7 +125,7 @@ TEST(ClibProcess, ProcessOutputThWrite) {
     else
       p.read_err(data);
     buffer_read += data;
-  } while (buffer_read.size() < size * 10);
+  } while (buffer_read.size() < size * count);
 
   th_exec.join();
   th_write.join();
@@ -132,8 +133,8 @@ TEST(ClibProcess, ProcessOutputThWrite) {
   p.wait();
 
   std::cout << "R " << buffer_read << std::endl;
-  ASSERT_EQ(buffer_read.size(), size * 10);
-  for (int i = 0, j = 0; i < size * 10; i++) {
+  ASSERT_EQ(buffer_read.size(), size * count);
+  for (int i = 0, j = 0; i < size * count; i++) {
     ASSERT_EQ(static_cast<char>('A' + j % 26), buffer_read[i]);
     if (++j == size)
       j = 0;
@@ -151,7 +152,8 @@ TEST(ClibProcess, ProcessOutputThRead) {
   /* out or err? */
   bool out = !strcmp(argv[1], "out");
 
-  static constexpr size_t size = 1024;
+  static constexpr size_t size = 10 * 1024;
+  static constexpr size_t count = 30;
 
   process p;
   std::promise<bool> prm;
@@ -168,7 +170,7 @@ TEST(ClibProcess, ProcessOutputThRead) {
   for (unsigned int i = 0; i < size; ++i)
     buffer_write[i] = static_cast<char>('A' + i % 26);
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < count; i++) {
     unsigned int total_write = 0;
     do {
       if (total_write < size)
@@ -177,7 +179,7 @@ TEST(ClibProcess, ProcessOutputThRead) {
   }
 
   std::cout << "W ";
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < count; i++)
     std::cout << buffer_write;
   std::cout << std::endl;
 
@@ -190,10 +192,10 @@ TEST(ClibProcess, ProcessOutputThRead) {
       else
         p.read_err(data);
       buffer_read += data;
-    } while (buffer_read.size() < size * 10);
+    } while (buffer_read.size() < size * count);
 
     std::cout << "R " << buffer_read << std::endl;
-    for (int i = 0, j = 0; i < size * 10; i++) {
+    for (int i = 0, j = 0; i < size * count; i++) {
       ASSERT_EQ(static_cast<char>('A' + j % 26), buffer_read[i]);
       if (++j == size)
         j = 0;
