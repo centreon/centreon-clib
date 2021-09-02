@@ -269,7 +269,7 @@ void process::update_ending_process(int status) {
   _end_time = timestamp::now();
   _status = status;
   _process = static_cast<pid_t>(-1);
-  _close(_stream[process::in]);
+  _close(_stream[in]);
   if (!_is_running()) {
     // Notify listener if necessary.
     if (_listener) {
@@ -450,11 +450,11 @@ unsigned int process::write(void const* data, unsigned int size) {
 
 void process::do_close(int fd) {
   std::unique_lock<std::mutex> lock(_lock_process);
-  if (_stream[process::out] == fd) {
-    _close(_stream[process::out]);
+  if (_stream[out] == fd) {
+    _close(_stream[out]);
     _cv_buffer_out.notify_one();
-  } else if (_stream[process::err] == fd) {
-    _close(_stream[process::err]);
+  } else if (_stream[err] == fd) {
+    _close(_stream[err]);
     _cv_buffer_err.notify_one();
   }
   if (!_is_running()) {
@@ -650,7 +650,7 @@ ssize_t process::do_read(int fd) {
   if (size == 0)
     return 0;
 
-  if (_stream[process::out] == fd) {
+  if (_stream[out] == fd) {
     _buffer_out.append(buffer, size);
     _cv_buffer_out.notify_one();
     // Notify listener if necessary.
@@ -658,7 +658,7 @@ ssize_t process::do_read(int fd) {
       lock.unlock();
       (_listener->data_is_available)(*this);
     }
-  } else if (_stream[process::err] == fd) {
+  } else if (_stream[err] == fd) {
     _buffer_err.append(buffer, size);
     _cv_buffer_err.notify_one();
     // Notify listener if necessary.
