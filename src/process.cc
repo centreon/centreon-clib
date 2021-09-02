@@ -435,15 +435,22 @@ static std::string to_string(const char* data, size_t size) {
  *  @return Number of bytes actually written.
  */
 unsigned int process::write(void const* data, unsigned int size) {
+  int fd;
+  pid_t my_process;
+  {
   std::lock_guard<std::mutex> lock(_lock_process);
-  ssize_t wb = ::write(_stream[in], data, size);
+  fd = _stream[in];
+  my_process = _process;
+  }
+
+  ssize_t wb = ::write(fd, data, size);
   if (wb < 0) {
     char const* msg(strerror(errno));
     if (errno == EINTR)
       throw interruption_error() << msg;
     throw basic_error() << "could not write '"
                         << to_string(static_cast<const char*>(data), size)
-                        << "' on process " << _process << "'s input: " << msg;
+                        << "' on process " << my_process << "'s input: " << msg;
   }
   return wb;
 }
@@ -636,10 +643,10 @@ void process::_pipe(int fds[2]) {
 }
 
 ssize_t process::do_read(int fd) {
-  std::unique_lock<std::mutex> lock(_lock_process);
   // Read content of the stream and push it.
   char buffer[4096];
   ssize_t size = ::read(fd, buffer, sizeof(buffer));
+
   if (size == -1) {
     char const* msg(strerror(errno));
     if (errno == EINTR)
@@ -650,6 +657,7 @@ ssize_t process::do_read(int fd) {
   if (size == 0)
     return 0;
 
+  std::unique_lock<std::mutex> lock(_lock_process);
   if (_stream[out] == fd) {
     _buffer_out.append(buffer, size);
     _cv_buffer_out.notify_one();
