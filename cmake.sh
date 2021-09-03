@@ -12,9 +12,8 @@ This program build Centreon-clib
 EOF
 }
 force=0
-BUILD_TYPE="Debug"
-for i in "$@"
-do
+BUILD_TYPE=Debug
+for i in "$@" ; do
   case $i in
     -f|--force)
       force=1
@@ -37,7 +36,7 @@ done
 my_id=$(id -u)
 
 if [ -r /etc/centos-release ] ; then
-  maj="centos$(cat /etc/centos-release | awk '{print $4}' | cut -f1 -d'.')"
+  maj="centos$(awk '{print $4}' /etc/centos-release | cut -f1 -d'.')"
   v=$(cmake --version)
   if [[ $v =~ "version 3" ]] ; then
     cmake='cmake'
@@ -62,8 +61,8 @@ if [ -r /etc/centos-release ] ; then
     ninja-build
   )
   for i in "${pkgs[@]}"; do
-    if ! rpm -q $i ; then
-      if [ $maj = 'centos7' ] ; then
+    if ! rpm -q "$i" ; then
+      if [ "$maj" = 'centos7' ] ; then
         yum install -y $i
       else
         dnf -y --enablerepo=PowerTools install $i
@@ -71,13 +70,13 @@ if [ -r /etc/centos-release ] ; then
     fi
   done
 elif [ -r /etc/issue ] ; then
-  maj=$(cat /etc/issue | awk '{print $1}')
-  version=$(cat /etc/issue | awk '{print $3}')
+  maj=$(awk '{print $1}' /etc/issue)
+  version=$(awk '{print $3}' /etc/issue)
   v=$(cmake --version)
-  if [[ $v =~ "version 3" ]] ; then
+  if [[ "$v" =~ "version 3" ]] ; then
     cmake='cmake'
-  elif [ $maj = "Debian" ] ; then
-    if [ $version = "9" ] ; then
+  elif [ "$maj" = "Debian" ] ; then
+    if [ "$version" = "9" ] ; then
       dpkg="dpkg"
     else
       dpkg="dpkg --no-pager"
@@ -110,8 +109,8 @@ elif [ -r /etc/issue ] ; then
         fi
       fi
     done
-  elif [ $maj = "Raspbian" ] ; then
-    if [ $version = "9" ] ; then
+  elif [ "$maj" = "Raspbian" ] ; then
+    if [ "$version" = "9" ] ; then
       dpkg="dpkg"
     else
       dpkg="dpkg --no-pager"
@@ -120,7 +119,7 @@ elif [ -r /etc/issue ] ; then
       echo "Bad version of cmake..."
       exit 1
     else
-      if [ $my_id -eq 0 ] ; then
+      if [ "$my_id" -eq 0 ] ; then
         apt install -y cmake
         cmake='cmake'
       else
@@ -136,7 +135,7 @@ elif [ -r /etc/issue ] ; then
     )
     for i in "${pkgs[@]}"; do
       if ! $dpkg -l --no-pager $i | grep "^ii" ; then
-        if [ $my_id -eq 0 ] ; then
+        if [ "$my_id" -eq 0 ] ; then
           apt install -y $i
         else
           echo -e "The package \"$i\" is not installed, you can install it, as root, with the command:\n\tapt install -y $i\n\n"
@@ -159,9 +158,9 @@ if [ "$force" = "1" ] ; then
   mkdir build
 fi
 cd build
-if [ $maj = "Raspbian" ] ; then
+if [ "$maj" = "Raspbian" ] ; then
   CXXFLAGS="-Wall -Wextra" $cmake -DWITH_PREFIX=/usr -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWITH_PREFIX_LIB=/usr/lib -DWITH_TESTING=On -DUSE_CXX11_ABI=1 $* ..
-elif [ $maj = "Debian" ] ; then
+elif [ "$maj" = "Debian" ] ; then
   CXXFLAGS="-Wall -Wextra" $cmake -DWITH_PREFIX=/usr -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWITH_PREFIX_LIB=/usr/lib64 -DWITH_TESTING=On -DUSE_CXX11_ABI=1 $* ..
 else
   CXXFLAGS="-Wall -Wextra" $cmake -DWITH_PREFIX=/usr -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWITH_PREFIX_LIB=/usr/lib64 -DWITH_TESTING=On -DUSE_CXX11_ABI=0 $* ..

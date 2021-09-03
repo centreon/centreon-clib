@@ -63,6 +63,20 @@ target_link_libraries("${TEST_NAME}" "${DEFAULT_LINK_NAME}")
 add_test("${TEST_NAME}_stderr" "${TEST_NAME}" "err")
 add_test("${TEST_NAME}_stdout" "${TEST_NAME}" "out")
 
+# process_output_mt
+set(TEST_NAME "process_output_mt")
+add_executable("${TEST_NAME}" "${TEST_DIR}/${TEST_NAME}.cc")
+target_link_libraries("${TEST_NAME}" "${DEFAULT_LINK_NAME}")
+add_test("${TEST_NAME}_stderr" "${TEST_NAME}" "err")
+add_test("${TEST_NAME}_stdout" "${TEST_NAME}" "out")
+
+# process_output_mt1
+set(TEST_NAME "process_output_mt1")
+add_executable("${TEST_NAME}" "${TEST_DIR}/${TEST_NAME}.cc")
+target_link_libraries("${TEST_NAME}" "${DEFAULT_LINK_NAME}")
+add_test("${TEST_NAME}_stderr" "${TEST_NAME}" "err")
+add_test("${TEST_NAME}_stdout" "${TEST_NAME}" "out")
+
 # task_manager tests
 set(TASK_MANAGER_LIST
     task_manager_add
