@@ -438,9 +438,9 @@ unsigned int process::write(void const* data, unsigned int size) {
   int fd;
   pid_t my_process;
   {
-  std::lock_guard<std::mutex> lock(_lock_process);
-  fd = _stream[in];
-  my_process = _process;
+    std::lock_guard<std::mutex> lock(_lock_process);
+    fd = _stream[in];
+    my_process = _process;
   }
 
   ssize_t wb = ::write(fd, data, size);
