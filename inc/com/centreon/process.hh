@@ -44,7 +44,7 @@ class process {
   enum stream { in = 0, out = 1, err = 2 };
 
  private:
-   /* Error buffer:
+  /* Error buffer:
    * * cleared by exec(),
    * * content get and then cleared by read_err()
    * * and filled by do_read() when an error in the process occures. This last
