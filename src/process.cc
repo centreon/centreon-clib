@@ -64,7 +64,7 @@ process::process(process_listener* listener,
  *  Destructor.
  */
 process::~process() noexcept {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_process_m);
   _kill(SIGKILL);
   _cv_process_running.wait(lock, [this] { return !_is_running(); });
 }
@@ -75,7 +75,7 @@ process::~process() noexcept {
  *  @return The ending timestamp.
  */
 timestamp const& process::end_time() const noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::lock_guard<std::mutex> lock(_process_m);
   return _end_time;
 }
 
@@ -101,7 +101,7 @@ bool process::_is_running() const noexcept {
  *                     this time the process will be kill.
  */
 void process::exec(char const* cmd, char** env, uint32_t timeout) {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_process_m);
 
   // Check if process already running.
   if (_is_running())
@@ -233,7 +233,7 @@ void process::exec(std::string const& cmd, unsigned int timeout) {
  *  @return The exit code.
  */
 int process::exit_code() const noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::lock_guard<std::mutex> lock(_process_m);
   if (WIFEXITED(_status))
     return WEXITSTATUS(_status);
   return 0;
@@ -247,7 +247,7 @@ int process::exit_code() const noexcept {
  *  @return The exit status.
  */
 process::status process::exit_status() const noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::lock_guard<std::mutex> lock(_process_m);
   if (_is_timeout)
     return timeout;
   if (WIFEXITED(_status))
@@ -259,13 +259,13 @@ process::status process::exit_status() const noexcept {
  *  Kill process.
  */
 void process::kill() {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::lock_guard<std::mutex> lock(_process_m);
   _kill(SIGKILL);
 }
 
 void process::update_ending_process(int status) {
   // Update process informations.
-  std::unique_lock<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_process_m);
   _end_time = timestamp::now();
   _status = status;
   _process = static_cast<pid_t>(-1);
@@ -289,7 +289,7 @@ void process::update_ending_process(int status) {
  *  @param[out] data Destination buffer.
  */
 void process::read(std::string& data) {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_process_m);
   // If buffer is empty and stream is open, we waiting data.
   if (_buffer_out.empty() && _stream[out] != -1)
     _cv_buffer_out.wait(lock);
@@ -304,7 +304,7 @@ void process::read(std::string& data) {
  *  @param[out] data Destination buffer.
  */
 void process::read_err(std::string& data) {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_process_m);
   // If buffer is empty and stream is open, we waiting data.
   if (_buffer_err.empty() && _stream[err] != -1)
     _cv_buffer_err.wait(lock);
@@ -319,7 +319,7 @@ void process::read_err(std::string& data) {
  *  @param[in] enable  True to  use setpgid, otherwise false.
  */
 void process::setpgid_on_exec(bool enable) noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::lock_guard<std::mutex> lock(_process_m);
   if (enable)
     _create_process = &_create_process_with_setpgid;
   else
@@ -332,7 +332,7 @@ void process::setpgid_on_exec(bool enable) noexcept {
  *  @return True if setpgid is enable, otherwise false.
  */
 bool process::setpgid_on_exec() const noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::lock_guard<std::mutex> lock(_process_m);
   return _create_process == &_create_process_with_setpgid;
 }
 
@@ -342,7 +342,7 @@ bool process::setpgid_on_exec() const noexcept {
  *  @return The starting timestamp.
  */
 timestamp const& process::start_time() const noexcept {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::lock_guard<std::mutex> lock(_process_m);
   return _start_time;
 }
 
@@ -351,7 +351,7 @@ timestamp const& process::start_time() const noexcept {
  *  is just sent.
  */
 void process::terminate() {
-  std::lock_guard<std::mutex> lock(_lock_process);
+  std::lock_guard<std::mutex> lock(_process_m);
   _kill(SIGTERM);
 }
 
@@ -359,7 +359,7 @@ void process::terminate() {
  *  Wait for process termination.
  */
 void process::wait() const {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_process_m);
   _cv_process_running.wait(lock, [this] { return !_is_running(); });
 }
 
@@ -372,7 +372,7 @@ void process::wait() const {
  * @return true if process exited.
  */
 bool process::wait(uint32_t timeout) const {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_process_m);
   return _cv_process_running.wait_for(lock, std::chrono::milliseconds(timeout),
                                       [this] { return !_is_running(); });
 }
@@ -438,7 +438,7 @@ unsigned int process::write(void const* data, unsigned int size) {
   int fd;
   pid_t my_process;
   {
-    std::lock_guard<std::mutex> lock(_lock_process);
+    std::lock_guard<std::mutex> lock(_process_m);
     fd = _stream[in];
     my_process = _process;
   }
@@ -456,7 +456,7 @@ unsigned int process::write(void const* data, unsigned int size) {
 }
 
 void process::do_close(int fd) {
-  std::unique_lock<std::mutex> lock(_lock_process);
+  std::unique_lock<std::mutex> lock(_process_m);
   if (_stream[out] == fd) {
     _close(_stream[out]);
     _cv_buffer_out.notify_one();
@@ -658,7 +658,7 @@ ssize_t process::do_read(int fd) {
     return 0;
 
   {
-    std::unique_lock<std::mutex> lock(_lock_process);
+    std::unique_lock<std::mutex> lock(_process_m);
 
     if (_stream[out] == fd) {
       _buffer_out.append(buffer, size);

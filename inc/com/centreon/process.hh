@@ -68,7 +68,7 @@ class process {
   timestamp _end_time;
   bool _is_timeout;
   process_listener* _listener;
-  mutable std::mutex _lock_process;
+  mutable std::mutex _process_m;
   pid_t _process;
   timestamp _start_time;
   int _status;
