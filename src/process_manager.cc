@@ -394,17 +394,17 @@ void process_manager::_wait_processes() noexcept {
         std::lock_guard<std::mutex> lock(_lock_processes);
         auto it = _processes_pid.find(pid);
         if (it == _processes_pid.end()) {
-          _orphans_pid.push_back(orphan(pid, status));
+          _orphans_pid.emplace_back(pid, status);
           continue;
         }
         p = it->second;
         _processes_pid.erase(it);
-      }
 
-      // Update process.
-      if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL)
-        p->_is_timeout = true;
-      _update_ending_process(p, status);
+        // Update process.
+        if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL)
+          p->_is_timeout = true;
+        _update_ending_process(p, status);
+      }
     }
   } catch (const std::exception& e) {
     log_error(logging::high) << e.what();
