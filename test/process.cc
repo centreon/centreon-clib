@@ -241,3 +241,41 @@ TEST(ClibProcess, ProcessWaitTimeout) {
   ASSERT_FALSE(p.wait(500) == true);
   ASSERT_FALSE(p.wait(1500) == false);
 }
+
+TEST(ClibProcess, ProcessTimeoutVsAdd) {
+  std::string cmd("./test/bin_test_process_output check_sleep 3");
+  constexpr int count = 10;
+  constexpr int nb = 10;
+
+  std::atomic_bool finished{false};
+  std::thread th_exec([&cmd, &finished] {
+    process p;
+    for (int i = 0; i < count; i++) {
+      std::cout << i << " Execution with timeout of 1s" << std::endl;
+      p.exec(cmd.c_str(), nullptr, 1);
+      p.wait();
+    }
+    finished = true;
+  });
+
+  std::vector<std::thread> r;
+  for (int i = 0; i < nb; i++) {
+    r.emplace_back([&finished, idx = i] {
+      std::string cmd1("/bin/echo ");
+      cmd1 += std::to_string(idx);
+      process p1;
+      std::cout << "execute " << idx << std::endl;
+      while (!finished) {
+        p1.exec(cmd1);
+        p1.wait();
+      }
+    });
+  }
+
+  for (auto& t : r) {
+    t.join();
+  }
+  th_exec.join();
+
+  //ASSERT_EQ(p1.exit_code(), EXIT_SUCCESS);
+}
