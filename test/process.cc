@@ -242,6 +242,31 @@ TEST(ClibProcess, ProcessWaitTimeout) {
   ASSERT_FALSE(p.wait(1500) == false);
 }
 
+TEST(ClibProcess, ProcessTimeoutWhenFinished) {
+  //std::string cmd("./test/bin_test_process_output check_sleep 1");
+  constexpr int count = 10;
+  constexpr int nb = 100;
+
+  std::vector<std::thread> r;
+  for (int j = 0; j < nb; j++) {
+    r.emplace_back([j] {
+      char cmd[30];
+      for (int i = 0; i < count; i++) {
+        snprintf(cmd, 30, "sleep %f", 0.95 + 0.001 * j);
+        std::cout << cmd << std::endl;
+        process p;
+        p.exec(cmd, nullptr, 1);
+        p.wait();
+      }
+    });
+  }
+
+  for (auto& t : r)
+    t.join();
+
+  //ASSERT_EQ(p1.exit_code(), EXIT_SUCCESS);
+}
+
 TEST(ClibProcess, ProcessTimeoutVsAdd) {
   std::string cmd("./test/bin_test_process_output check_sleep 3");
   constexpr int count = 10;
@@ -279,3 +304,29 @@ TEST(ClibProcess, ProcessTimeoutVsAdd) {
 
   //ASSERT_EQ(p1.exit_code(), EXIT_SUCCESS);
 }
+
+TEST(ClibProcess, Debug) {
+  //std::string cmd("./test/bin_test_process_output check_sleep 1");
+  constexpr int count = 1;
+  constexpr int nb = 1;
+
+  std::vector<std::thread> r;
+  for (int j = 0; j < nb; j++) {
+    r.emplace_back([j] {
+      char cmd[30] = "sleep 1";
+      for (int i = 0; i < count; i++) {
+        //snprintf(cmd, 30, "sleep %f", 1.95 + 0.001 * j);
+        std::cout << cmd << std::endl;
+        process p;
+        p.exec(cmd, nullptr, 3);
+        p.wait();
+      }
+    });
+  }
+
+  for (auto& t : r)
+    t.join();
+
+  //ASSERT_EQ(p1.exit_code(), EXIT_SUCCESS);
+}
+
