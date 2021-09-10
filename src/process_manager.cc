@@ -50,7 +50,7 @@ process_manager::process_manager()
 process_manager::~process_manager() noexcept {
   // Kill all running process.
   {
-    std::lock_guard<std::mutex> lock(_lock_processes);
+    std::lock_guard<std::mutex> lock(_processes_m);
     for (auto it = _processes_pid.begin(), end = _processes_pid.end();
          it != end; ++it) {
       try {
@@ -69,7 +69,7 @@ process_manager::~process_manager() noexcept {
   _thread.join();
 
   {
-    std::lock_guard<std::mutex> lock(_lock_processes);
+    std::lock_guard<std::mutex> lock(_processes_m);
 
     // Release memory.
     _fds.clear();
@@ -99,8 +99,8 @@ void process_manager::add(process* p) {
   // Check viability pointer.
   assert(p);
 
-  // We lock _lock_processes before to avoid deadlocks
-  std::lock_guard<std::mutex> lock(_lock_processes);
+  // We lock _processes_m before to avoid deadlocks
+  std::lock_guard<std::mutex> lock(_processes_m);
 
   // Monitor err/out output if necessary.
   if (p->_enable_stream[process::out])
@@ -155,7 +155,7 @@ void process_manager::_close_stream(int fd) noexcept {
     // Get process to link with fd and remove this
     // fd to the process manager.
     {
-      std::lock_guard<std::mutex> lock(_lock_processes);
+      std::lock_guard<std::mutex> lock(_processes_m);
       _update = true;
       std::unordered_map<int, process*>::iterator it(_processes_fd.find(fd));
       if (it == _processes_fd.end())
@@ -173,29 +173,10 @@ void process_manager::_close_stream(int fd) noexcept {
 }
 
 /**
- *  Remove process from list of processes timeout.
- *
- *  @param[in] p The process to remove.
- */
-void process_manager::_erase_timeout(process* p) {
-  // Check process viability.
-  if (!p || !p->_timeout)
-    return;
-  std::lock_guard<std::mutex> lock(_lock_processes);
-  auto range = _processes_timeout.equal_range(p->_timeout);
-  for (auto it = range.first; it != range.second; ++it) {
-    if (it->second == p) {
-      _processes_timeout.erase(it);
-      break;
-    }
-  }
-}
-
-/**
  *  Kill process to reach the timeout.
  */
 void process_manager::_kill_processes_timeout() noexcept {
-  std::lock_guard<std::mutex> lock(_lock_processes);
+  std::lock_guard<std::mutex> lock(_processes_m);
   // Get the current time.
   std::time_t now(time(nullptr));
 
@@ -225,7 +206,7 @@ uint32_t process_manager::_read_stream(int fd) noexcept {
     process* p;
     // Get process to link with fd.
     {
-      std::lock_guard<std::mutex> lock(_lock_processes);
+      std::lock_guard<std::mutex> lock(_processes_m);
       std::unordered_map<int, process*>::iterator it(_processes_fd.find(fd));
       if (it == _processes_fd.end()) {
         _update = true;
@@ -265,10 +246,8 @@ void process_manager::_run() {
       if (ret < 0) {
         if (errno == EINTR)
           ret = 0;
-        else {
-          const char* msg = strerror(errno);
-          throw basic_error() << "poll failed: " << msg;
-        }
+        else
+          throw basic_error() << "poll failed: " << strerror(errno);
       }
       for (uint32_t i = 0, checked = 0;
            checked < static_cast<uint32_t>(ret) && i < _fds.size(); ++i) {
@@ -316,14 +295,25 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
     return;
 
   p->update_ending_process(status);
-  _erase_timeout(p);
+
+  // Check process viability.
+  if (!p->_timeout)
+    return;
+  //std::lock_guard<std::mutex> lock(_processes_m);
+  auto range = _processes_timeout.equal_range(p->_timeout);
+  for (auto it = range.first; it != range.second; ++it) {
+    if (it->second == p) {
+      _processes_timeout.erase(it);
+      break;
+    }
+  }
 }
 
 /**
  *  Update list of file descriptors to watch.
  */
 void process_manager::_update_list() {
-  std::lock_guard<std::mutex> lock(_lock_processes);
+  std::lock_guard<std::mutex> lock(_processes_m);
 
   // Set file descriptor to wait event.
   if (_processes_fd.size() != _fds.size())
@@ -346,7 +336,7 @@ void process_manager::_update_list() {
  */
 void process_manager::_wait_orphans_pid() noexcept {
   try {
-    std::unique_lock<std::mutex> lock(_lock_processes);
+    std::unique_lock<std::mutex> lock(_processes_m);
     std::deque<orphan>::iterator it = _orphans_pid.begin();
     while (it != _orphans_pid.end()) {
       process* p(nullptr);
@@ -363,9 +353,9 @@ void process_manager::_wait_orphans_pid() noexcept {
       }
 
       // Update process.
-      lock.unlock();
+      //lock.unlock();
       _update_ending_process(p, it->status);
-      lock.lock();
+      //lock.lock();
 
       // Erase orphan pid.
       it = _orphans_pid.erase(it);
@@ -383,7 +373,7 @@ void process_manager::_wait_processes() noexcept {
     for (;;) {
       int status = 0;
       pid_t pid(::waitpid(-1, &status, WNOHANG));
-      // No process are finished.
+      // No process finished.
       if (pid <= 0)
         break;
 
@@ -391,7 +381,7 @@ void process_manager::_wait_processes() noexcept {
       // Get process to link with pid and remove this pid
       // to the process manager.
       {
-        std::lock_guard<std::mutex> lock(_lock_processes);
+        std::lock_guard<std::mutex> lock(_processes_m);
         auto it = _processes_pid.find(pid);
         if (it == _processes_pid.end()) {
           _orphans_pid.emplace_back(pid, status);

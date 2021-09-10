@@ -85,7 +85,7 @@ TEST(ClibProcess, ProcessOutputThWrite) {
   cmd += argv[1];
 
   static constexpr size_t size = 10 * 1024;
-  static constexpr size_t count = 30;
+  static constexpr int32_t count = 30;
 
   process p;
   std::promise<bool> prm;
@@ -134,7 +134,7 @@ TEST(ClibProcess, ProcessOutputThWrite) {
 
   std::cout << "R " << buffer_read << std::endl;
   ASSERT_EQ(buffer_read.size(), size * count);
-  for (int i = 0, j = 0; i < size * count; i++) {
+  for (uint32_t i = 0, j = 0; i < size * count; i++) {
     ASSERT_EQ(static_cast<char>('A' + j % 26), buffer_read[i]);
     if (++j == size)
       j = 0;
@@ -170,7 +170,7 @@ TEST(ClibProcess, ProcessOutputThRead) {
   for (unsigned int i = 0; i < size; ++i)
     buffer_write[i] = static_cast<char>('A' + i % 26);
 
-  for (int i = 0; i < count; i++) {
+  for (uint32_t i = 0; i < count; i++) {
     unsigned int total_write = 0;
     do {
       if (total_write < size)
@@ -179,7 +179,7 @@ TEST(ClibProcess, ProcessOutputThRead) {
   }
 
   std::cout << "W ";
-  for (int i = 0; i < count; i++)
+  for (uint32_t i = 0; i < count; i++)
     std::cout << buffer_write;
   std::cout << std::endl;
 
@@ -195,7 +195,7 @@ TEST(ClibProcess, ProcessOutputThRead) {
     } while (buffer_read.size() < size * count);
 
     std::cout << "R " << buffer_read << std::endl;
-    for (int i = 0, j = 0; i < size * count; i++) {
+    for (uint32_t i = 0, j = 0; i < size * count; i++) {
       ASSERT_EQ(static_cast<char>('A' + j % 26), buffer_read[i]);
       if (++j == size)
         j = 0;
@@ -312,13 +312,13 @@ TEST(ClibProcess, Debug) {
 
   std::vector<std::thread> r;
   for (int j = 0; j < nb; j++) {
-    r.emplace_back([j] {
+    r.emplace_back([] {
       char cmd[30] = "sleep 1";
       for (int i = 0; i < count; i++) {
         //snprintf(cmd, 30, "sleep %f", 1.95 + 0.001 * j);
         std::cout << cmd << std::endl;
         process p;
-        p.exec(cmd, nullptr, 3);
+        p.exec(cmd, nullptr, 10);
         p.wait();
       }
     });

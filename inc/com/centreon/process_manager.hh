@@ -48,7 +48,7 @@ class process_listener;
  *
  *  Once the loop is correctly started, the user can add to it processes. This
  *is done with the add() method. Since the main loop is running while we add a
- *process, a mutex _lock_processes is used. During the add action,
+ *process, a mutex _processes_m is used. During the add action,
  *  * A map _processes_fd is completed, this one returns a process knowing its
  *output fd or its error fd.
  *  * If the process is configured with a timeout, the table _processes_timeout
@@ -58,6 +58,10 @@ class process_listener;
  *_update boolean to true.
  *  * The process is stored in the _processes_pid table, here it is stored by
  *pid.
+ *
+ * Processes states are supervised in this loop. If we get a pid that is not in
+ * _processed_pid, we add it to orphans_pid. So their union represents all the
+ * processes executed be our program.
  */
 class process_manager {
   struct orphan {
@@ -80,7 +84,7 @@ class process_manager {
   std::condition_variable _running_cv;
   std::thread _thread;
 
-  mutable std::mutex _lock_processes;
+  mutable std::mutex _processes_m;
   std::unordered_map<int32_t, process*> _processes_fd;
   std::deque<orphan> _orphans_pid;
   std::unordered_map<pid_t, process*> _processes_pid;
@@ -90,7 +94,6 @@ class process_manager {
   ~process_manager() noexcept;
   static void _close(int& fd) noexcept;
   void _close_stream(int fd) noexcept;
-  void _erase_timeout(process* p);
   void _kill_processes_timeout() noexcept;
   uint32_t _read_stream(int fd) noexcept;
   void _run();
