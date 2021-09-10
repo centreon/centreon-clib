@@ -593,8 +593,7 @@ int process::_dup(int oldfd) {
   while ((newfd = dup(oldfd)) < 0) {
     if (errno == EINTR)
       continue;
-    char const* msg(strerror(errno));
-    throw basic_error() << "could not duplicate FD: " << msg;
+    throw basic_error() << "could not duplicate FD: " << strerror(errno);
   }
   return newfd;
 }
