@@ -128,6 +128,12 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
   volatile bool restore_std(false);
 
   std::lock_guard<std::mutex> gl_lock(gl_process_lock);
+  static int count = 0;
+  FILE* f = fopen("/tmp/gl_lock", "a+");
+  fprintf(f, "gl_lock '%s' %d\n", cmd, count);
+  fclose(f);
+
+  count++;
   try {
     // Create backup FDs.
     std[0] = _dup(STDIN_FILENO);
@@ -135,8 +141,8 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     std[2] = _dup(STDERR_FILENO);
 
     // Backup FDs do not need to be inherited.
-    for (int32_t i = 0; i < 3; ++i)
-      _set_cloexec(std[i]);
+    //for (int32_t i = 0; i < 3; ++i)
+    //  _set_cloexec(std[i]);
 
     restore_std = true;
 
@@ -147,7 +153,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
       _pipe(pipe_stream[in]);
       _dup2(pipe_stream[in][0], STDIN_FILENO);
       _close(pipe_stream[in][0]);
-      _set_cloexec(pipe_stream[in][1]);
+      //_set_cloexec(pipe_stream[in][1]);
     }
 
     if (!_enable_stream[out])
@@ -156,7 +162,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
       _pipe(pipe_stream[out]);
       _dup2(pipe_stream[out][1], STDOUT_FILENO);
       _close(pipe_stream[out][1]);
-      _set_cloexec(pipe_stream[out][0]);
+      //_set_cloexec(pipe_stream[out][0]);
     }
 
     if (!_enable_stream[err])
@@ -165,7 +171,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
       _pipe(pipe_stream[err]);
       _dup2(pipe_stream[err][1], STDERR_FILENO);
       _close(pipe_stream[err][1]);
-      _set_cloexec(pipe_stream[err][0]);
+      //_set_cloexec(pipe_stream[err][0]);
     }
 
     // Parse and get command line arguments.
@@ -593,7 +599,7 @@ int process::_dup(int oldfd) {
   while ((newfd = dup(oldfd)) < 0) {
     if (errno == EINTR)
       continue;
-    throw basic_error() << "could not duplicate FD: " << strerror(errno);
+    throw basic_error() << "could not duplicate FD (" << oldfd << "): " << strerror(errno);
   }
   return newfd;
 }
@@ -635,7 +641,7 @@ void process::_kill(int sig) {
  *  @param[in] fds FD array.
  */
 void process::_pipe(int fds[2]) {
-  if (pipe(fds) != 0) {
+  if (pipe2(fds, O_CLOEXEC) != 0) {
     char const* msg(strerror(errno));
     throw basic_error() << "pipe creation failed: " << msg;
   }
@@ -686,19 +692,19 @@ ssize_t process::do_read(int fd) {
  *
  *  @param[in] fd The file descriptor to set close on exec.
  */
-void process::_set_cloexec(int fd) {
-  int flags(0);
-  while ((flags = fcntl(fd, F_GETFD)) < 0) {
-    if (errno == EINTR)
-      continue;
-    char const* msg(strerror(errno));
-    throw basic_error() << "Could not get file descriptor flags: " << msg;
-  }
-  int ret(0);
-  while ((ret = fcntl(fd, F_SETFD, flags | FD_CLOEXEC)) < 0) {
-    if (errno == EINTR)
-      continue;
-    char const* msg(strerror(errno));
-    throw basic_error() << "Could not set close-on-exec flag: " << msg;
-  }
-}
+//void process::_set_cloexec(int fd) {
+//  int flags(0);
+//  while ((flags = fcntl(fd, F_GETFD)) < 0) {
+//    if (errno == EINTR)
+//      continue;
+//    char const* msg(strerror(errno));
+//    throw basic_error() << "Could not get file descriptor flags: " << msg;
+//  }
+//  int ret(0);
+//  while ((ret = fcntl(fd, F_SETFD, flags | FD_CLOEXEC)) < 0) {
+//    if (errno == EINTR)
+//      continue;
+//    char const* msg(strerror(errno));
+//    throw basic_error() << "Could not set close-on-exec flag: " << msg;
+//  }
+//}

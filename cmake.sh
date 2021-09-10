@@ -12,7 +12,7 @@ This program build Centreon-clib
     -h|--help     : help
 EOF
 }
-BUILD_TYPE=Debug
+BUILD_TYPE=DebugAndRelease
 CONAN_REBUILD="0"
 while IFS= read -r filename; do
   if [[ $filename =~ / ]] ; then
@@ -186,8 +186,6 @@ fi
 pip3 install conan --upgrade
 
 if [ "$my_id" -eq 0 ] ; then
-  conan='/usr/local/bin/conan'
-elif which conan ; then
   conan=$(which conan)
 else
   conan="$HOME/.local/bin/conan"
