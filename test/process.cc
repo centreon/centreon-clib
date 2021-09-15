@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Centreon (https://www.centreon.com/)
+ * Copyright 2020-2021 Centreon (https://www.centreon.com/)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,14 @@ TEST(ClibProcess, ProcessEnv) {
   ASSERT_EQ(p.exit_code(), EXIT_SUCCESS);
 }
 
+/**
+ * @brief Same test as ProcessEnv but with processes executed serially.
+ *
+ * @param ClibProcess
+ * @param ProcessEnvRep
+ */
 TEST(ClibProcess, ProcessEnvRep) {
-  constexpr int count = 0;
+  constexpr int count = 10;
   int sum = 0;
   for (int i = 0; i < count; i++) {
     process p;
@@ -92,6 +98,12 @@ TEST(ClibProcess, ProcessEnvMT) {
   ASSERT_EQ(sum, 0);
 }
 
+/**
+ * @brief A test where we check the possibility to kill a process.
+ *
+ * @param ClibProcess
+ * @param ProcessKill
+ */
 TEST(ClibProcess, ProcessKill) {
   process p;
   p.exec("./test/bin_test_process_output check_sleep 1");
@@ -100,6 +112,93 @@ TEST(ClibProcess, ProcessKill) {
   p.wait();
   timestamp end(timestamp::now());
   ASSERT_EQ((end - start).to_seconds(), 0);
+}
+
+/**
+ * @brief Same test as ProcessEnv but with processes executed serially.
+ *
+ * @param ClibProcess
+ * @param ProcessEnvRep
+ */
+TEST(ClibProcess, ProcessKillRep) {
+  constexpr int count = 10;
+  int sum = 0;
+  for (int i = 0; i < count; i++) {
+  process p;
+  p.exec("./test/bin_test_process_output check_sleep 1");
+  p.kill();
+  timestamp start(timestamp::now());
+  p.wait();
+  timestamp end(timestamp::now());
+  sum += (end - start).to_seconds();
+  }
+  ASSERT_EQ(sum, 0);
+}
+
+/**
+ * @brief Same test as in ProcessKill but in a MT environment.
+ *
+ * @param ClibProcess
+ * @param ProcessEnvMT
+ */
+TEST(ClibProcess, ProcessKillMT) {
+  std::atomic_int sum{0};
+  constexpr int count = 10;
+  std::vector<std::thread> v;
+  for (int i = 0; i < count; i++) {
+    v.emplace_back([&sum] {
+      process p;
+      p.exec("./test/bin_test_process_output check_sleep 1");
+      p.kill();
+      timestamp start(timestamp::now());
+      p.wait();
+      timestamp end(timestamp::now());
+      sum += (end - start).to_seconds();
+    });
+  }
+
+  for (auto& t : v)
+    t.join();
+
+  ASSERT_EQ(sum, 0);
+}
+
+/**
+ * @brief A test asking the process to write "check stdout" on stdout, then
+ * retrieves this string and validates it.
+ *
+ * @param ClibProcess
+ * @param ProcessStdout
+ */
+TEST(ClibProcess, ProcessStdout) {
+  process p(nullptr, false, true, false);
+  p.exec(
+      "./test/bin_test_process_output check_stdout 0");
+  std::string output;
+  p.read(output);
+  p.wait();
+  ASSERT_EQ(output, std::string("check_stdout\n"));
+}
+
+/**
+ * @brief A test asking the process to write "check stdout" on stdout, then
+ * retrieves this string and validates it.
+ *
+ * @param ClibProcess
+ * @param ProcessStdout
+ */
+TEST(ClibProcess, ProcessStdoutRep) {
+  constexpr int count = 10;
+  int sum = 0;
+  for (int i = 0; i < count; i++) {
+    process p(nullptr, false, true, false);
+    p.exec("./test/bin_test_process_output check_stdout 0");
+    std::string output;
+    p.read(output);
+    p.wait();
+    sum += strcmp(output.c_str(), "check_stdout\n");
+  }
+  ASSERT_EQ(sum, 0);
 }
 
 TEST(ClibProcess, ProcessOutput) {

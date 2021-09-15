@@ -104,22 +104,24 @@ void process_manager::add(process* p) {
   std::lock_guard<std::mutex> lock(_lock_processes);
 
   // Monitor err/out output if necessary.
-  if (p->_enable_stream[process::out])
+  if (p->_enable_stream[process::out]) {
     _processes_fd[p->_stream[process::out]] = p;
-  if (p->_enable_stream[process::err])
+    _fds.push_back({p->_stream[process::out], POLLIN | POLLPRI | POLL_HUP, 0});
+  }
+  if (p->_enable_stream[process::err]) {
     _processes_fd[p->_stream[process::err]] = p;
+    _fds.push_back({p->_stream[process::err], POLLIN | POLLPRI | POLL_HUP, 0});
+  }
 
   // Add timeout to kill process if necessary.
   if (p->_timeout)
     _processes_timeout.insert({p->_timeout, p});
 
   // Need to update file descriptor list.
-  _update = true;
+  //_update = true;
 
   // Add pid process to use waitpid.
   _processes_pid[p->_process] = p;
-
-  // write(_fds_exit[1], "up", 2);
 }
 
 /**
@@ -361,6 +363,11 @@ void process_manager::_wait_orphans_pid() noexcept {
         }
         p = it_p->second;
         _processes_pid.erase(it_p);
+//        if (p->_enable_stream[process::out])
+//          _processes_fd.erase(p->_stream[process::out]);
+//        if (p->_enable_stream[process::err])
+//          _processes_fd.erase(p->_stream[process::err]);
+//        _update = true;
       }
 
       // Update process.
@@ -400,6 +407,11 @@ void process_manager::_wait_processes() noexcept {
         }
         p = it->second;
         _processes_pid.erase(it);
+//        if (p->_enable_stream[process::out])
+//          _processes_fd.erase(p->_stream[process::out]);
+//        if (p->_enable_stream[process::err])
+//          _processes_fd.erase(p->_stream[process::err]);
+//        _update = true;
       }
 
       // Update process.
