@@ -407,11 +407,6 @@ void process_manager::_wait_processes() noexcept {
         }
         p = it->second;
         _processes_pid.erase(it);
-//        if (p->_enable_stream[process::out])
-//          _processes_fd.erase(p->_stream[process::out]);
-//        if (p->_enable_stream[process::err])
-//          _processes_fd.erase(p->_stream[process::err]);
-//        _update = true;
       }
 
       // Update process.
