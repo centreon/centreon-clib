@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <condition_variable>
 #include <array>
+#include <atomic>
 #include <mutex>
 #include <string>
 #include "com/centreon/timestamp.hh"
@@ -40,6 +41,7 @@ class process_manager;
 class process {
   friend class process_manager;
 
+  std::atomic_bool _is_timeout;
  public:
   enum status { normal = 0, crash = 1, timeout = 2 };
   enum stream { in = 0, out = 1, err = 2 };
@@ -67,7 +69,6 @@ class process {
   const std::array<bool, 3> _enable_stream;
   std::array<int, 3> _stream;
   timestamp _end_time;
-  bool _is_timeout;
   process_listener* _listener;
   mutable std::mutex _lock_process;
   pid_t _process;
@@ -114,6 +115,7 @@ class process {
   void update_ending_process(int status);
   uint32_t write(std::string const& data);
   uint32_t write(void const* data, uint32_t size);
+  void set_timeout(bool timeout);
 };
 
 CC_END()

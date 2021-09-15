@@ -416,7 +416,7 @@ void process_manager::_wait_processes() noexcept {
 
       // Update process.
       if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL)
-        p->_is_timeout = true;
+        p->set_timeout(true);
       _update_ending_process(p, status);
     }
   } catch (const std::exception& e) {

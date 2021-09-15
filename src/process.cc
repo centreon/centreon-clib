@@ -703,3 +703,7 @@ void process::_set_cloexec(int fd) {
     throw basic_error() << "Could not set close-on-exec flag: " << msg;
   }
 }
+
+void process::set_timeout(bool timeout) {
+  _is_timeout = timeout;
+}
