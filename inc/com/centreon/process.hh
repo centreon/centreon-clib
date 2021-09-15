@@ -41,7 +41,21 @@ class process_manager;
 class process {
   friend class process_manager;
 
+  /* Constants */
+  const std::array<bool, 3> _enable_stream;
+
+  /* Constants except during exec() call */
+  uint32_t _timeout;
+
+  /* Constants except when they are initialized at exec() and closed when
+   * process is over. */
+  std::array<int, 3> _stream;
   std::atomic_bool _is_timeout;
+
+  /* Almost never changed, we have two such functions, one with pgid and the
+   * other without. */
+  pid_t (*_create_process)(char**, char**);
+
  public:
   enum status { normal = 0, crash = 1, timeout = 2 };
   enum stream { in = 0, out = 1, err = 2 };
@@ -62,19 +76,15 @@ class process {
    *   method is called by the process manager in its main loop when needed.
    */
   std::string _buffer_out;
-  pid_t (*_create_process)(char**, char**);
   mutable std::condition_variable _cv_buffer_err;
   mutable std::condition_variable _cv_buffer_out;
   mutable std::condition_variable _cv_process_running;
-  const std::array<bool, 3> _enable_stream;
-  std::array<int, 3> _stream;
   timestamp _end_time;
   process_listener* _listener;
   mutable std::mutex _lock_process;
   pid_t _process;
   timestamp _start_time;
   int _status;
-  uint32_t _timeout;
 
   static void _close(int& fd) noexcept;
   static pid_t _create_process_with_setpgid(char** args, char** env);

@@ -51,14 +51,14 @@ process::process(process_listener* listener,
                  bool in_stream,
                  bool out_stream,
                  bool err_stream)
-    : _create_process(&_create_process_with_setpgid),
-      _enable_stream{in_stream, out_stream, err_stream},
+    : _enable_stream{in_stream, out_stream, err_stream},
+      _timeout{0},
+      _create_process{&_create_process_with_setpgid},
       _stream{-1, -1, -1},
       _is_timeout{false},
-      _listener(listener),
-      _process(static_cast<pid_t>(-1)),
-      _status(0),
-      _timeout(0) {}
+      _listener{listener},
+      _process{-1},
+      _status{0} {}
 
 /**
  *  Destructor.
@@ -85,7 +85,7 @@ timestamp const& process::end_time() const noexcept {
  *  @return True is process run, otherwise false.
  */
 bool process::_is_running() const noexcept {
-  return _process != static_cast<pid_t>(-1) || _stream[in] != -1 ||
+  return _process != -1 || _stream[in] != -1 ||
          _stream[out] != -1 || _stream[err] != -1;
 }
 
