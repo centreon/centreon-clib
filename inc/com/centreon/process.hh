@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #include <condition_variable>
+#include <array>
 #include <mutex>
 #include <string>
 #include "com/centreon/timestamp.hh"
