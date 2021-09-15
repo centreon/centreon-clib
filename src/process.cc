@@ -291,8 +291,9 @@ void process::update_ending_process(int status) {
 void process::read(std::string& data) {
   std::unique_lock<std::mutex> lock(_lock_process);
   // If buffer is empty and stream is open, we waiting data.
-  if (_buffer_out.empty() && _stream[out] != -1)
-    _cv_buffer_out.wait(lock);
+  _cv_buffer_out.wait(lock, [this] {
+    return !_buffer_out.empty() || _stream[out] == -1;
+  });
   // Switch content.
   data.clear();
   data.swap(_buffer_out);
@@ -306,8 +307,8 @@ void process::read(std::string& data) {
 void process::read_err(std::string& data) {
   std::unique_lock<std::mutex> lock(_lock_process);
   // If buffer is empty and stream is open, we waiting data.
-  if (_buffer_err.empty() && _stream[err] != -1)
-    _cv_buffer_err.wait(lock);
+  _cv_buffer_err.wait(
+      lock, [this] { return !_buffer_err.empty() || _stream[err] == -1; });
   // Switch content.
   data.clear();
   data.swap(_buffer_err);
