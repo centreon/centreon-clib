@@ -26,6 +26,13 @@
 
 using namespace com::centreon;
 
+/**
+ * @brief Given several environment variables, we execute the test binary with
+ * them. It returns 0 if these variables have the correct values.
+ *
+ * @param ClibProcess
+ * @param ProcessEnv
+ */
 TEST(ClibProcess, ProcessEnv) {
   process p;
   char* env[] = {(char*)"key1=value1", (char*)"key2=value2",
@@ -36,6 +43,53 @@ TEST(ClibProcess, ProcessEnv) {
       env);
   p.wait();
   ASSERT_EQ(p.exit_code(), EXIT_SUCCESS);
+}
+
+TEST(ClibProcess, ProcessEnvRep) {
+  constexpr int count = 0;
+  int sum = 0;
+  for (int i = 0; i < count; i++) {
+    process p;
+    char* env[] = {(char*)"key1=value1", (char*)"key2=value2",
+                   (char*)"key3=value3", NULL};
+    p.exec(
+        "./test/bin_test_process_output check_env "
+        "key1=value1 key2=value2 key3=value3",
+        env);
+    p.wait();
+    sum += p.exit_code();
+  }
+  ASSERT_EQ(sum, 0);
+}
+
+/**
+ * @brief Same test as in ProcessEnv but in a MT environment.
+ *
+ * @param ClibProcess
+ * @param ProcessEnvMT
+ */
+TEST(ClibProcess, ProcessEnvMT) {
+  std::atomic_int sum{0};
+  constexpr int count = 10;
+  std::vector<std::thread> v;
+  for (int i = 0; i < count; i++) {
+    v.emplace_back([&sum] {
+      process p;
+      char* env[] = {(char*)"key1=value1", (char*)"key2=value2",
+                     (char*)"key3=value3", NULL};
+      p.exec(
+          "./test/bin_test_process_output check_env "
+          "key1=value1 key2=value2 key3=value3",
+          env);
+      p.wait();
+      sum += p.exit_code();
+    });
+  }
+
+  for (auto& t : v)
+    t.join();
+
+  ASSERT_EQ(sum, 0);
 }
 
 TEST(ClibProcess, ProcessKill) {
