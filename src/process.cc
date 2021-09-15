@@ -52,13 +52,13 @@ process::process(process_listener* listener,
                  bool out_stream,
                  bool err_stream)
     : _enable_stream{in_stream, out_stream, err_stream},
+      _listener{listener},
       _timeout{0},
       _create_process{&_create_process_with_setpgid},
       _stream{-1, -1, -1},
       _is_timeout{false},
-      _listener{listener},
-      _process{-1},
-      _status{0} {}
+      _status{0},
+      _process{-1} {}
 
 /**
  *  Destructor.
@@ -268,7 +268,7 @@ void process::update_ending_process(int status) {
   std::unique_lock<std::mutex> lock(_lock_process);
   _end_time = timestamp::now();
   _status = status;
-  _process = static_cast<pid_t>(-1);
+  _process = -1;
   _close(_stream[in]);
   if (!_is_running()) {
     // Notify listener if necessary.

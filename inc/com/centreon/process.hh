@@ -43,14 +43,17 @@ class process {
 
   /* Constants */
   const std::array<bool, 3> _enable_stream;
+  process_listener* const _listener;
 
   /* Constants except during exec() call */
   uint32_t _timeout;
 
   /* Constants except when they are initialized at exec() and closed when
    * process is over. */
-  std::array<int, 3> _stream;
   std::atomic_bool _is_timeout;
+  std::atomic_int _status;
+  std::array<int, 3> _stream;
+  pid_t _process;
 
   /* Almost never changed, we have two such functions, one with pgid and the
    * other without. */
@@ -80,11 +83,8 @@ class process {
   mutable std::condition_variable _cv_buffer_out;
   mutable std::condition_variable _cv_process_running;
   timestamp _end_time;
-  process_listener* _listener;
   mutable std::mutex _lock_process;
-  pid_t _process;
   timestamp _start_time;
-  int _status;
 
   static void _close(int& fd) noexcept;
   static pid_t _create_process_with_setpgid(char** args, char** env);

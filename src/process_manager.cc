@@ -37,8 +37,7 @@ static int const DEFAULT_TIMEOUT = 200;
  *  Default constructor. It is private. No need to call, we just use the static
  *  internal function instance().
  */
-process_manager::process_manager()
-    : _update{true}, _running{false} {
+process_manager::process_manager() : _update{true}, _running{false} {
   std::unique_lock<std::mutex> lck(_running_m);
   _thread = std::thread(&process_manager::_run, this);
   pthread_setname_np(_thread.native_handle(), "clib_prc_mgr");
@@ -51,7 +50,7 @@ process_manager::process_manager()
 process_manager::~process_manager() noexcept {
   // Kill all running process.
   {
-    std::lock_guard<std::mutex> lock(_lock_processes);
+    shared_lock lock(_pid_m);
     for (auto it = _processes_pid.begin(), end = _processes_pid.end();
          it != end; ++it) {
       try {
@@ -62,18 +61,12 @@ process_manager::~process_manager() noexcept {
     }
   }
 
-  // Exit process manager thread.
-  //_close(_fds_exit[1]);
-
   // Waiting the end of the process manager thread.
   _running = false;
   _thread.join();
 
   {
     std::lock_guard<std::mutex> lock(_lock_processes);
-
-    // Release memory.
-    _fds.clear();
 
     // Waiting all process.
     int status(0);
@@ -101,18 +94,22 @@ void process_manager::add(process* p) {
   assert(p);
 
   // We lock _lock_processes before to avoid deadlocks
+  {
+    std::lock_guard<shared_mutex> lck(_fds_m);
+
+    // Monitor err/out output if necessary.
+    if (p->_enable_stream[process::out]) {
+      _processes_fd[p->_stream[process::out]] = p;
+      _fds.push_back(
+          {p->_stream[process::out], POLLIN | POLLPRI | POLL_HUP, 0});
+    }
+    if (p->_enable_stream[process::err]) {
+      _processes_fd[p->_stream[process::err]] = p;
+      _fds.push_back(
+          {p->_stream[process::err], POLLIN | POLLPRI | POLL_HUP, 0});
+    }
+  }
   std::lock_guard<std::mutex> lock(_lock_processes);
-
-  // Monitor err/out output if necessary.
-  if (p->_enable_stream[process::out]) {
-    _processes_fd[p->_stream[process::out]] = p;
-    _fds.push_back({p->_stream[process::out], POLLIN | POLLPRI | POLL_HUP, 0});
-  }
-  if (p->_enable_stream[process::err]) {
-    _processes_fd[p->_stream[process::err]] = p;
-    _fds.push_back({p->_stream[process::err], POLLIN | POLLPRI | POLL_HUP, 0});
-  }
-
   // Add timeout to kill process if necessary.
   if (p->_timeout)
     _processes_timeout.insert({p->_timeout, p});
@@ -121,7 +118,10 @@ void process_manager::add(process* p) {
   //_update = true;
 
   // Add pid process to use waitpid.
-  _processes_pid[p->_process] = p;
+  {
+    std::lock_guard<shared_mutex> lck(_pid_m);
+    _processes_pid[p->_process] = p;
+  }
 }
 
 /**
@@ -260,9 +260,13 @@ void process_manager::_run() {
       if (_update)
         _update_list();
 
-      if (!_running && _fds.size() == 0 && _processes_pid.size() == 0 &&
-          _orphans_pid.size() == 0)
-        break;
+      shared_lock lck(_fds_m);
+      {
+        shared_lock lck(_pid_m);
+        if (!_running && _fds.size() == 0 && _processes_pid.size() == 0 &&
+            _orphans_pid.size() == 0)
+          break;
+      }
 
       int ret = poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT);
       if (ret < 0) {
@@ -328,6 +332,7 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
 void process_manager::_update_list() {
   std::lock_guard<std::mutex> lock(_lock_processes);
 
+  std::lock_guard<shared_mutex> lck(_fds_m);
   // Set file descriptor to wait event.
   if (_processes_fd.size() != _fds.size())
     _fds.resize(_processes_fd.size());
@@ -349,31 +354,21 @@ void process_manager::_update_list() {
  */
 void process_manager::_wait_orphans_pid() noexcept {
   try {
-    std::unique_lock<std::mutex> lock(_lock_processes);
+    std::lock_guard<shared_mutex> lock(_pid_m);
     std::deque<orphan>::iterator it = _orphans_pid.begin();
     while (it != _orphans_pid.end()) {
-      process* p(nullptr);
       // Get process to link with pid and remove this pid
       // to the process manager.
-      {
-        auto it_p = _processes_pid.find(it->pid);
-        if (it_p == _processes_pid.end()) {
-          ++it;
-          continue;
-        }
-        p = it_p->second;
-        _processes_pid.erase(it_p);
-//        if (p->_enable_stream[process::out])
-//          _processes_fd.erase(p->_stream[process::out]);
-//        if (p->_enable_stream[process::err])
-//          _processes_fd.erase(p->_stream[process::err]);
-//        _update = true;
+      auto it_p = _processes_pid.find(it->pid);
+      if (it_p == _processes_pid.end()) {
+        ++it;
+        continue;
       }
+      process* p = it_p->second;
+      _processes_pid.erase(it_p);
 
       // Update process.
-      lock.unlock();
       _update_ending_process(p, it->status);
-      lock.lock();
 
       // Erase orphan pid.
       it = _orphans_pid.erase(it);
@@ -399,10 +394,10 @@ void process_manager::_wait_processes() noexcept {
       // Get process to link with pid and remove this pid
       // to the process manager.
       {
-        std::lock_guard<std::mutex> lock(_lock_processes);
+        std::lock_guard<shared_mutex> lock(_pid_m);
         auto it = _processes_pid.find(pid);
         if (it == _processes_pid.end()) {
-          _orphans_pid.push_back(orphan(pid, status));
+          _orphans_pid.emplace_back(pid, status);
           continue;
         }
         p = it->second;

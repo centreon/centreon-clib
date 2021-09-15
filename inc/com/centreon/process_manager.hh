@@ -1,5 +1,5 @@
 /*
-** Copyright 2012-2013,2019 Centreon
+** Copyright 2012-2013,2019-2021 Centreon
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <vector>
 #include "com/centreon/namespace.hh"
+#include "com/centreon/shared_mutex.hh"
 
 CC_BEGIN()
 
@@ -69,6 +70,8 @@ class process_manager {
    * A boolean set to true when file descriptors list needs to be updated.
    */
   std::atomic_bool _update;
+
+  shared_mutex _fds_m;
   std::vector<pollfd> _fds;
   /**
    * Here is a boolean telling if the main loop is running or not. This variable
@@ -82,6 +85,7 @@ class process_manager {
 
   mutable std::mutex _lock_processes;
   std::unordered_map<int32_t, process*> _processes_fd;
+  mutable shared_mutex _pid_m;
   std::deque<orphan> _orphans_pid;
   std::unordered_map<pid_t, process*> _processes_pid;
   std::multimap<uint32_t, process*> _processes_timeout;
