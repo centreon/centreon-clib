@@ -71,7 +71,6 @@ class process_manager {
    */
   std::atomic_bool _update;
 
-  shared_mutex _fds_m;
   std::vector<pollfd> _fds;
   std::unordered_map<int32_t, process*> _processes_fd;
   /**
@@ -80,11 +79,11 @@ class process_manager {
    * process_manager destructor when we want to stop it.
    */
   std::atomic_bool _running;
-  std::mutex _running_m;
+  std::atomic_bool _finished;
+  mutable std::mutex _running_m;
   std::condition_variable _running_cv;
   std::thread _thread;
 
-  mutable shared_mutex _pid_m;
   std::deque<orphan> _orphans_pid;
   std::unordered_map<pid_t, process*> _processes_pid;
   mutable std::mutex _lock_processes;
@@ -104,6 +103,7 @@ class process_manager {
   void _update_list();
   void _wait_orphans_pid() noexcept;
   void _wait_processes() noexcept;
+  void _stop_processes() noexcept;
 
  public:
   void add(process* p);

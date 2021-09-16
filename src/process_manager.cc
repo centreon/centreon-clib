@@ -37,7 +37,8 @@ static int const DEFAULT_TIMEOUT = 200;
  *  Default constructor. It is private. No need to call, we just use the static
  *  internal function instance().
  */
-process_manager::process_manager() : _update{true}, _running{false} {
+process_manager::process_manager()
+    : _update{true}, _running{false}, _finished{false} {
   std::unique_lock<std::mutex> lck(_running_m);
   _thread = std::thread(&process_manager::_run, this);
   pthread_setname_np(_thread.native_handle(), "clib_prc_mgr");
@@ -45,25 +46,28 @@ process_manager::process_manager() : _update{true}, _running{false} {
 }
 
 /**
+ * @brief Send a kill signal to all the children processes. This method is
+ * called from _run().
+ */
+void process_manager::_stop_processes() noexcept {
+  // Kill all running process.
+  for (auto it = _processes_pid.begin(), end = _processes_pid.end();
+       it != end; ++it) {
+    try {
+      it->second->kill();
+    } catch (const std::exception& e) {
+      (void)e;
+    }
+  }
+}
+
+/**
  *  Destructor.
  */
 process_manager::~process_manager() noexcept {
-  // Kill all running process.
-  {
-    shared_lock lock(_pid_m);
-    assert(_processes_pid.size() == 0);
-    for (auto it = _processes_pid.begin(), end = _processes_pid.end();
-         it != end; ++it) {
-      try {
-        it->second->kill();
-      } catch (const std::exception& e) {
-        (void)e;
-      }
-    }
-  }
-
   // Waiting the end of the process manager thread.
   _running = false;
+  _finished = true;
   _thread.join();
 
   // Waiting all process.
@@ -87,9 +91,11 @@ process_manager::~process_manager() noexcept {
  * @param p
  */
 void process_manager::add(process* p) {
-  std::lock_guard<std::mutex> lck(_add_m);
-  _processes.push_back(p);
-  _update = true;
+  if (_running) {
+    std::lock_guard<std::mutex> lck(_add_m);
+    _processes.push_back(p);
+    _update = true;
+  }
 }
 
 /**
@@ -108,7 +114,6 @@ void process_manager::_update_list() {
   }
 
   {
-    std::lock_guard<shared_mutex> lck(_fds_m);
     for (auto p : my_processes) {
       // Monitor err/out output if necessary.
       if (p->_enable_stream[process::out]) {
@@ -143,13 +148,9 @@ void process_manager::_update_list() {
     }
   }
 
-  {
-    std::lock_guard<shared_mutex> lck(_pid_m);
-    // Add pid process to use waitpid.
-    for (auto p : my_processes) {
-      _processes_pid[p->_process] = p;
-    }
-  }
+  // Add pid process to use waitpid.
+  for (auto p : my_processes)
+    _processes_pid[p->_process] = p;
 }
 
 /**
@@ -239,7 +240,6 @@ uint32_t process_manager::_read_stream(int fd) noexcept {
     process* p;
     // Get process to link with fd.
     {
-      shared_lock lock(_fds_m);
       auto it = _processes_fd.find(fd);
       if (it == _processes_fd.end()) {
         _update = true;
@@ -270,14 +270,12 @@ void process_manager::_run() {
       // Update the file descriptor list.
       if (_update)
         _update_list();
+      if (_finished)
+        _stop_processes();
 
-      shared_lock lck(_fds_m);
-      {
-        shared_lock lck(_pid_m);
-        if (!_running && _fds.size() == 0 && _processes_pid.size() == 0 &&
-            _orphans_pid.size() == 0)
-          break;
-      }
+      if (!_running && _fds.size() == 0 && _processes_pid.size() == 0 &&
+          _orphans_pid.size() == 0)
+        break;
 
       assert(_processes_fd.size() == _fds.size());
       int ret = poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT);
@@ -344,7 +342,6 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
  */
 void process_manager::_wait_orphans_pid() noexcept {
   try {
-    std::lock_guard<shared_mutex> lock(_pid_m);
     std::deque<orphan>::iterator it = _orphans_pid.begin();
     while (it != _orphans_pid.end()) {
       // Get process to link with pid and remove this pid
@@ -384,17 +381,14 @@ void process_manager::_wait_processes() noexcept {
       process* p = nullptr;
       // Get process to link with pid and remove this pid
       // to the process manager.
-      {
-        std::lock_guard<shared_mutex> lock(_pid_m);
-        auto it = _processes_pid.find(pid);
-        if (it == _processes_pid.end()) {
-          _orphans_pid.emplace_back(pid, status);
-          _update = true;
-          continue;
-        }
-        p = it->second;
-        _processes_pid.erase(it);
+      auto it = _processes_pid.find(pid);
+      if (it == _processes_pid.end()) {
+        _orphans_pid.emplace_back(pid, status);
+        _update = true;
+        continue;
       }
+      p = it->second;
+      _processes_pid.erase(it);
 
       // Update process.
       if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL)

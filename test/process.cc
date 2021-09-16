@@ -51,11 +51,34 @@ TEST(ClibProcess, ProcessEnv) {
  * @param ClibProcess
  * @param ProcessEnvRep
  */
-TEST(ClibProcess, ProcessEnvRep) {
+TEST(ClibProcess, ProcessEnvSerial) {
   constexpr int count = 10;
   int sum = 0;
   for (int i = 0; i < count; i++) {
     process p;
+    char* env[] = {(char*)"key1=value1", (char*)"key2=value2",
+                   (char*)"key3=value3", NULL};
+    p.exec(
+        "./test/bin_test_process_output check_env "
+        "key1=value1 key2=value2 key3=value3",
+        env);
+    p.wait();
+    sum += p.exit_code();
+  }
+  ASSERT_EQ(sum, 0);
+}
+
+/**
+ * @brief Same test as ProcessEnv but with processes executed serially.
+ *
+ * @param ClibProcess
+ * @param ProcessEnvRep
+ */
+TEST(ClibProcess, ProcessEnvRep) {
+  constexpr int count = 10;
+  int sum = 0;
+  process p;
+  for (int i = 0; i < count; i++) {
     char* env[] = {(char*)"key1=value1", (char*)"key2=value2",
                    (char*)"key3=value3", NULL};
     p.exec(
@@ -123,6 +146,27 @@ TEST(ClibProcess, ProcessKill) {
 TEST(ClibProcess, ProcessKillRep) {
   constexpr int count = 10;
   int sum = 0;
+  process p;
+  for (int i = 0; i < count; i++) {
+  p.exec("./test/bin_test_process_output check_sleep 1");
+  p.kill();
+  timestamp start(timestamp::now());
+  p.wait();
+  timestamp end(timestamp::now());
+  sum += (end - start).to_seconds();
+  }
+  ASSERT_EQ(sum, 0);
+}
+
+/**
+ * @brief Same test as ProcessEnv but with processes executed serially.
+ *
+ * @param ClibProcess
+ * @param ProcessEnvRep
+ */
+TEST(ClibProcess, ProcessKillSerial) {
+  constexpr int count = 10;
+  int sum = 0;
   for (int i = 0; i < count; i++) {
   process p;
   p.exec("./test/bin_test_process_output check_sleep 1");
@@ -188,6 +232,27 @@ TEST(ClibProcess, ProcessStdout) {
  * @param ProcessStdout
  */
 TEST(ClibProcess, ProcessStdoutRep) {
+  constexpr int count = 10;
+  int sum = 0;
+  process p(nullptr, false, true, false);
+  for (int i = 0; i < count; i++) {
+    p.exec("./test/bin_test_process_output check_stdout 0");
+    std::string output;
+    p.read(output);
+    p.wait();
+    sum += strcmp(output.c_str(), "check_stdout\n");
+  }
+  ASSERT_EQ(sum, 0);
+}
+
+/**
+ * @brief A test asking the process to write "check stdout" on stdout, then
+ * retrieves this string and validates it.
+ *
+ * @param ClibProcess
+ * @param ProcessStdout
+ */
+TEST(ClibProcess, ProcessStdoutSerial) {
   constexpr int count = 10;
   int sum = 0;
   for (int i = 0; i < count; i++) {
