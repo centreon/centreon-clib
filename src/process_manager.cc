@@ -80,6 +80,12 @@ process_manager::~process_manager() noexcept {
   }
 }
 
+/**
+ * @brief Add asynchronously a process to the process_manager. Only during
+ * the _update_list() call, the process will be really integrated.
+ *
+ * @param p
+ */
 void process_manager::add(process* p) {
   std::lock_guard<std::mutex> lck(_add_m);
   _processes.push_back(p);
@@ -87,7 +93,9 @@ void process_manager::add(process* p) {
 }
 
 /**
- *  Add a process to the process manager.
+ *  Update processes and file descriptors lists so we can then poll fd changes
+ *  and wait for processes status changes. This method is only called by
+ *  the _run() one.
  *
  *  @param[in] p    The process to manage.
  *  @param[in] obj  The object to notify.
@@ -155,37 +163,21 @@ process_manager& process_manager::instance() {
 }
 
 /**
- *  close syscall wrapper.
- *
- *  @param[in, out] fd The file descriptor to close.
- */
-void process_manager::_close(int& fd) noexcept {
-  if (fd >= 0) {
-    while (::close(fd) < 0 && errno == EINTR)
-      std::this_thread::yield();
-  }
-  fd = -1;
-}
-
-/**
- *  Close stream.
+ *  Close stream. This method is called by the _run() one.
  *
  *  @param[in] fd  The file descriptor to close.
  */
 void process_manager::_close_stream(int fd) noexcept {
   try {
-    process* p;
     // Get process to link with fd and remove this
     // fd to the process manager.
-    {
-      _update = true;
-      std::unordered_map<int, process*>::iterator it(_processes_fd.find(fd));
-      if (it == _processes_fd.end())
-        throw basic_error() << "invalid fd: not found in processes fd list";
+    _update = true;
+    std::unordered_map<int, process*>::iterator it(_processes_fd.find(fd));
+    if (it == _processes_fd.end())
+      throw basic_error() << "invalid fd: not found in processes fd list";
 
-      p = it->second;
-      _processes_fd.erase(it);
-    }
+    process* p = it->second;
+    _processes_fd.erase(it);
 
     // Update process informations.
     p->do_close(fd);
@@ -235,7 +227,7 @@ void process_manager::_kill_processes_timeout() noexcept {
 }
 
 /**
- *  Read stream.
+ *  Read stream. Called from _run().
  *
  *  @param[in] fd  The file descriptor to read.
  *
@@ -332,7 +324,8 @@ void process_manager::_run() {
 }
 
 /**
- *  Update process informations at the end of the process.
+ *  Update process informations at the end of the process. Called from the same
+ *  thread as _run().
  *
  *  @param[in] p       The process to update informations.
  *  @param[in] status  The status of the process to set.
@@ -347,7 +340,7 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
 }
 
 /**
- *  Waiting orphans pid.
+ *  Waiting orphans pid. Called from _run().
  */
 void process_manager::_wait_orphans_pid() noexcept {
   try {
@@ -376,7 +369,7 @@ void process_manager::_wait_orphans_pid() noexcept {
 }
 
 /**
- *  Waiting finished process.
+ *  Waiting finished process. Called from _run().
  */
 void process_manager::_wait_processes() noexcept {
   try {

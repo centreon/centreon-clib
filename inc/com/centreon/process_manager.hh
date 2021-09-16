@@ -73,6 +73,7 @@ class process_manager {
 
   shared_mutex _fds_m;
   std::vector<pollfd> _fds;
+  std::unordered_map<int32_t, process*> _processes_fd;
   /**
    * Here is a boolean telling if the main loop is running or not. This variable
    * is set to true when the main loop starts and is set to false by the
@@ -83,19 +84,17 @@ class process_manager {
   std::condition_variable _running_cv;
   std::thread _thread;
 
-  mutable std::mutex _lock_processes;
-  std::unordered_map<int32_t, process*> _processes_fd;
   mutable shared_mutex _pid_m;
   std::deque<orphan> _orphans_pid;
   std::unordered_map<pid_t, process*> _processes_pid;
+  mutable std::mutex _lock_processes;
   std::multimap<uint32_t, process*> _processes_timeout;
 
-  std::deque<process*> _processes;
   mutable std::mutex _add_m;
+  std::deque<process*> _processes;
 
   process_manager();
   ~process_manager() noexcept;
-  static void _close(int& fd) noexcept;
   void _close_stream(int fd) noexcept;
   void _erase_timeout(process* p);
   void _kill_processes_timeout() noexcept;
