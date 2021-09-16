@@ -396,6 +396,7 @@ void process_manager::_wait_processes() noexcept {
         auto it = _processes_pid.find(pid);
         if (it == _processes_pid.end()) {
           _orphans_pid.emplace_back(pid, status);
+          _update = true;
           continue;
         }
         p = it->second;
