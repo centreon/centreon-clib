@@ -51,6 +51,7 @@ process_manager::~process_manager() noexcept {
   // Kill all running process.
   {
     shared_lock lock(_pid_m);
+    assert(_processes_pid.size() == 0);
     for (auto it = _processes_pid.begin(), end = _processes_pid.end();
          it != end; ++it) {
       try {
@@ -65,21 +66,17 @@ process_manager::~process_manager() noexcept {
   _running = false;
   _thread.join();
 
-  {
-    std::lock_guard<std::mutex> lock(_lock_processes);
-
-    // Waiting all process.
-    int status(0);
-    auto time_limit =
-        std::chrono::system_clock::now() + std::chrono::seconds(10);
-    int ret = ::waitpid(-1, &status, WNOHANG);
-    while (ret >= 0 || (ret < 0 && errno == EINTR)) {
-      if (ret == 0)
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      ret = ::waitpid(-1, &status, WNOHANG);
-      if (std::chrono::system_clock::now() >= time_limit)
-        break;
-    }
+  // Waiting all process.
+  int status = 0;
+  auto time_limit =
+      std::chrono::system_clock::now() + std::chrono::seconds(10);
+  int ret = ::waitpid(-1, &status, WNOHANG);
+  while (ret >= 0 || (ret < 0 && errno == EINTR)) {
+    if (ret == 0)
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    ret = ::waitpid(-1, &status, WNOHANG);
+    if (std::chrono::system_clock::now() >= time_limit)
+      break;
   }
 }
 
@@ -158,7 +155,6 @@ void process_manager::_close_stream(int fd) noexcept {
     // Get process to link with fd and remove this
     // fd to the process manager.
     {
-      std::lock_guard<std::mutex> lock(_lock_processes);
       _update = true;
       std::unordered_map<int, process*>::iterator it(_processes_fd.find(fd));
       if (it == _processes_fd.end())
@@ -228,8 +224,8 @@ uint32_t process_manager::_read_stream(int fd) noexcept {
     process* p;
     // Get process to link with fd.
     {
-      std::lock_guard<std::mutex> lock(_lock_processes);
-      std::unordered_map<int, process*>::iterator it(_processes_fd.find(fd));
+      shared_lock lock(_fds_m);
+      auto it = _processes_fd.find(fd);
       if (it == _processes_fd.end()) {
         _update = true;
         throw basic_error() << "invalid fd: not found in processes fd list";
@@ -268,6 +264,7 @@ void process_manager::_run() {
           break;
       }
 
+      assert(_processes_fd.size() == _fds.size());
       int ret = poll(_fds.data(), _fds.size(), DEFAULT_TIMEOUT);
       if (ret < 0) {
         if (errno == EINTR)
@@ -330,8 +327,6 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
  *  Update list of file descriptors to watch.
  */
 void process_manager::_update_list() {
-  std::lock_guard<std::mutex> lock(_lock_processes);
-
   std::lock_guard<shared_mutex> lck(_fds_m);
   // Set file descriptor to wait event.
   if (_processes_fd.size() != _fds.size())
@@ -385,6 +380,7 @@ void process_manager::_wait_processes() noexcept {
   try {
     for (;;) {
       int status = 0;
+      assert(_processes_fd.size() <= _fds.size());
       pid_t pid(::waitpid(-1, &status, WNOHANG));
       // No process are finished.
       if (pid <= 0)
