@@ -90,6 +90,9 @@ class process_manager {
   std::unordered_map<pid_t, process*> _processes_pid;
   std::multimap<uint32_t, process*> _processes_timeout;
 
+  std::deque<process*> _processes;
+  mutable std::mutex _add_m;
+
   process_manager();
   ~process_manager() noexcept;
   static void _close(int& fd) noexcept;

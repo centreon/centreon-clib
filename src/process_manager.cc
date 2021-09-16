@@ -80,44 +80,67 @@ process_manager::~process_manager() noexcept {
   }
 }
 
+void process_manager::add(process* p) {
+  std::lock_guard<std::mutex> lck(_add_m);
+  _processes.push_back(p);
+  _update = true;
+}
+
 /**
  *  Add a process to the process manager.
  *
  *  @param[in] p    The process to manage.
  *  @param[in] obj  The object to notify.
  */
-void process_manager::add(process* p) {
-  // Check viability pointer.
-  assert(p);
+void process_manager::_update_list() {
+  std::deque<process*> my_processes;
+  {
+    std::lock_guard<std::mutex> lck(_add_m);
+    std::swap(_processes, my_processes);
+  }
 
-  // We lock _lock_processes before to avoid deadlocks
   {
     std::lock_guard<shared_mutex> lck(_fds_m);
-
-    // Monitor err/out output if necessary.
-    if (p->_enable_stream[process::out]) {
-      _processes_fd[p->_stream[process::out]] = p;
-      _fds.push_back(
-          {p->_stream[process::out], POLLIN | POLLPRI | POLL_HUP, 0});
+    for (auto p : my_processes) {
+      // Monitor err/out output if necessary.
+      if (p->_enable_stream[process::out]) {
+        _processes_fd[p->_stream[process::out]] = p;
+      }
+      if (p->_enable_stream[process::err]) {
+        _processes_fd[p->_stream[process::err]] = p;
+      }
     }
-    if (p->_enable_stream[process::err]) {
-      _processes_fd[p->_stream[process::err]] = p;
-      _fds.push_back(
-          {p->_stream[process::err], POLLIN | POLLPRI | POLL_HUP, 0});
+
+    if (_processes_fd.size() != _fds.size())
+      _fds.resize(_processes_fd.size());
+
+    auto itt = _fds.begin();
+    for (auto it = _processes_fd.begin(), end = _processes_fd.end(); it != end;
+         ++it) {
+      itt->fd = it->first;
+      itt->events = POLLIN | POLLPRI | POLL_HUP;
+      itt->revents = 0;
+      ++itt;
     }
   }
-  std::lock_guard<std::mutex> lock(_lock_processes);
-  // Add timeout to kill process if necessary.
-  if (p->_timeout)
-    _processes_timeout.insert({p->_timeout, p});
+  // Disable update.
+  _update = false;
 
-  // Need to update file descriptor list.
-  //_update = true;
+  {
+    std::lock_guard<std::mutex> lock(_lock_processes);
+    for (auto p : my_processes) {
+      // Add timeout to kill process if necessary.
+      if (p->_timeout)
+        _processes_timeout.insert({p->_timeout, p});
+    }
+  }
 
-  // Add pid process to use waitpid.
   {
     std::lock_guard<shared_mutex> lck(_pid_m);
-    _processes_pid[p->_process] = p;
+    // Add pid process to use waitpid.
+    for (auto p : my_processes) {
+      _processes_pid[p->_process] = p;
+    }
   }
 }
 
@@ -321,27 +344,6 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
 
   p->update_ending_process(status);
   _erase_timeout(p);
-}
-
-/**
- *  Update list of file descriptors to watch.
- */
-void process_manager::_update_list() {
-  std::lock_guard<shared_mutex> lck(_fds_m);
-  // Set file descriptor to wait event.
-  if (_processes_fd.size() != _fds.size())
-    _fds.resize(_processes_fd.size());
-
-  auto itt = _fds.begin();
-  for (auto it = _processes_fd.begin(), end = _processes_fd.end(); it != end;
-       ++it) {
-    itt->fd = it->first;
-    itt->events = POLLIN | POLLPRI | POLL_HUP;
-    itt->revents = 0;
-    ++itt;
-  }
-  // Disable update.
-  _update = false;
 }
 
 /**
