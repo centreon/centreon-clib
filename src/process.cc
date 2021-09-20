@@ -190,7 +190,7 @@ void process::exec(char const* cmd, char** env, uint32_t timeout) {
     _dup2(std[2], STDERR_FILENO);
     for (int32_t i = 0; i < 3; ++i) {
       _close(std[i]);
-      _close(pipe_stream[i][i == in ? 0 : 1]);
+      //_close(pipe_stream[i][i == in ? 0 : 1]);
       _stream[i] = pipe_stream[i][i == in ? 1 : 0];
     }
 
