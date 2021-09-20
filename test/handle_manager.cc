@@ -89,7 +89,6 @@ static bool empty_handle_manager() {
 }
 
 static bool basic_multiplex_close() {
-  ::close(STDIN_FILENO);
   task_manager tm;
   handle_manager hm(&tm);
   io::file_stream fs(stdin);

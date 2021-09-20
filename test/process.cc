@@ -97,29 +97,29 @@ TEST(ClibProcess, ProcessEnvRep) {
  * @param ClibProcess
  * @param ProcessEnvMT
  */
-//TEST(ClibProcess, ProcessEnvMT) {
-//  std::atomic_int sum{0};
-//  constexpr int count = 10;
-//  std::vector<std::thread> v;
-//  for (int i = 0; i < count; i++) {
-//    v.emplace_back([&sum] {
-//      process p;
-//      char* env[] = {(char*)"key1=value1", (char*)"key2=value2",
-//                     (char*)"key3=value3", NULL};
-//      p.exec(
-//          "./test/bin_test_process_output check_env "
-//          "key1=value1 key2=value2 key3=value3",
-//          env);
-//      p.wait();
-//      sum += p.exit_code();
-//    });
-//  }
-//
-//  for (auto& t : v)
-//    t.join();
-//
-//  ASSERT_EQ(sum, 0);
-//}
+TEST(ClibProcess, ProcessEnvMT) {
+  std::atomic_int sum{0};
+  constexpr int count = 10;
+  std::vector<std::thread> v;
+  for (int i = 0; i < count; i++) {
+    v.emplace_back([&sum] {
+      process p;
+      char* env[] = {(char*)"key1=value1", (char*)"key2=value2",
+                     (char*)"key3=value3", NULL};
+      p.exec(
+          "./test/bin_test_process_output check_env "
+          "key1=value1 key2=value2 key3=value3",
+          env);
+      p.wait();
+      sum += p.exit_code();
+    });
+  }
+
+  for (auto& t : v)
+    t.join();
+
+  ASSERT_EQ(sum, 0);
+}
 
 /**
  * @brief A test where we check the possibility to kill a process.
@@ -185,27 +185,27 @@ TEST(ClibProcess, ProcessKillSerial) {
  * @param ClibProcess
  * @param ProcessEnvMT
  */
-//TEST(ClibProcess, ProcessKillMT) {
-//  std::atomic_int sum{0};
-//  constexpr int count = 10;
-//  std::vector<std::thread> v;
-//  for (int i = 0; i < count; i++) {
-//    v.emplace_back([&sum] {
-//      process p;
-//      p.exec("./test/bin_test_process_output check_sleep 1");
-//      p.kill();
-//      timestamp start(timestamp::now());
-//      p.wait();
-//      timestamp end(timestamp::now());
-//      sum += (end - start).to_seconds();
-//    });
-//  }
-//
-//  for (auto& t : v)
-//    t.join();
-//
-//  ASSERT_EQ(sum, 0);
-//}
+TEST(ClibProcess, ProcessKillMT) {
+  std::atomic_int sum{0};
+  constexpr int count = 10;
+  std::vector<std::thread> v;
+  for (int i = 0; i < count; i++) {
+    v.emplace_back([&sum] {
+      process p;
+      p.exec("./test/bin_test_process_output check_sleep 1");
+      p.kill();
+      timestamp start(timestamp::now());
+      p.wait();
+      timestamp end(timestamp::now());
+      sum += (end - start).to_seconds();
+    });
+  }
+
+  for (auto& t : v)
+    t.join();
+
+  ASSERT_EQ(sum, 0);
+}
 
 /**
  * @brief A test asking the process to write "check stdout" on stdout, then
