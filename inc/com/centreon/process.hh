@@ -25,6 +25,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <csignal>
 #include "com/centreon/timestamp.hh"
 
 CC_BEGIN()
@@ -98,6 +99,7 @@ class process {
   ssize_t do_read(int fd);
   void do_close(int fd);
   static void _set_cloexec(int fd);
+  void _update_ending_process(int status);
 
  public:
   process(process_listener* l = nullptr,
@@ -113,7 +115,7 @@ class process {
   void exec(std::string const& cmd, uint32_t timeout = 0);
   int exit_code() const noexcept;
   status exit_status() const noexcept;
-  void kill();
+  void kill(int sig = SIGKILL);
   void read(std::string& data);
   void read_err(std::string& data);
   void setpgid_on_exec(bool enable) noexcept;
@@ -122,7 +124,6 @@ class process {
   void terminate();
   void wait() const;
   bool wait(uint32_t timeout) const;
-  void update_ending_process(int status);
   uint32_t write(std::string const& data);
   uint32_t write(void const* data, uint32_t size);
   void set_timeout(bool timeout);

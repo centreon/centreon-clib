@@ -52,9 +52,11 @@ process_manager::process_manager()
 void process_manager::_stop_processes() noexcept {
   // Kill all running process.
   for (auto it = _processes_pid.begin(), end = _processes_pid.end();
-       it != end; ++it) {
+       it != end; ) {
+    auto p = it->second;
+    it = _processes_pid.erase(it);
     try {
-      it->second->kill();
+      p->kill();
     } catch (const std::exception& e) {
       (void)e;
     }
@@ -140,7 +142,7 @@ void process_manager::_update_list() {
   _update = false;
 
   {
-    std::lock_guard<std::mutex> lock(_lock_processes);
+    std::lock_guard<std::mutex> lock(_timeout_m);
     for (auto p : my_processes) {
       // Add timeout to kill process if necessary.
       if (p->_timeout)
@@ -196,7 +198,7 @@ void process_manager::_erase_timeout(process* p) {
   // Check process viability.
   if (!p || !p->_timeout)
     return;
-  std::lock_guard<std::mutex> lock(_lock_processes);
+  std::lock_guard<std::mutex> lock(_timeout_m);
   auto range = _processes_timeout.equal_range(p->_timeout);
   for (auto it = range.first; it != range.second; ++it) {
     if (it->second == p) {
@@ -210,7 +212,7 @@ void process_manager::_erase_timeout(process* p) {
  *  Kill process to reach the timeout.
  */
 void process_manager::_kill_processes_timeout() noexcept {
-  std::lock_guard<std::mutex> lock(_lock_processes);
+  std::lock_guard<std::mutex> lock(_timeout_m);
   // Get the current time.
   std::time_t now(time(nullptr));
 
@@ -333,7 +335,7 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
   if (!p)
     return;
 
-  p->update_ending_process(status);
+  p->_update_ending_process(status);
   _erase_timeout(p);
 }
 

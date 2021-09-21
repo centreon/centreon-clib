@@ -258,14 +258,17 @@ process::status process::exit_status() const noexcept {
 /**
  *  Kill process.
  */
-void process::kill() {
+void process::kill(int sig) {
   std::lock_guard<std::mutex> lock(_lock_process);
-  _kill(SIGKILL);
+  _kill(sig);
 }
 
-void process::update_ending_process(int status) {
+void process::_update_ending_process(int status) {
   // Update process informations.
   std::unique_lock<std::mutex> lock(_lock_process);
+  if (!_is_running())
+    return;
+
   _end_time = timestamp::now();
   _status = status;
   _process = -1;

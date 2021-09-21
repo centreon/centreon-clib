@@ -86,7 +86,7 @@ class process_manager {
 
   std::deque<orphan> _orphans_pid;
   std::unordered_map<pid_t, process*> _processes_pid;
-  mutable std::mutex _lock_processes;
+  mutable std::mutex _timeout_m;
   std::multimap<uint32_t, process*> _processes_timeout;
 
   mutable std::mutex _add_m;

@@ -267,166 +267,69 @@ TEST(ClibProcess, ProcessStdoutSerial) {
 }
 
 TEST(ClibProcess, ProcessOutput) {
-  const char* argv[2] = {"err", "out"};
+  constexpr int size = 10 * 1024;
 
-  std::string cmd("./test/bin_test_process_output check_output ");
-  cmd += argv[1];
+  std::string cmd("./test/bin_test_process_output check_output out");
 
   process p;
   p.exec(cmd);
-  char buffer_write[16 * 1024];
+  char buffer_write[size];
   std::string buffer_read;
-  for (unsigned int i(0); i < sizeof(buffer_write); ++i)
-    buffer_write[i] = static_cast<char>(i);
-  unsigned int total_read(0);
-  unsigned int total_write(0);
+  for (size_t i = 0; i < sizeof(buffer_write); ++i)
+    buffer_write[i] = 'A' + i / 4096;
+  buffer_write[size - 1] = 0;
+  size_t total_read = 0;
+  size_t total_write = 0;
   do {
+    std::string tmp;
     if (total_write < sizeof(buffer_write))
-      total_write += p.write(buffer_write, sizeof(buffer_write) - total_write);
-    if (!strcmp(argv[1], "out"))
-      p.read(buffer_read);
-    else
-      p.read_err(buffer_read);
-    total_read += buffer_read.size();
+      total_write += p.write(buffer_write + total_write, sizeof(buffer_write) - total_write);
+    p.read(tmp);
+    total_read += tmp.size();
+    buffer_read.append(tmp);
   } while (total_read < sizeof(buffer_write));
-  p.update_ending_process(0);
+  p.kill(SIGTERM);
+  //p.update_ending_process(0);
   p.wait();
   ASSERT_EQ(p.exit_code(), EXIT_SUCCESS);
   ASSERT_EQ(total_write, sizeof(buffer_write));
   ASSERT_EQ(total_write, total_read);
+  std::cout << buffer_write << std::endl;
+  std::cout << buffer_read << std::endl;
+  ASSERT_TRUE(memcmp(buffer_write, buffer_read.data(), total_read) == 0);
 }
 
-//TEST(ClibProcess, ProcessOutputThWrite) {
-//  const char* argv[2]{"err", "out"};
-//
-//  std::string cmd("./test/bin_test_process_output check_output ");
-//  cmd += argv[1];
-//
-//  static constexpr size_t size = 10 * 1024;
-//  static constexpr size_t count = 30;
-//
-//  process p;
-//  std::promise<bool> prm;
-//  std::future<bool> running = prm.get_future();
-//  std::thread th_exec([&p, &cmd, &prm] {
-//    p.exec(cmd);
-//    prm.set_value(true);
-//  });
-//
-//  running.get();
-//
-//  std::thread th_write([&p] {
-//    char buffer_write[size + 1];
-//    buffer_write[size] = 0;
-//    for (unsigned int i = 0; i < size; ++i)
-//      buffer_write[i] = static_cast<char>('A' + i % 26);
-//
-//    for (int i = 0; i < count; i++) {
-//      unsigned int total_write = 0;
-//      do {
-//        if (total_write < size)
-//          total_write +=
-//              p.write(buffer_write + total_write, size - total_write);
-//      } while (total_write < size);
-//    }
-//    std::cout << "W ";
-//    for (int i = 0; i < count; i++)
-//      std::cout << buffer_write;
-//    std::cout << std::endl;
-//  });
-//
-//  std::string buffer_read;
-//  do {
-//    std::string data;
-//    if (!strcmp(argv[1], "out"))
-//      p.read(data);
-//    else
-//      p.read_err(data);
-//    buffer_read += data;
-//  } while (buffer_read.size() < size * count);
-//
-//  th_exec.join();
-//  th_write.join();
-//  p.update_ending_process(0);
-//  p.wait();
-//
-//  std::cout << "R " << buffer_read << std::endl;
-//  ASSERT_EQ(buffer_read.size(), size * count);
-//  for (int i = 0, j = 0; i < size * count; i++) {
-//    ASSERT_EQ(static_cast<char>('A' + j % 26), buffer_read[i]);
-//    if (++j == size)
-//      j = 0;
-//  }
-//
-//  ASSERT_EQ(p.exit_code(), EXIT_SUCCESS);
-//}
-//
-//TEST(ClibProcess, ProcessOutputThRead) {
-//  const char* argv[2]{"err", "out"};
-//
-//  std::string cmd("./test/bin_test_process_output check_output ");
-//  cmd += argv[1];
-//
-//  /* out or err? */
-//  bool out = !strcmp(argv[1], "out");
-//
-//  static constexpr size_t size = 10 * 1024;
-//  static constexpr size_t count = 30;
-//
-//  process p;
-//  std::promise<bool> prm;
-//  std::future<bool> running = prm.get_future();
-//  std::thread th_exec([&p, &cmd, &prm] {
-//    p.exec(cmd);
-//    prm.set_value(true);
-//  });
-//
-//  running.get();
-//
-//  char buffer_write[size + 1];
-//  buffer_write[size] = 0;
-//  for (unsigned int i = 0; i < size; ++i)
-//    buffer_write[i] = static_cast<char>('A' + i % 26);
-//
-//  for (int i = 0; i < count; i++) {
-//    unsigned int total_write = 0;
-//    do {
-//      if (total_write < size)
-//        total_write += p.write(buffer_write + total_write, size - total_write);
-//    } while (total_write < size);
-//  }
-//
-//  std::cout << "W ";
-//  for (int i = 0; i < count; i++)
-//    std::cout << buffer_write;
-//  std::cout << std::endl;
-//
-//  std::thread th_read([&p, &out] {
-//    std::string buffer_read;
-//    do {
-//      std::string data;
-//      if (out)
-//        p.read(data);
-//      else
-//        p.read_err(data);
-//      buffer_read += data;
-//    } while (buffer_read.size() < size * count);
-//
-//    std::cout << "R " << buffer_read << std::endl;
-//    for (int i = 0, j = 0; i < size * count; i++) {
-//      ASSERT_EQ(static_cast<char>('A' + j % 26), buffer_read[i]);
-//      if (++j == size)
-//        j = 0;
-//    }
-//  });
-//
-//  th_exec.join();
-//  th_read.join();
-//  p.update_ending_process(0);
-//  p.wait();
-//
-//  ASSERT_EQ(p.exit_code(), EXIT_SUCCESS);
-//}
+TEST(ClibProcess, ProcessErr) {
+  constexpr int size = 10 * 1024;
+
+  std::string cmd("./test/bin_test_process_output check_output err");
+
+  process p;
+  p.exec(cmd);
+  char buffer_write[size];
+  std::string buffer_read;
+  for (size_t i = 0; i < sizeof(buffer_write); ++i)
+    buffer_write[i] = 'A' + i / 4096;
+  buffer_write[size - 1] = 0;
+  size_t total_read = 0;
+  size_t total_write = 0;
+  do {
+    std::string tmp;
+    if (total_write < sizeof(buffer_write))
+      total_write += p.write(buffer_write + total_write, sizeof(buffer_write) - total_write);
+    p.read_err(tmp);
+    total_read += tmp.size();
+    buffer_read.append(tmp);
+  } while (total_read < sizeof(buffer_write));
+  p.kill(SIGTERM);
+  p.wait();
+  ASSERT_EQ(p.exit_code(), EXIT_SUCCESS);
+  ASSERT_EQ(total_write, sizeof(buffer_write));
+  ASSERT_EQ(total_write, total_read);
+  std::cout << buffer_write << std::endl;
+  std::cout << buffer_read << std::endl;
+  ASSERT_TRUE(memcmp(buffer_write, buffer_read.data(), total_read) == 0);
+}
 
 TEST(ClibProcess, ProcessReturn) {
   process p;
