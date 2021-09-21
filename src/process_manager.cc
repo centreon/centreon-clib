@@ -349,7 +349,7 @@ void process_manager::_update_ending_process(process* p, int status) noexcept {
   if (!p)
     return;
 
-  p->_update_ending_process(status);
+  p->update_ending_process(status);
   _erase_timeout(p);
 }
 

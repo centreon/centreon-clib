@@ -99,7 +99,6 @@ class process {
   ssize_t do_read(int fd);
   void do_close(int fd);
   static void _set_cloexec(int fd);
-  void _update_ending_process(int status);
 
  public:
   process(process_listener* l = nullptr,
@@ -126,6 +125,7 @@ class process {
   bool wait(uint32_t timeout) const;
   uint32_t write(std::string const& data);
   uint32_t write(void const* data, uint32_t size);
+  void update_ending_process(int status);
   void set_timeout(bool timeout);
 };
 

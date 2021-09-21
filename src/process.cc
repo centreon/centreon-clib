@@ -263,7 +263,7 @@ void process::kill(int sig) {
   _kill(sig);
 }
 
-void process::_update_ending_process(int status) {
+void process::update_ending_process(int status) {
   // Update process informations.
   std::unique_lock<std::mutex> lock(_lock_process);
   if (!_is_running())
