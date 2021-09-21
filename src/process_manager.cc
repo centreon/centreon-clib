@@ -52,7 +52,7 @@ process_manager::process_manager()
 void process_manager::_stop_processes() noexcept {
   // Kill all running process.
   for (auto it = _processes_pid.begin(), end = _processes_pid.end();
-       it != end; ) {
+       it != end;) {
     auto p = it->second;
     it = _processes_pid.erase(it);
     try {
@@ -74,8 +74,7 @@ process_manager::~process_manager() noexcept {
 
   // Waiting all process.
   int status = 0;
-  auto time_limit =
-      std::chrono::system_clock::now() + std::chrono::seconds(10);
+  auto time_limit = std::chrono::system_clock::now() + std::chrono::seconds(10);
   int ret = ::waitpid(-1, &status, WNOHANG);
   while (ret >= 0 || (ret < 0 && errno == EINTR)) {
     if (ret == 0)
@@ -106,8 +105,7 @@ void process_manager::add(process* p) {
  */
 void process_manager::wait_for_update() const noexcept {
   std::unique_lock<std::mutex> lck(_running_m);
-  _running_cv.wait(lck, [this] {
-      return !_update; });
+  _running_cv.wait(lck, [this] { return !_update; });
 }
 
 /**

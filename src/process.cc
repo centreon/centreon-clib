@@ -85,8 +85,8 @@ timestamp const& process::end_time() const noexcept {
  *  @return True is process run, otherwise false.
  */
 bool process::_is_running() const noexcept {
-  return _process != -1 || _stream[in] != -1 ||
-         _stream[out] != -1 || _stream[err] != -1;
+  return _process != -1 || _stream[in] != -1 || _stream[out] != -1 ||
+         _stream[err] != -1;
 }
 
 /**
@@ -294,9 +294,8 @@ void process::_update_ending_process(int status) {
 void process::read(std::string& data) {
   std::unique_lock<std::mutex> lock(_lock_process);
   // If buffer is empty and stream is open, we waiting data.
-  _cv_buffer_out.wait(lock, [this] {
-    return !_buffer_out.empty() || _stream[out] == -1;
-  });
+  _cv_buffer_out.wait(
+      lock, [this] { return !_buffer_out.empty() || _stream[out] == -1; });
   // Switch content.
   data.clear();
   data.swap(_buffer_out);
