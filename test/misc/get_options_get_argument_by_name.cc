@@ -49,8 +49,7 @@ static bool invalid_name() {
     std::vector<std::string> args;
     my_options opt(args);
     opt.get_argument('*');
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
     return (true);
   }
@@ -70,8 +69,7 @@ static bool valid_name() {
     argument const& a2(opt.get_argument('h'));
     (void)a1;
     (void)a2;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
     return (false);
   }
@@ -91,8 +89,7 @@ int main() {
     if (!valid_name())
       throw(basic_error() << "get argument with valid "
                              "name failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

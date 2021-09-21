@@ -16,10 +16,10 @@
 ** For more information : contact@centreon.com
 */
 
-#include <vector>
-#include <thread>
 #include <cstdlib>
 #include <iostream>
+#include <thread>
+#include <vector>
 #include "com/centreon/clib.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/process.hh"
@@ -39,13 +39,13 @@ int main() {
   int ret = EXIT_SUCCESS;
   for (int i = 0; i < count; i++) {
     v.emplace_back([&sum] {
-    process p;
-    p.exec("./bin_test_process_output check_sleep 1");
-    p.kill();
-    timestamp start(timestamp::now());
-    p.wait();
-    timestamp end(timestamp::now());
-    sum += (end - start).to_seconds();
+      process p;
+      p.exec("./bin_test_process_output check_sleep 1");
+      p.kill();
+      timestamp start(timestamp::now());
+      p.wait();
+      timestamp end(timestamp::now());
+      sum += (end - start).to_seconds();
     });
   }
 

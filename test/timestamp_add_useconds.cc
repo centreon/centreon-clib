@@ -38,8 +38,7 @@ int main() {
     t2.add_useconds(-1000000);
     if (t2.to_useconds() != 42)
       throw(basic_error() << "add_usecond failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

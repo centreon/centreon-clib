@@ -39,8 +39,7 @@ int main() {
   // NULL write.
   try {
     tmp_file_stream.write(NULL, 1);
-  }
-  catch (exceptions::basic const& e) {
+  } catch (exceptions::basic const& e) {
     (void)e;
   }
 

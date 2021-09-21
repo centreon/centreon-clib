@@ -16,14 +16,14 @@
 ** For more information : contact@centreon.com
 */
 
+#include <ctype.h>
+#include <string.h>
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include <ctype.h>
-#include <string.h>
+#include "./backend_test.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/engine.hh"
-#include "./backend_test.hh"
 
 using namespace com::centreon::logging;
 
@@ -60,8 +60,7 @@ int main() {
     backend_test c2 = ref;
     if (!is_same(ref, c2))
       throw(basic_error() << "invalid copy operator");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     retval = 1;
   }

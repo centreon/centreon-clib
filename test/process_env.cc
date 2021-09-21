@@ -42,8 +42,7 @@ int main() {
     p.wait();
     if (p.exit_code() != EXIT_SUCCESS)
       throw(basic_error() << "check environment failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     ret = EXIT_FAILURE;
     std::cerr << "error: " << e.what() << std::endl;
   }
