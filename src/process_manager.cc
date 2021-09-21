@@ -92,7 +92,7 @@ process_manager::~process_manager() noexcept {
 void process_manager::add(process* p) {
   if (_running) {
     std::lock_guard<std::mutex> lck(_add_m);
-    _processes.push_back(p);
+    _processes.emplace_back(p->_process, p);
     _update = true;
   }
 }
@@ -115,7 +115,7 @@ void process_manager::wait_for_update() const noexcept {
  *  @param[in] obj  The object to notify.
  */
 void process_manager::_update_list() {
-  std::deque<process*> my_processes;
+  std::deque<std::pair<pid_t, process*>> my_processes;
   {
     std::lock_guard<std::mutex> lck(_add_m);
     std::swap(_processes, my_processes);
@@ -124,13 +124,13 @@ void process_manager::_update_list() {
   }
 
   {
-    for (auto p : my_processes) {
+    for (auto& p : my_processes) {
       // Monitor err/out output if necessary.
-      if (p->_enable_stream[process::out]) {
-        _processes_fd[p->_stream[process::out]] = p;
+      if (p.second->_enable_stream[process::out]) {
+        _processes_fd[p.second->_stream[process::out]] = p.second;
       }
-      if (p->_enable_stream[process::err]) {
-        _processes_fd[p->_stream[process::err]] = p;
+      if (p.second->_enable_stream[process::err]) {
+        _processes_fd[p.second->_stream[process::err]] = p.second;
       }
     }
 
@@ -149,16 +149,16 @@ void process_manager::_update_list() {
 
   {
     std::lock_guard<std::mutex> lock(_timeout_m);
-    for (auto p : my_processes) {
+    for (auto& p : my_processes) {
       // Add timeout to kill process if necessary.
-      if (p->_timeout)
-        _processes_timeout.insert({p->_timeout, p});
+      if (p.second->_timeout)
+        _processes_timeout.insert({p.second->_timeout, p.second});
     }
   }
 
   // Add pid process to use waitpid.
-  for (auto p : my_processes)
-    _processes_pid[p->_process] = p;
+  for (auto& p : my_processes)
+    _processes_pid[p.first] = p.second;
 
   {
     // Notification for process::wait()
