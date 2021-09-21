@@ -59,7 +59,10 @@ class process_listener;
  *  access data in the manager.
  *
  *  The add() method locks a mutex _add_m and fills a queue _processes then
- *  set the _update flag to true.
+ *  set the _update flag to true. Since a process can be closed very quickly
+ *  the _processes queue contains a pair with the pid and the process, because
+ *  when a process finishes, its _process attribute (the pid) is set to -1, so
+ *  we could loose its original value.
  *
  *  When _update_list() is called, _add_m is locked, the queue is exchanged with
  *  an internal one and _update is set to false. Then _update_list() can work
@@ -116,7 +119,7 @@ class process_manager {
   std::multimap<uint32_t, process*> _processes_timeout;
 
   mutable std::mutex _add_m;
-  std::deque<process*> _processes;
+  std::deque<std::pair<pid_t, process*>> _processes;
 
   process_manager();
   ~process_manager() noexcept;
