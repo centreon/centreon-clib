@@ -74,9 +74,13 @@ class process_listener;
  *    processes.
  *  * _processes_timeout which gives the time limit of a process, after this
  *    time, the process is killed.
- *  * We also have _orphans_pid that is almost always empty. In the past it
- *    could contain data, this was due to bugs that have been fixed now. It is
- *    still possible to see this queue not empty, but it is still a mystery.
+ *  * We also have _orphans_pid that is almost empty. But it is not always the
+ *    case. Processes can be launched before they are referenced into _fds and
+ *    the several tables. In that case, particularly when they finish quickly
+ *    they may be catch by the waitpid function. And since we don't have them
+ *    in _processes_pid and others, we store them in _orphans_pid. Then later,
+ *    they should appear in others tables and the manager will be able to clear
+ *    them correctly.
  *
  *  The class attributes:
  *  * _running is a boolean telling if the main loop is running.
