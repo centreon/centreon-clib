@@ -52,11 +52,9 @@ process_manager::process_manager()
 void process_manager::_stop_processes() noexcept {
   // Kill all running process.
   for (auto it = _processes_pid.begin(), end = _processes_pid.end();
-       it != end;) {
-    auto p = it->second;
-    it = _processes_pid.erase(it);
+       it != end; ++it) {
     try {
-      p->kill();
+      it->second->kill();
     } catch (const std::exception& e) {
       (void)e;
     }
