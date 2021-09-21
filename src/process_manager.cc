@@ -100,6 +100,10 @@ void process_manager::add(process* p) {
   }
 }
 
+/**
+ * @brief Called by process::wait(). It waits for processes to be totally
+ * removed from the process_manager.
+ */
 void process_manager::wait_for_update() const noexcept {
   std::unique_lock<std::mutex> lck(_running_m);
   _running_cv.wait(lck, [this] {

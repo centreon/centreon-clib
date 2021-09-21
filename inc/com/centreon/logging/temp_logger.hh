@@ -21,7 +21,6 @@
 
 #include <string>
 #include "com/centreon/logging/engine.hh"
-#include "com/centreon/namespace.hh"
 #include "com/centreon/misc/stringifier.hh"
 
 CC_BEGIN()
