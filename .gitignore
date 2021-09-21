@@ -1,2 +1,5 @@
+.*.swp
 build/*
+deps.png
 inc/com/centreon/clib/version.hh
+script/centreon-clib.pc
