@@ -154,8 +154,7 @@ void file_stream::open(char const* path, char const* mode) {
       continue;
     return;
   }
-  int ret(0);
-  while ((ret = fcntl(fd, F_SETFD, flags | FD_CLOEXEC)) < 0) {
+  while (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) < 0) {
     if (errno == EINTR)
       continue;
     return;

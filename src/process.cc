@@ -54,11 +54,11 @@ process::process(process_listener* listener,
     : _enable_stream{in_stream, out_stream, err_stream},
       _listener{listener},
       _timeout{0},
-      _create_process{&_create_process_with_setpgid},
-      _stream{-1, -1, -1},
       _is_timeout{false},
       _status{0},
-      _process{-1} {}
+      _stream{-1, -1, -1},
+      _process{-1},
+      _create_process{&_create_process_with_setpgid} {}
 
 /**
  *  Destructor.
@@ -610,8 +610,7 @@ int process::_dup(int oldfd) {
  *  @param[in] newfd New FD.
  */
 void process::_dup2(int oldfd, int newfd) {
-  int ret(0);
-  while ((ret = dup2(oldfd, newfd)) < 0) {
+  while (dup2(oldfd, newfd) < 0) {
     if (errno == EINTR)
       continue;
     char const* msg(strerror(errno));
@@ -699,12 +698,11 @@ void process::_set_cloexec(int fd) {
     char const* msg(strerror(errno));
     throw basic_error() << "Could not get file descriptor flags: " << msg;
   }
-  int ret(0);
-  while ((ret = fcntl(fd, F_SETFD, flags | FD_CLOEXEC)) < 0) {
+  while (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) < 0) {
     if (errno == EINTR)
       continue;
-    char const* msg(strerror(errno));
-    throw basic_error() << "Could not set close-on-exec flag: " << msg;
+    throw basic_error() << "Could not set close-on-exec flag: "
+                        << strerror(errno);
   }
 }
 
