@@ -33,15 +33,13 @@ int main() {
   int ret(EXIT_SUCCESS);
   try {
     process p(nullptr, false, true, false);
-    p.exec(
-        "./bin_test_process_output check_stdout 0");
+    p.exec("./bin_test_process_output check_stdout 0");
     std::string output;
     p.read(output);
     p.wait();
     if (output != std::string("check_stdout\n"))
       throw basic_error() << "check environment failed";
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     ret = EXIT_FAILURE;
     std::cerr << "error: " << e.what() << std::endl;
   }

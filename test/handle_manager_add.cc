@@ -16,8 +16,8 @@
 ** For more information : contact@centreon.com
 */
 
-#include <iostream>
 #include <stdio.h>
+#include <iostream>
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/handle_listener.hh"
 #include "com/centreon/handle_manager.hh"
@@ -30,11 +30,11 @@ using namespace com::centreon;
  *  @brief litle implementation of handle listener to test the
  *         handle manager.
  */
-class     listener : public handle_listener {
-public:
-          listener() {}
-          ~listener() throw () {}
-  void    error(handle& h) { (void)h; }
+class listener : public handle_listener {
+ public:
+  listener() {}
+  ~listener() throw() {}
+  void error(handle& h) { (void)h; }
 };
 
 /**
@@ -47,8 +47,7 @@ static bool null_handle() {
     handle_manager hm;
     listener l;
     hm.add(NULL, &l);
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
     return (true);
   }
@@ -65,8 +64,7 @@ static bool null_listener() {
     handle_manager hm;
     io::file_stream fs;
     hm.add(&fs, NULL);
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
     return (true);
   }
@@ -85,13 +83,11 @@ static bool basic_add() {
     io::file_stream fs(stdin);
     listener l;
     hm.add(&fs, &l);
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
     return (false);
   }
   return (true);
-
 }
 
 /**
@@ -108,13 +104,11 @@ static bool double_add() {
     hm.add(&fs, &l);
     try {
       hm.add(&fs, &l);
-    }
-    catch (std::exception const& e) {
+    } catch (std::exception const& e) {
       (void)e;
       return (true);
     }
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
   }
   return (false);
@@ -128,15 +122,14 @@ static bool double_add() {
 int main() {
   try {
     if (!null_handle())
-      throw (basic_error() << "invalid handler is set");
+      throw(basic_error() << "invalid handler is set");
     if (!null_listener())
-      throw (basic_error() << "invalid listener is set");
+      throw(basic_error() << "invalid listener is set");
     if (!basic_add())
-      throw (basic_error() << "add failed");
+      throw(basic_error() << "add failed");
     if (!double_add())
-      throw (basic_error() << "double add failed");
-  }
-  catch (std::exception const& e) {
+      throw(basic_error() << "double add failed");
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

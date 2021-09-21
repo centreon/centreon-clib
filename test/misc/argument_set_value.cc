@@ -35,8 +35,7 @@ int main() {
     arg.set_value(value);
     if (arg.get_value() != value)
       throw(basic_error() << "invalid value");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

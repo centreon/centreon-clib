@@ -56,8 +56,8 @@ int main(int argc, char** argv) {
     do {
       std::string tmp;
       if (total_write < sizeof(buffer_write))
-        total_write +=
-            p.write(buffer_write + total_write, sizeof(buffer_write) - total_write);
+        total_write += p.write(buffer_write + total_write,
+                               sizeof(buffer_write) - total_write);
       if (!strcmp(argv[1], "out"))
         p.read(tmp);
       else
@@ -75,8 +75,7 @@ int main(int argc, char** argv) {
       throw basic_error() << "invalid data read";
     if (memcmp(buffer_write, buffer_read.data(), total_read) != 0)
       throw basic_error() << "bad copy";
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     ret = EXIT_FAILURE;
     std::cerr << "error: " << e.what() << std::endl;
   }

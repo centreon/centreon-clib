@@ -54,8 +54,7 @@ int main() {
     std::ostringstream tmpref;
     for (unsigned int i(0); i < nb_line; ++i) {
       tmp << i << "\n";
-      tmpref << "[" << std::this_thread::get_id() << "] " << i
-             << "\n";
+      tmpref << "[" << std::this_thread::get_id() << "] " << i << "\n";
     }
     std::string msg(tmp.str());
     std::string ref(tmpref.str());
@@ -68,8 +67,7 @@ int main() {
       throw(basic_error() << "log message failed");
 
     retval = 0;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     retval = 1;
   }
