@@ -49,8 +49,7 @@ int main() {
     try {
       tmp_file_stream.read(NULL, 1);
       retval = 1;
-    }
-    catch (exceptions::basic const& e) {
+    } catch (exceptions::basic const& e) {
       (void)e;
     }
     // Real read.

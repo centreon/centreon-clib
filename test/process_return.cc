@@ -37,8 +37,7 @@ int main() {
     p.wait();
     if (p.exit_code() != 42)
       throw(basic_error() << "invalid return");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     ret = EXIT_FAILURE;
     std::cerr << "error: " << e.what() << std::endl;
   }

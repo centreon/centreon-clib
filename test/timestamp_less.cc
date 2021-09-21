@@ -46,8 +46,7 @@ int main() {
     timestamp t5(-1, 0);
     if (t1 < t5)
       throw(basic_error() << "operator< failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

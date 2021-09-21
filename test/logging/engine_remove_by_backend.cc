@@ -18,9 +18,9 @@
 
 #include <iostream>
 #include <memory>
+#include "./backend_test.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/engine.hh"
-#include "./backend_test.hh"
 
 using namespace com::centreon::logging;
 
@@ -33,8 +33,7 @@ static bool null_pointer() {
   try {
     engine& e(engine::instance());
     e.remove(static_cast<backend*>(NULL));
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
     return (true);
   }
@@ -66,8 +65,7 @@ int main() {
     if (e.remove(obj.get()) != nb_backend - 1)
       throw(basic_error() << "remove " << nb_backend << " backend failed");
     retval = 0;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     retval = 1;
   }

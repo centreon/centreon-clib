@@ -57,8 +57,7 @@ int main() {
     lib.unload();
     if (lib.is_loaded())
       throw(basic_error() << "unload failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

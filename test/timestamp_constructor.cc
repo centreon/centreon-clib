@@ -40,8 +40,7 @@ int main() {
     timestamp t3(42, 24);
     if (t3.to_useconds() != 42000024)
       throw(basic_error() << "constructor failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }
