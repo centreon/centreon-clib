@@ -2,3 +2,7 @@
 build/*
 inc/com/centreon/clib/version.hh
 script/centreon-clib.pc
+CMakeLists.txt.user
+deps.png
+tags
+.vscode
