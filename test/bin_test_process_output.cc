@@ -16,11 +16,11 @@
 ** For more information : contact@centreon.com
 */
 
+#include <unistd.h>
 #include <cstdlib>
 #include <cstring>
 #include <exception>
 #include <iostream>
-#include <unistd.h>
 
 /**
  *  Find line into the environement.
@@ -89,8 +89,9 @@ static int check_output(char const* type) {
 static void usage(char const* appname) {
   std::cerr << "usage: " << appname << std::endl
             << "  check_env key1=value1 keyx=valuex..." << std::endl
-            << "  check_output err|out" << std::endl << "  check_return value"
-            << std::endl << "  check_sleep value" << std::endl;
+            << "  check_output err|out" << std::endl
+            << "  check_return value" << std::endl
+            << "  check_sleep value" << std::endl;
   exit(EXIT_FAILURE);
 }
 
@@ -117,8 +118,7 @@ int main(int argc, char** argv, char** env) {
       }
     }
     usage(argv[0]);
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error:" << e.what() << std::endl;
     return (EXIT_FAILURE);
   }

@@ -148,12 +148,12 @@ TEST(ClibProcess, ProcessKillRep) {
   int sum = 0;
   process p;
   for (int i = 0; i < count; i++) {
-  p.exec("./test/bin_test_process_output check_sleep 1");
-  p.kill();
-  timestamp start(timestamp::now());
-  p.wait();
-  timestamp end(timestamp::now());
-  sum += (end - start).to_seconds();
+    p.exec("./test/bin_test_process_output check_sleep 1");
+    p.kill();
+    timestamp start(timestamp::now());
+    p.wait();
+    timestamp end(timestamp::now());
+    sum += (end - start).to_seconds();
   }
   ASSERT_EQ(sum, 0);
 }
@@ -168,13 +168,13 @@ TEST(ClibProcess, ProcessKillSerial) {
   constexpr int count = 10;
   int sum = 0;
   for (int i = 0; i < count; i++) {
-  process p;
-  p.exec("./test/bin_test_process_output check_sleep 1");
-  p.kill();
-  timestamp start(timestamp::now());
-  p.wait();
-  timestamp end(timestamp::now());
-  sum += (end - start).to_seconds();
+    process p;
+    p.exec("./test/bin_test_process_output check_sleep 1");
+    p.kill();
+    timestamp start(timestamp::now());
+    p.wait();
+    timestamp end(timestamp::now());
+    sum += (end - start).to_seconds();
   }
   ASSERT_EQ(sum, 0);
 }
@@ -216,8 +216,7 @@ TEST(ClibProcess, ProcessKillMT) {
  */
 TEST(ClibProcess, ProcessStdout) {
   process p(nullptr, false, true, false);
-  p.exec(
-      "./test/bin_test_process_output check_stdout 0");
+  p.exec("./test/bin_test_process_output check_stdout 0");
   std::string output;
   p.read(output);
   p.wait();
@@ -283,7 +282,8 @@ TEST(ClibProcess, ProcessOutput) {
   do {
     std::string tmp;
     if (total_write < sizeof(buffer_write))
-      total_write += p.write(buffer_write + total_write, sizeof(buffer_write) - total_write);
+      total_write += p.write(buffer_write + total_write,
+                             sizeof(buffer_write) - total_write);
     p.read(tmp);
     total_read += tmp.size();
     buffer_read.append(tmp);
@@ -315,7 +315,8 @@ TEST(ClibProcess, ProcessErr) {
   do {
     std::string tmp;
     if (total_write < sizeof(buffer_write))
-      total_write += p.write(buffer_write + total_write, sizeof(buffer_write) - total_write);
+      total_write += p.write(buffer_write + total_write,
+                             sizeof(buffer_write) - total_write);
     p.read_err(tmp);
     total_read += tmp.size();
     buffer_read.append(tmp);
@@ -360,8 +361,4 @@ TEST(ClibProcess, ProcessWaitTimeout) {
   p.exec("./test/bin_test_process_output check_sleep 1");
   ASSERT_FALSE(p.wait(500) == true);
   ASSERT_FALSE(p.wait(1500) == false);
-}
-
-TEST(ClibProcess, toto) {
-  ASSERT_TRUE(true);
 }

@@ -66,7 +66,6 @@ class shared_lock {
  public:
   shared_lock(shared_mutex& m) : _m(m) { _m.lock_shared(); }
   ~shared_lock() { _m.unlock(); }
-
 };
 
 #endif /* CC_SHARED_MUTEX_HH */

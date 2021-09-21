@@ -58,7 +58,7 @@ class temp_logger {
   unsigned long long _type;
   unsigned int _verbose;
 };
-}
+}  // namespace logging
 
 CC_END()
 
