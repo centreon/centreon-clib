@@ -289,7 +289,6 @@ TEST(ClibProcess, ProcessOutput) {
     buffer_read.append(tmp);
   } while (total_read < sizeof(buffer_write));
   p.kill(SIGTERM);
-  //p.update_ending_process(0);
   p.wait();
   ASSERT_EQ(p.exit_code(), EXIT_SUCCESS);
   ASSERT_EQ(total_write, sizeof(buffer_write));

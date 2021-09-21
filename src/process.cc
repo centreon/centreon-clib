@@ -365,6 +365,7 @@ void process::terminate() {
 void process::wait() const {
   std::unique_lock<std::mutex> lock(_lock_process);
   _cv_process_running.wait(lock, [this] { return !_is_running(); });
+  process_manager::instance().wait_for_update();
 }
 
 /**

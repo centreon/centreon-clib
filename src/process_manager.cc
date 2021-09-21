@@ -100,6 +100,12 @@ void process_manager::add(process* p) {
   }
 }
 
+void process_manager::wait_for_update() const noexcept {
+  std::unique_lock<std::mutex> lck(_running_m);
+  _running_cv.wait(lck, [this] {
+      return !_update; });
+}
+
 /**
  *  Update processes and file descriptors lists so we can then poll fd changes
  *  and wait for processes status changes. This method is only called by
@@ -113,6 +119,8 @@ void process_manager::_update_list() {
   {
     std::lock_guard<std::mutex> lck(_add_m);
     std::swap(_processes, my_processes);
+    // Disable update.
+    _update = false;
   }
 
   {
@@ -138,8 +146,6 @@ void process_manager::_update_list() {
       ++itt;
     }
   }
-  // Disable update.
-  _update = false;
 
   {
     std::lock_guard<std::mutex> lock(_timeout_m);
@@ -153,6 +159,12 @@ void process_manager::_update_list() {
   // Add pid process to use waitpid.
   for (auto p : my_processes)
     _processes_pid[p->_process] = p;
+
+  {
+    // Notification for process::wait()
+    std::lock_guard<std::mutex> lck(_running_m);
+    _running_cv.notify_all();
+  }
 }
 
 /**

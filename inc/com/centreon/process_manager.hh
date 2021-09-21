@@ -81,7 +81,7 @@ class process_manager {
   std::atomic_bool _running;
   std::atomic_bool _finished;
   mutable std::mutex _running_m;
-  std::condition_variable _running_cv;
+  mutable std::condition_variable _running_cv;
   std::thread _thread;
 
   std::deque<orphan> _orphans_pid;
@@ -110,6 +110,7 @@ class process_manager {
   static process_manager& instance();
   process_manager& operator=(process_manager const& p) = delete;
   process_manager(process_manager const& p) = delete;
+  void wait_for_update() const noexcept;
 };
 
 CC_END()
