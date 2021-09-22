@@ -16,16 +16,16 @@
 ** For more information : contact@centreon.com
 */
 
-#include <iostream>
-#include <memory>
-#include <sstream>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include "./backend_test.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/engine.hh"
-#include "./backend_test.hh"
 
 using namespace com::centreon::logging;
 
@@ -60,8 +60,7 @@ int main() {
     if (!check_thread_id(obj->data(), msg))
       throw(basic_error() << "log with thread id failed");
     retval = 0;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     retval = 1;
   }

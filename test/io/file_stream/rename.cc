@@ -67,11 +67,9 @@ int main() {
         throw(basic_error() << "invalid data");
     }
     ret = 0;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
-  }
-  catch (...) {
+  } catch (...) {
     std::cerr << "error: catch all" << std::endl;
   }
 

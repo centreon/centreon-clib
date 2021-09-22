@@ -20,9 +20,9 @@
 #include <memory>
 #include <sstream>
 #include <thread>
+#include "./backend_test.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/engine.hh"
-#include "./backend_test.hh"
 
 using namespace com::centreon::logging;
 
@@ -64,8 +64,7 @@ int main() {
       }
     }
     retval = 0;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     retval = 1;
   }

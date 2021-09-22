@@ -60,8 +60,7 @@ int main() {
     my_options opt(args);
     if (opt.get_parameters().size() != 3 || opt.get_arguments().size() != 5)
       throw(basic_error() << "constructor failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

@@ -35,8 +35,7 @@ int main() {
     arg.set_is_set(is_set);
     if (arg.get_is_set() != is_set)
       throw(basic_error() << "invalid is set");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }
