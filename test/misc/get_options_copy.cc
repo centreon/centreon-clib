@@ -61,8 +61,7 @@ int main() {
     my_options opt2 = ref;
     if (ref != opt2)
       throw(basic_error() << "copy operator failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

@@ -51,16 +51,15 @@ static void check_argument(argument const& a1, argument const& a2) {
  */
 int main() {
   try {
-    argument ref(
-        "help", 'c', "this help", true, true, "help:\n --help, -h  this help");
+    argument ref("help", 'c', "this help", true, true,
+                 "help:\n --help, -h  this help");
 
     argument arg1(ref);
     check_argument(ref, arg1);
 
     argument arg2 = ref;
     check_argument(ref, arg1);
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

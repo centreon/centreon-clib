@@ -36,8 +36,7 @@ int main() {
     cmd.parse(cmdline);
     if (cmd.get_argc() != 10)
       throw(basic_error() << "invalid argc value");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

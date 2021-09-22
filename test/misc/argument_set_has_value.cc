@@ -35,8 +35,7 @@ int main() {
     arg.set_has_value(has_value);
     if (arg.get_has_value() != has_value)
       throw(basic_error() << "invalid has value");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

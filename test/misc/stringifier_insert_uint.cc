@@ -16,9 +16,9 @@
 ** For more information : contact@centreon.com
 */
 
-#include <sstream>
-#include <string.h>
 #include <limits.h>
+#include <string.h>
+#include <sstream>
 #include "com/centreon/misc/stringifier.hh"
 
 using namespace com::centreon::misc;

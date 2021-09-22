@@ -14,6 +14,13 @@ informations.
 This one is in the process class. When the process is stopping and we write to
 its stdin, we could arrive to a deadlock.
 
+Another one in the process\_manager class is also fixed.
+
+*Fast processes*
+
+If process fastly writes to stdout and then exits, process\_manager could miss
+the output.
+
 ## 20.10.3
 
 ### Bug fixes

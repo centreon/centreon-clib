@@ -18,8 +18,8 @@
 
 #include <float.h>
 #include <math.h>
-#include <sstream>
 #include <stdlib.h>
+#include <sstream>
 #include "com/centreon/misc/stringifier.hh"
 
 using namespace com::centreon::misc;
@@ -36,9 +36,10 @@ static bool check_double(double d) {
   buffer << d;
   char* ptr(NULL);
   double converted(strtod(buffer.data(), &ptr));
-  return (ptr && !*ptr && (fabs(d - converted)
-                           // Roughly 0.1% error margin.
-                           <= (fabs(d / 1000) + 2 * DBL_EPSILON)));
+  return (ptr && !*ptr &&
+          (fabs(d - converted)
+           // Roughly 0.1% error margin.
+           <= (fabs(d / 1000) + 2 * DBL_EPSILON)));
 }
 
 /**
