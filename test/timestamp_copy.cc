@@ -38,8 +38,7 @@ int main() {
     timestamp t3 = t1;
     if (!(t1 == t3))
       throw(basic_error() << "copy operator failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

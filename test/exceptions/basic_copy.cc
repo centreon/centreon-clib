@@ -16,8 +16,8 @@
 ** For more information : contact@centreon.com
 */
 
-#include <sstream>
 #include <string.h>
+#include <sstream>
 #include "com/centreon/exceptions/basic.hh"
 
 using namespace com::centreon::exceptions;

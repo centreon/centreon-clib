@@ -32,6 +32,8 @@ using namespace com::centreon;
  *  @return EXIT_SUCCESS on success.
  */
 int main(int argc, char** argv) {
+  constexpr int size = 10 * 1024;
+
   int ret(EXIT_SUCCESS);
   try {
     if (argc != 2 || (strcmp(argv[1], "err") && strcmp(argv[1], "out"))) {
@@ -44,23 +46,26 @@ int main(int argc, char** argv) {
 
     process p;
     p.exec(cmd);
-    char buffer_write[16 * 1024];
+    char buffer_write[size];
     std::string buffer_read;
-    for (unsigned int i(0); i < sizeof(buffer_write); ++i)
-      buffer_write[i] = static_cast<char>(i);
-    unsigned int total_read(0);
-    unsigned int total_write(0);
+    for (size_t i = 0; i < sizeof(buffer_write); ++i)
+      buffer_write[i] = 'A' + i / 4096;
+    buffer_write[size - 1] = 0;
+    size_t total_read = 0;
+    size_t total_write = 0;
     do {
+      std::string tmp;
       if (total_write < sizeof(buffer_write))
-        total_write +=
-            p.write(buffer_write, sizeof(buffer_write) - total_write);
+        total_write += p.write(buffer_write + total_write,
+                               sizeof(buffer_write) - total_write);
       if (!strcmp(argv[1], "out"))
-        p.read(buffer_read);
+        p.read(tmp);
       else
-        p.read_err(buffer_read);
-      total_read += buffer_read.size();
+        p.read_err(tmp);
+      total_read += tmp.size();
+      buffer_read.append(tmp);
     } while (total_read < sizeof(buffer_write));
-    p.update_ending_process(0);
+    p.kill(SIGTERM);
     p.wait();
     if (p.exit_code() != EXIT_SUCCESS)
       throw basic_error() << "invalid return";
@@ -68,8 +73,9 @@ int main(int argc, char** argv) {
       throw basic_error() << "invalid data write";
     if (total_write != total_read)
       throw basic_error() << "invalid data read";
-  }
-  catch (std::exception const& e) {
+    if (memcmp(buffer_write, buffer_read.data(), total_read) != 0)
+      throw basic_error() << "bad copy";
+  } catch (std::exception const& e) {
     ret = EXIT_FAILURE;
     std::cerr << "error: " << e.what() << std::endl;
   }

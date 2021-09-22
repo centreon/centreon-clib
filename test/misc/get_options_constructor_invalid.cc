@@ -57,8 +57,7 @@ static bool check_unknown_option() {
     args.push_back("param3");
 
     my_options opt(args);
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
     return (true);
   }
@@ -79,8 +78,7 @@ static bool check_require_argument() {
     args.push_back("--test");
 
     my_options opt(args);
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
     return (true);
   }
@@ -100,8 +98,7 @@ int main() {
     if (!check_require_argument())
       throw(basic_error() << "constructor failed with "
                              "require argument");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

@@ -51,8 +51,7 @@ void load_library_failed() {
     library lib("libnot_found.so");
     lib.load();
     throw(basic_error() << "load failed: lib dosn't exist");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
   }
 }
@@ -66,8 +65,7 @@ int main() {
   try {
     load_library_success();
     load_library_failed();
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

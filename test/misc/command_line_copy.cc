@@ -16,8 +16,8 @@
 ** For more information : contact@centreon.com
 */
 
-#include <iostream>
 #include <string.h>
+#include <iostream>
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/misc/command_line.hh"
 
@@ -61,8 +61,7 @@ int main() {
     command_line cmd2 = ref;
     if (!compare(ref, cmd2))
       throw(basic_error() << "copy operator failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }
