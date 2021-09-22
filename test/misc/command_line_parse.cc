@@ -44,8 +44,7 @@ static bool check(std::string const& cmdline,
         return (false);
     if (argv[cmd.get_argc()])
       return (false);
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
     return (false);
   }
@@ -61,8 +60,7 @@ static bool check_invalid_cmdline() {
   try {
     command_line cmd;
     cmd.parse("'12 12");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     (void)e;
     return (true);
   }
@@ -211,8 +209,7 @@ int main() {
       if (!check(cmdline, res))
         throw(basic_error() << "parsing error: " << cmdline);
     }
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     ret = 1;
   }

@@ -66,8 +66,7 @@ int main() {
 
     // Success.
     retval = EXIT_SUCCESS;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cout << e.what() << std::endl;
   }
   return (retval);

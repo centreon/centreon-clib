@@ -38,8 +38,7 @@ int main() {
     t2.add_mseconds(-1000);
     if (t2.to_mseconds() != 0)
       throw(basic_error() << "add_mseconds failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

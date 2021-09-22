@@ -30,8 +30,8 @@ using namespace com::centreon::misc;
  */
 int main() {
   try {
-    argument ref(
-        "help", 'c', "this help", true, true, "help:\n --help, -h  this help");
+    argument ref("help", 'c', "this help", true, true,
+                 "help:\n --help, -h  this help");
 
     argument arg1(ref);
     if (ref != arg1)
@@ -40,8 +40,7 @@ int main() {
     argument arg2 = ref;
     if (ref != arg2)
       throw(basic_error() << "copy operator failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }
