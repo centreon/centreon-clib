@@ -42,8 +42,7 @@ int main(int argc, char* argv[]) {
       throw(basic_error() << "permission failed: is a regular file");
 
     ret = EXIT_SUCCESS;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << e.what() << std::endl;
   }
   return (ret);

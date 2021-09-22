@@ -35,8 +35,7 @@ int main() {
     arg.set_name(name);
     if (arg.get_name() != name)
       throw(basic_error() << "invalid name");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

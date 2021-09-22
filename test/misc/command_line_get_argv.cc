@@ -38,8 +38,7 @@ int main() {
       throw(basic_error() << "invalid argv value: null");
     if (cmd.get_argv()[0] != cmdline)
       throw(basic_error() << "invalid argv value");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

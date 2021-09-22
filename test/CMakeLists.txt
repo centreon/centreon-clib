@@ -43,8 +43,17 @@ set(CLIB_TESTS
     library_resolve
     library_load
     process_env
+    process_env_rep
+    process_env_serial
+    process_env_mt
     process_kill
+    process_kill_rep
+    process_kill_serial
+    process_kill_mt
     process_return
+    process_stdout
+    process_stdout_rep
+    process_stdout_serial
     process_terminate
     process_timeout
     process_wait_timeout
@@ -58,20 +67,6 @@ endforeach ()
 
 # process_output
 set(TEST_NAME "process_output")
-add_executable("${TEST_NAME}" "${TEST_DIR}/${TEST_NAME}.cc")
-target_link_libraries("${TEST_NAME}" "${DEFAULT_LINK_NAME}")
-add_test("${TEST_NAME}_stderr" "${TEST_NAME}" "err")
-add_test("${TEST_NAME}_stdout" "${TEST_NAME}" "out")
-
-# process_output_mt
-set(TEST_NAME "process_output_mt")
-add_executable("${TEST_NAME}" "${TEST_DIR}/${TEST_NAME}.cc")
-target_link_libraries("${TEST_NAME}" "${DEFAULT_LINK_NAME}")
-add_test("${TEST_NAME}_stderr" "${TEST_NAME}" "err")
-add_test("${TEST_NAME}_stdout" "${TEST_NAME}" "out")
-
-# process_output_mt1
-set(TEST_NAME "process_output_mt1")
 add_executable("${TEST_NAME}" "${TEST_DIR}/${TEST_NAME}.cc")
 target_link_libraries("${TEST_NAME}" "${DEFAULT_LINK_NAME}")
 add_test("${TEST_NAME}_stderr" "${TEST_NAME}" "err")

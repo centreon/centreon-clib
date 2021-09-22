@@ -56,16 +56,15 @@ int main() {
     {
       FILE* out(NULL);
       if (!(out = fopen(tmp, "w")))
-        throw(basic_error() << "failed to open file \"" << tmp
-                            << "\":" << strerror(errno));
+        throw(basic_error()
+              << "failed to open file \"" << tmp << "\":" << strerror(errno));
       file f(out, false, false, none, false);
       f.log(1, 0, msg, sizeof(msg));
     }
     if (!check_log_message(tmp, msg))
       throw(basic_error() << "log message failed");
     retval = 0;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     retval = 1;
   }
