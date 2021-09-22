@@ -50,8 +50,7 @@ int main() {
     t7 -= t4;
     if (t7.to_useconds() != 3000048)
       throw(basic_error() << "operator-= failed");
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

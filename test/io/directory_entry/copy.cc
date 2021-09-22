@@ -41,8 +41,7 @@ int main() {
       throw(basic_error() << "copy operator failed");
 
     ret = EXIT_SUCCESS;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << e.what() << std::endl;
   }
   return (ret);

@@ -30,16 +30,13 @@ using namespace com::centreon;
  */
 int main() {
   try {
-    {
-      handle_manager hm(NULL);
-    }
+    { handle_manager hm(NULL); }
 
     {
       task_manager tm;
       handle_manager hm(&tm);
     }
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return (1);
   }

@@ -26,10 +26,10 @@ using namespace com::centreon;
  *  @class task_test
  *  @brief litle implementation of task to test task manager.
  */
-class  task_test : public task {
-public:
-       task_test() : task() {}
-       ~task_test() noexcept {}
+class task_test : public task {
+ public:
+  task_test() : task() {}
+  ~task_test() noexcept {}
   void run() {}
 };
 
@@ -45,15 +45,14 @@ int main() {
     timestamp max_time(timestamp::max_time());
 
     if (tm.next_execution_time() != max_time)
-      throw basic_error() << "bad initialization of " \
-             "next_execution_time";
+      throw basic_error() << "bad initialization of "
+                             "next_execution_time";
 
     task_test* t1(new task_test);
     tm.add(t1, now, true, true);
     if (tm.next_execution_time() != now)
       throw basic_error() << "next_execution_time failed";
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return 1;
   }

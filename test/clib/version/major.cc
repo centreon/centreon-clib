@@ -34,10 +34,11 @@ int main() {
 
   // Message.
   if (retval)
-    std::cout << "Version major mismatch" << std::endl << "  library returned "
-              << version::get_major() << std::endl << "  header returned  "
-              << version::major << std::endl << "  macro returned   "
-              << CENTREON_CLIB_VERSION_MAJOR << std::endl;
+    std::cout << "Version major mismatch" << std::endl
+              << "  library returned " << version::get_major() << std::endl
+              << "  header returned  " << version::major << std::endl
+              << "  macro returned   " << CENTREON_CLIB_VERSION_MAJOR
+              << std::endl;
   else
     std::cout << "Version major is consistent (" << version::major << ")"
               << std::endl;

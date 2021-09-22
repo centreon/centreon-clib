@@ -16,14 +16,14 @@
 ** For more information : contact@centreon.com
 */
 
+#include <ctype.h>
+#include <string.h>
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include <ctype.h>
-#include <string.h>
+#include "./backend_test.hh"
 #include "com/centreon/exceptions/basic.hh"
 #include "com/centreon/logging/engine.hh"
-#include "./backend_test.hh"
 
 using namespace com::centreon::logging;
 
@@ -80,8 +80,7 @@ int main() {
                              "failed");
     obj->reset();
     retval = 0;
-  }
-  catch (std::exception const& e) {
+  } catch (std::exception const& e) {
     std::cerr << "error: " << e.what() << std::endl;
     retval = 1;
   }
