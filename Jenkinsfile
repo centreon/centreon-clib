@@ -1,14 +1,26 @@
+@Library("centreon-shared-library")_
+
 /*
 ** Variables.
 */
+
 properties([buildDiscarder(logRotator(numToKeepStr: '10'))])
+env.REF_BRANCH = 'master'
+env.PROJECT='centreon-clib'
 def serie = '21.10'
 def maintenanceBranch = "${serie}.x"
 def qaBranch = "dev-${serie}.x"
+def buildBranch = env.BRANCH_NAME
+if (env.CHANGE_BRANCH) {
+  buildBranch = env.CHANGE_BRANCH
+}
 
+/*
+** Branch management
+*/
 if (env.BRANCH_NAME.startsWith('release-')) {
   env.BUILD = 'RELEASE'
-} else if ((env.BRANCH_NAME == 'master') || (env.BRANCH_NAME == maintenanceBranch)) {
+} else if ((env.BRANCH_NAME == env.REF_BRANCH) || (env.BRANCH_NAME == maintenanceBranch)) {
   env.BUILD = 'REFERENCE'
 } else if ((env.BRANCH_NAME == 'develop') || (env.BRANCH_NAME == qaBranch)) {
   env.BUILD = 'QA'
@@ -19,97 +31,97 @@ if (env.BRANCH_NAME.startsWith('release-')) {
 /*
 ** Pipeline code.
 */
-stage('Source') {
+stage('Deliver sources') {
   node("C++") {
-    sh 'setup_centreon_build.sh'
-    dir('centreon-clib') {
+    dir('centreon-clib-centos7') {
       checkout scm
-    }
-    sh "./centreon-build/jobs/clib/${serie}/mon-clib-source.sh"
-    source = readProperties file: 'source.properties'
-    env.VERSION = "${source.VERSION}"
-    env.RELEASE = "${source.RELEASE}"
-    publishHTML([
-      allowMissing: false,
-      keepAll: true,
-      reportDir: 'summary',
-      reportFiles: 'index.html',
-      reportName: 'Centreon Clib Build Artifacts',
-      reportTitles: ''
-    ])
-    withSonarQubeEnv('SonarQubeDev') {
-      sh "./centreon-build/jobs/clib/${serie}/mon-clib-analysis.sh"
+      loadCommonScripts()
+      sh 'ci/scripts/clib-sources-delivery.sh centreon-clib'
+      source = readProperties file: 'source.properties'
+      env.VERSION = "${source.VERSION}"
+      env.RELEASE = "${source.RELEASE}"
     }
   }
 }
 
-try {
-  // sonarQube step to get qualityGate result
-  stage('Quality gate') {
+stage('Build / Unit tests // Packaging / Signing') {
+  parallel 'centos7 Build and UT': {
     node("C++") {
-      def qualityGate = waitForQualityGate()
-      if (qualityGate.status != 'OK') {
-        currentBuild.result = 'FAIL'
-      }
-      if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
-        error("Quality gate failure: ${qualityGate.status}.");
-      }
-    }
-  }
-
-  stage('Package') {
-    parallel 'packaging centos7': {
-      node("C++") {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos7"
-        stash name: 'el7-rpms', includes: "output/x86_64/*.rpm"
-        archiveArtifacts artifacts: "output/x86_64/*.rpm"
-        sh 'rm -rf output' 
-      }
-    },
-    'packaging centos8': {
-      node("C++") {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos8"
-        stash name: 'el8-rpms', includes: "output/x86_64/*.rpm"
-        archiveArtifacts artifacts: "output/x86_64/*.rpm"
-        sh 'rm -rf output' 
-      }
-    },
-    'packaging debian10': {
-      node("C++") {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10"
-      }
-    },
-    'packaging debian10-armhf': {
-      node("C++") {
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh debian10-armhf"
+      dir('centreon-clib-centos7') {
+        checkout scm
+        sh 'docker run -i --entrypoint /src/ci/scripts/clib-unit-tests.sh -v "$PWD:/src" registry.centreon.com/centreon-clib-centos7-dependencies:21.10'
+        sh "sudo apt-get install -y clang-tidy"
+        withSonarQubeEnv('SonarQubeDev') {
+          sh 'ci/scripts/clib-sources-analysis.sh'
+        }
       }
     }
-    if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
-      error('Packaging stage failure');
+  },
+  'centos7 rpm packaging and signing': {
+    node("C++") {
+      dir('centreon-clib-centos7') {
+        checkout scm
+        sh 'docker run -i --entrypoint /src/ci/scripts/clib-rpm-package.sh -v "$PWD:/src" -e DISTRIB="el7" -e VERSION=$VERSION -e RELEASE=$RELEASE registry.centreon.com/centreon-clib-centos7-dependencies:21.10'
+        sh 'rpmsign --addsign *.rpm'
+        stash name: 'el7-rpms', includes: '*.rpm'
+        archiveArtifacts artifacts: "*.rpm"
+        sh 'rm -rf *.rpm'
+      } 
     }
-  }
-
-  if ((env.BUILD == 'RELEASE') || (env.BUILD == 'QA')) {
-    stage('Delivery') {
-      node("C++") {
-        unstash 'el7-rpms'
-        unstash 'el8-rpms'
-        sh 'setup_centreon_build.sh'
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-delivery.sh"
-      }
-      if ((currentBuild.result ?: 'SUCCESS') != 'SUCCESS') {
-        error('Delivery stage failure.');
+  },
+  'centos8 Build and UT': {
+    node("C++") {
+      dir('centreon-clib-centos8') {
+        checkout scm
+        sh 'docker run -i --entrypoint /src/ci/scripts/clib-unit-tests.sh -v "$PWD:/src" registry.centreon.com/centreon-clib-centos8-dependencies:21.10'
       }
     }
-  }
+  },
+  'centos8 rpm packaging and signing': {
+    node("C++") {
+      dir('centreon-clib-centos8') {
+        checkout scm
+        sh 'docker run -i --entrypoint /src/ci/scripts/clib-rpm-package.sh -v "$PWD:/src" -e DISTRIB="el8" -e VERSION=$VERSION -e RELEASE=$RELEASE registry.centreon.com/centreon-clib-centos8-dependencies:21.10'
+        sh 'rpmsign --addsign *.rpm'
+        stash name: 'el8-rpms', includes: '*.rpm'
+        archiveArtifacts artifacts: "*.rpm"
+        sh 'rm -rf *.rpm'
+      }
+    }
+  },
+  'debian buster Build and UT': {
+    node("C++") {
+      dir('centreon-clib-debian') {
+        checkout scm
+        sh 'docker run -i --entrypoint /src/ci/scripts/clib-unit-tests.sh -v "$PWD:/src" registry.centreon.com/centreon-clib-debian-dependencies:21.10'
+      }
+    }
+  },
+  'debian buster packaging and signing': {
+    node("C++") {
+      dir('centreon-clib-centos8') {
+        //checkout scm
+        //sh 'docker run -i --entrypoint /src/ci/scripts/clib-rpm-package.sh -v "$PWD:/src" -e DISTRIB="el8" -e VERSION=$VERSION -e RELEASE=$RELEASE registry.centreon.com/centreon-clib-centos8-dependencies:21.10'
+        //sh 'rpmsign --addsign *.rpm'
+        //stash name: 'el8-rpms', includes: '*.rpm'
+        //archiveArtifacts artifacts: "*.rpm"
+        //sh 'rm -rf *.rpm'
+      }
+    }
+  } 
 }
-finally {
-  buildStatus = currentBuild.result ?: 'SUCCESS';
-  if ((buildStatus != 'SUCCESS') && ((env.BUILD == 'RELEASE') || (env.BUILD == 'REFERENCE'))) {
-    slackSend channel: '#monitoring-metrology', message: "@channel Centreon Clib build ${env.BUILD_NUMBER} of branch ${env.BRANCH_NAME} was broken by ${source.COMMITTER}. Please fix it ASAP."
+
+if ((env.BUILD == 'RELEASE') || (env.BUILD == 'QA')) {
+  stage('Delivery') {
+    node("C++") {
+      unstash 'el8-rpms'
+      unstash 'el7-rpms'
+      dir('centreon-clib-delivery') {
+        checkout scm
+        loadCommonScripts()
+        sh 'rm -rf output && mkdir output && mv ../*.rpm output'
+        sh './ci/scripts/clib-rpm-delivery.sh'
+      }
+    }
   }
 }
