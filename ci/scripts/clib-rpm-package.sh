@@ -7,6 +7,10 @@ if [ -z "$VERSION" -o -z "$RELEASE" -o -z "$DISTRIB" ] ; then
 fi
 
 # echo "################################################## BUILDING CLIB ##################################################"
+# generate rpm clib
+if [ ! -d /root/rpmbuild/SOURCES ] ; then
+    mkdir -p /root/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+fi
 
 # generate rpm clib
 mkdir centreon-clib-$VERSION
