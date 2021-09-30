@@ -41,7 +41,7 @@ fi
 
 echo -n "#####GET $PROJECT COMMITER#####"
 COMMITTER=`git show --format='%cN <%cE>' HEAD | head -n 1`
-
+rm -rf $PROJECT-$VERSION.tar.gz
 echo -n "#####ARCHIVING $PROJECT#####"
 tar czf "$PROJECT-$VERSION.tar.gz" *    
 
