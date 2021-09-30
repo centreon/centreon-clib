@@ -49,7 +49,7 @@ stage('Build / Unit tests // Packaging / Signing') {
     node("C++") {
       dir('centreon-clib-centos7') {
         checkout scm
-        sh 'docker run -i --entrypoint /src/ci/scripts/clib-unit-tests.sh -v "$PWD:/src" registry.centreon.com/centreon-clib-centos7-dependencies:21.10'
+        sh 'docker run -i --entrypoint /src/ci/scripts/clib-unit-tests.sh -v "$PWD:/src" registry.centreon.com/centreon-collect-centos7-dependencies:21.10'
         sh "sudo apt-get install -y clang-tidy"
         withSonarQubeEnv('SonarQubeDev') {
           sh 'ci/scripts/clib-sources-analysis.sh'
@@ -61,7 +61,7 @@ stage('Build / Unit tests // Packaging / Signing') {
     node("C++") {
       dir('centreon-clib-centos7') {
         checkout scm
-        sh 'docker run -i --entrypoint /src/centreon-clib/ci/scripts/clib-rpm-package.sh -v "$PWD:/src/centreon-clib" -e DISTRIB="el7" -e VERSION=$VERSION -e RELEASE=$RELEASE registry.centreon.com/centreon-clib-centos7-dependencies:21.10'
+        sh 'docker run -i --entrypoint /src/centreon-clib/ci/scripts/clib-rpm-package.sh -v "$PWD:/src/centreon-clib" -e DISTRIB="el7" -e VERSION=$VERSION -e RELEASE=$RELEASE registry.centreon.com/centreon-collect-centos7-dependencies:21.10'
         sh 'rpmsign --addsign *.rpm'
         stash name: 'el7-rpms', includes: '*.rpm'
         archiveArtifacts artifacts: "*.rpm"
@@ -73,7 +73,7 @@ stage('Build / Unit tests // Packaging / Signing') {
     node("C++") {
       dir('centreon-clib-centos8') {
         checkout scm
-        sh 'docker run -i --entrypoint /src/ci/scripts/clib-unit-tests.sh -v "$PWD:/src" registry.centreon.com/centreon-clib-centos8-dependencies:21.10'
+        sh 'docker run -i --entrypoint /src/ci/scripts/clib-unit-tests.sh -v "$PWD:/src" registry.centreon.com/centreon-collect-centos8-dependencies:21.10'
       }
     }
   },
@@ -81,7 +81,7 @@ stage('Build / Unit tests // Packaging / Signing') {
     node("C++") {
       dir('centreon-clib-centos8') {
         checkout scm
-        sh 'docker run -i --entrypoint /src/centreon-clib/ci/scripts/clib-rpm-package.sh -v "$PWD:/src/centreon-clib" -e DISTRIB="el8" -e VERSION=$VERSION -e RELEASE=$RELEASE registry.centreon.com/centreon-clib-centos8-dependencies:21.10'
+        sh 'docker run -i --entrypoint /src/centreon-clib/ci/scripts/clib-rpm-package.sh -v "$PWD:/src/centreon-clib" -e DISTRIB="el8" -e VERSION=$VERSION -e RELEASE=$RELEASE registry.centreon.com/centreon-collect-centos8-dependencies:21.10'
         sh 'rpmsign --addsign *.rpm'
         stash name: 'el8-rpms', includes: '*.rpm'
         archiveArtifacts artifacts: "*.rpm"
@@ -93,7 +93,7 @@ stage('Build / Unit tests // Packaging / Signing') {
     node("C++") {
       dir('centreon-clib-debian') {
         checkout scm
-        sh 'docker run -i --entrypoint /src/ci/scripts/clib-unit-tests.sh -v "$PWD:/src" registry.centreon.com/centreon-clib-debian-dependencies:21.10'
+        sh 'docker run -i --entrypoint /src/ci/scripts/clib-unit-tests.sh -v "$PWD:/src" registry.centreon.com/centreon-collect-debian-dependencies:21.10'
       }
     }
   },
@@ -101,7 +101,7 @@ stage('Build / Unit tests // Packaging / Signing') {
     node("C++") {
       dir('centreon-clib-centos8') {
         //checkout scm
-        //sh 'docker run -i --entrypoint /src/centreon-clib/ci/scripts/clib-rpm-package.sh -v "$PWD:/src/centreon-clib" -e DISTRIB="el8" -e VERSION=$VERSION -e RELEASE=$RELEASE registry.centreon.com/centreon-clib-centos8-dependencies:21.10'
+        //sh 'docker run -i --entrypoint /src/centreon-clib/ci/scripts/clib-rpm-package.sh -v "$PWD:/src/centreon-clib" -e DISTRIB="el8" -e VERSION=$VERSION -e RELEASE=$RELEASE registry.centreon.com/centreon-collect-centos8-dependencies:21.10'
         //sh 'rpmsign --addsign *.rpm'
         //stash name: 'el8-rpms', includes: '*.rpm'
         //archiveArtifacts artifacts: "*.rpm"
