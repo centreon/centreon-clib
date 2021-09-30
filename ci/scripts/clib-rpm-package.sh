@@ -18,5 +18,5 @@ rpmbuild -ba centreon-clib/packaging/rpm/centreon-clib.spectemplate -D "VERSION 
 
 # cleaning and according permissions to slave to delivery rpms
 rm -rf *.rpm
-cp -r /root/rpmbuild/RPMS/x86_64/*.rpm .
-chmod 777 *.rpm
+cp -r /root/rpmbuild/RPMS/x86_64/*.rpm centreon-clib/
+chmod 777 centreon-clib/*.rpm
