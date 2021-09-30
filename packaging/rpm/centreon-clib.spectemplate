@@ -58,7 +58,7 @@ fi
 CXXFLAGS="-DNDEBUG -g -O2 -Wno-long-long" cmake3 -j9 \
 	-DWITH_PKGCONFIG_DIR=%{_libdir}/pkgconfig \
 	-DWITH_PREFIX=%{_prefix} \
-	-DWITH_PREFIX_LIB_CLIB=%{_libdir} \
+	-DWITH_PREFIX_LIB=%{_libdir} \
 	-DWITH_PREFIX_INC=%{_includedir}/centreon-clib \
 	-DWITH_SHARED_LIB=1 \
 	-DWITH_STATIC_LIB=0 \
