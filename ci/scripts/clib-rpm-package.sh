@@ -11,7 +11,7 @@ fi
 # generate rpm clib
 mkdir centreon-clib-$VERSION
 cp -r centreon-clib/* centreon-clib-$VERSION
-tar -czf centreon-clib-$VERSION.tar.gz centreon-clib-$VERSION cmake.sh
+tar -czf centreon-clib-$VERSION.tar.gz centreon-clib-$VERSION centreon-clib/cmake.sh
 mv centreon-clib-$VERSION.tar.gz /root/rpmbuild/SOURCES/
 rm -rf centreon-clib-$VERSION
 rpmbuild -ba centreon-clib/packaging/rpm/centreon-clib.spectemplate -D "VERSION $VERSION" -D "RELEASE $RELEASE"
