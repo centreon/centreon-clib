@@ -1,5 +1,13 @@
 # Changelog
 
+## 20.10.5
+
+### Bug fixes
+
+*Deadlock removed*
+
+A mutex in the log engine needs to be recursive, because sometimes we create logs, that log
+informations.
 ## 20.10.4
 
 ### Bug fixes
