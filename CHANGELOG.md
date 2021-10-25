@@ -1,5 +1,13 @@
 # Changelog
 
+## 20.04.4
+
+### Bugfixes
+
+*Deadlock removed*
+
+some logs mutex needs to be recursive, because sometimes we create logs, that log
+informations.
 ## 20.04.3
 
 ### Bugfixes
