@@ -1,5 +1,12 @@
 # Changelog
 
+## 21.04.4
+
+*Deadlock removed*
+
+A mutex in the log engine needs to be recursive, because sometimes we create logs, that log
+informations.
+
 ## 21.04.3
 
 *Deadlock removed*
