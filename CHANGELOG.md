@@ -4,7 +4,7 @@
 
 *Deadlock removed*
 
-some logs mutex needs to be recursive, because sometimes we create logs, that log
+A mutex in the log engine needs to be recursive, because sometimes we create logs, that log
 informations.
 
 ## 21.04.3
