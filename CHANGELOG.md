@@ -1,27 +1,16 @@
 # Changelog
 
-## 20.04.4
-
-### Bugfixes
-
-*Deadlock removed*
-
-A mutex in the log engine needs to be recursive, because sometimes we create logs, that log
-informations.
-
 ## 20.04.3
 
 ### Bugfixes
 
-*Deadlock removed*
+*Deadlocks removed*
 
 The logs mutex needs to be recursive, because sometimes we create logs, that log
 informations.
 
-*Deadlock removed*
-
-This one is in the process class. When the process is stopping and we write to
-its stdin, we could arrive to a deadlock.
+This deadlock was in the process class. When the process was stopping and we
+wrote to its stdin, we could arrive to a deadlock.
 
 Another one in the process\_manager class is also fixed.
 
