@@ -78,11 +78,11 @@ try {
         sh 'rm -rf output' 
       }
     },
-    'packaging centos8': {
+    'packaging alma8': {
       node("C++") {
         checkoutCentreonBuild()
-        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh centos8"
-        stash name: 'el8-rpms', includes: "output/x86_64/*.rpm"
+        sh "./centreon-build/jobs/clib/${serie}/mon-clib-package.sh alma8"
+        stash name: 'alma8-rpms', includes: "output/x86_64/*.rpm"
         archiveArtifacts artifacts: "output/x86_64/*.rpm"
         sh 'rm -rf output' 
       }
@@ -108,7 +108,7 @@ try {
     stage('Delivery') {
       node("C++") {
         unstash 'el7-rpms'
-        unstash 'el8-rpms'
+        unstash 'alma8-rpms'
         checkoutCentreonBuild()
         sh "./centreon-build/jobs/clib/${serie}/mon-clib-delivery.sh"
       }
