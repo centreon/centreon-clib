@@ -1,5 +1,7 @@
 # Centreon Clib
 
+**Warning** This repository is deprecated. Please switch to [Centreon Collect](https://github.com/centreon/centreon-collect).
+
 Centreon Clib is an open-source utility library used by some Centreon
 software. It is a low-level component of the
 [Centreon software suite](https://www.centreon.com).
